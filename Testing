@@ -1,0 +1,140 @@
+function Evaluate-Expression {
+    param (
+        $value,
+        $comparisonValue,
+        [string]$comparisonOperator,
+        [bool]$isRegex
+    )
+
+    if ($isRegex) {
+        switch ($comparisonOperator) {
+            'Equal'      { return [bool]($value -match $comparisonValue) }
+            'NotEqual'   { return -not ([bool]($value -match $comparisonValue)) }
+            default      { Write-Error "Unsupported comparison operator for regex: $comparisonOperator"; return $false }
+        }
+    } else {
+        $parsedValue = $null
+        $valueIsNumeric = [double]::TryParse($value, [ref]$parsedValue)
+
+        if ($valueIsNumeric) {
+            $valueType = $parsedValue
+        } else {
+            $valueType = $value
+        }
+
+        $parsedComparisonValue = $null
+        $comparisonValueIsNumeric = [double]::TryParse($comparisonValue, [ref]$parsedComparisonValue)
+
+        if ($comparisonValueIsNumeric) {
+            $comparisonValueType = $parsedComparisonValue
+        } else {
+            $comparisonValueType = $comparisonValue
+        }
+
+        # if($valueType.ToCharAr "*")
+        switch ($comparisonOperator) {
+            'Equal'                { return $valueType -eq $comparisonValueType }
+            'NotEqual'             { return $valueType -ne $comparisonValueType }
+            'GreaterThan'          { return $valueType -gt $comparisonValueType }
+            'GreaterThanOrEqual'   { return $valueType -ge $comparisonValueType }
+            'LessThan'             { return $valueType -lt $comparisonValueType }
+            'LessThanOrEqual'      { return $valueType -le $comparisonValueType }
+            default                { Write-Error "Unknown comparison operator: $comparisonOperator"; return $false }
+        }
+    }
+}
+
+function Evaluate-Nodes {
+    param (
+        [array]$nodes,
+        [object]$data 
+    )
+    $result = $null
+    for ($i = 0; $i -lt $nodes.Count; $i++) {
+        $node = $nodes[$i]
+        $nodeResult = Evaluate-Node -node $node -data $data
+
+        if ($node.IsNegation) {
+            $nodeResult = -not $nodeResult
+        }
+
+        if ($null -eq $result) {
+            $result = $nodeResult
+        } else {
+            $logicalOperator = $node.LogicalOperator
+            if ($logicalOperator -eq 'And') {
+                $result = $result -and $nodeResult
+                if (-not $result) { break }
+            } elseif ($logicalOperator -eq 'Or') {
+                $result = $result -or $nodeResult
+                if ($result) { break }
+            } else {
+                Write-Error "Unknown LogicalOperator: $logicalOperator"
+                $result = $false
+                break
+            }
+        }
+    }
+    return $result
+}
+
+function Evaluate-Node {
+    param (
+        [object]$node,
+        [object]$data
+    )
+    if ($node.ExpressionDescriptor) {
+        $exp = $node.ExpressionDescriptor
+        $column = $exp.Column
+        $value = $null
+
+        if ($data.PSObject.Properties.Name -contains $column) {
+            $value = $data.$column
+        }
+
+        $comparisonValue = $exp.Value
+        $comparisonOperator = $exp.ComparisonOperator
+        $isRegex = $exp.IsRegex
+
+        if ($null -eq $value) {
+            $result = $false
+        } else {
+            $result = Evaluate-Expression -value $value -comparisonValue $comparisonValue -comparisonOperator $comparisonOperator -isRegex $isRegex
+        }
+    } elseif ($node.ChildNodes) {
+        $result = Evaluate-Nodes -nodes $node.ChildNodes -data $data
+    } else {
+        $result = $true
+    }
+
+    return $result
+}
+
+function Evaluate-Filter {
+    param (
+        [array]$filterNodes,
+        [object]$data
+    )
+    $finalResult = Evaluate-Nodes -nodes $filterNodes -data $data
+    return $finalResult
+}
+
+$TriggerName = "Logical Disk Advanced Trigger" 
+$Trigger = Get-CUTriggers | Where-Object {$_.TriggerName -eq $TriggerName}
+$TriggerID = $Trigger.TriggerId
+$TriggerDetails = Get-CUTriggerDetails -TriggerId $TriggerID
+$TriggerObservableDetails = Get-CUObservableTriggerDetails -Trigger $TriggerName
+$Dump = New-Object System.Collections.ArrayList
+foreach($folder in $TriggerObservableDetails.Folders) {
+    $Dump.Add((Invoke-CUQuery -Table $TriggerObservableDetails.Table -Fields $TriggerObservableDetails.Filters -Focus $Folder).Data) | Out-Null
+}
+
+$result = Evaluate-Filter -filterNodes $TriggerDetails.FilterNodes -data $dump[1][0]
+
+if ($result) {
+    Write-Host "The trigger would fire based on the provided data."
+} else {
+    Write-Host "The trigger would NOT fire based on the provided data."
+}
+
+#(Get-CUTriggerSchedules | Where-object {$_.name -eq 'test'}).Weekdays.SelectedHours
