@@ -1,54 +1,52 @@
-<#
-    .SYNOPSIS
-
-    .DESCRIPTION
-
-    .PARAMETER node
-
-    .PARAMETER data
-
-    .EXAMPLE
-
-    .NOTES
-#>
 function Test-Node {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [object] $node,
-        
-        [Parameter(Mandatory=$true)]
-        [object] $data,
-
-        [Parameter(Mandatory=$true)]
-        [ref]$ExpressionTree
+            
+        [Parameter(Mandatory = $true)]
+        [object] $data
     )
+
+    Write-Verbose "Starting Test-Node for node."
 
     if ($node.ExpressionDescriptor) {
         $exp = $node.ExpressionDescriptor
         $column = $exp.Column
-        $value = $null
 
-        if ($data.PSObject.Properties.Name -contains $column) {
-            $value = $data.$column
+        $value = if ($data.PSObject.Properties.Name -contains $column) {
+            $data.$column
+        } else {
+            $null
         }
-
-        $comparisonValue = $exp.Value
-        $comparisonOperator = $exp.ComparisonOperator
-        $isRegex = $exp.IsRegex
 
         if ($null -eq $value) {
             $result = $false
-            $ExpressionTree.Value = [ExpressionNode]::new($comparisonOperator, $value, $comparisonValue, $result)
+            $expressionTree = [ExpressionNode]::new($exp.ComparisonOperator, $null, $exp.Value, $result)
         } else {
-            $result = Resolve-Expression -value $value -comparisonValue $comparisonValue -comparisonOperator $comparisonOperator -isRegex $isRegex -ExpressionTree $ExpressionTree
+            $resolvedExpression = Resolve-Expression -value $value `
+                                                 -comparisonValue $exp.Value `
+                                                 -comparisonOperator $exp.ComparisonOperator `
+                                                 -isRegex $exp.IsRegex
+            $result = $resolvedExpression.Result
+            $expressionTree = $resolvedExpression.ExpressionTree
         }
-    } elseif ($node.ChildNodes) {
-        $result = Test-Nodes -nodes $node.ChildNodes -data $data -ExpressionTree $ExpressionTree
+    } elseif ($node.ChildNodes -and $node.ChildNodes.Count -gt 0) {
+        $resolvedNodes = Test-Nodes -nodes $node.ChildNodes -data $data
+        $result = $resolvedNodes.Result
+        $expressionTree = $resolvedNodes.ExpressionTree
+
+        if ($node.IsNegation) {
+            $result = -not $result
+            $expressionTree = [ExpressionNode]::new('Not', $expressionTree, $null, $result)
+        }
     } else {
         $result = $true
-        $ExpressionTree.Value = [ExpressionNode]::new('Default', $null, $null, $result)
+        $expressionTree = [ExpressionNode]::new('Default', $null, $null, $result)
     }
 
-    return $result
+    return @{
+        Result = $result
+        ExpressionTree = $expressionTree
+    }
 }

@@ -9,7 +9,7 @@
             "type": "PowerShell",
             "request": "launch",
             "script": "${file}",
-            "args": ["-triggerName", "'Logical Disk Advanced Trigger'"]
+            "args": ["-triggerName", "'Simple Logical Disk2'"]
         }
     ]
 }

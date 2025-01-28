@@ -1,32 +1,14 @@
-<#
-    .SYNOPSIS
-
-    .DESCRIPTION
-
-    .PARAMETER value
-
-    .PARAMETER comparisonValue
-
-    .PARAMETER comparisonOperator
-
-    .EXAMPLE
-
-    .NOTES
-#>
 function Resolve-RegexExpression {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [object] $value,
 
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [object] $comparisonValue,
 
-        [Parameter(Mandatory=$true)]
-        [string] $comparisonOperator,
-
-        [Parameter(Mandatory=$true)]
-        [ref]$ExpressionTree
+        [Parameter(Mandatory = $true)]
+        [string] $comparisonOperator
     )
 
     switch ($comparisonOperator) {
@@ -36,10 +18,15 @@ function Resolve-RegexExpression {
         'NotEqual' {
             $result = -not ([bool]($value -match $comparisonValue))
         }
-        default { throw "Unsupported comparison operator for regex: $comparisonOperator" }
+        default {
+            throw "Unsupported comparison operator for regex: $comparisonOperator"
+        }
     }
 
-    $ExpressionTree.Value = [ExpressionNode]::new($comparisonOperator, $value, $comparisonValue, $result)
+    $expressionTree = [ExpressionNode]::new($comparisonOperator, $value, $comparisonValue, $result)
 
-    return $result
+    return @{
+        Result = $result
+        ExpressionTree = $expressionTree
+    }
 }

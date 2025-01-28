@@ -1,52 +1,31 @@
-<#
-    .SYNOPSIS
-
-    .DESCRIPTION
-    
-    .PARAMETER value
-    
-    .PARAMETER comparisonValue
-    
-    .PARAMETER comparisonOperator
-
-    .EXAMPLE
-
-    .NOTES
-#>
 function Resolve-StandardExpression {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [object] $value,
 
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [object] $comparisonValue,
 
-        [Parameter(Mandatory=$true)]
-        [string] $comparisonOperator,
-
-        [Parameter(Mandatory=$true)]
-        [ref]$ExpressionTree
+        [Parameter(Mandatory = $true)]
+        [string] $comparisonOperator
     )
 
     $parsedValue = $null
-    $valueIsNumeric = [double]::TryParse($value, [ref]$parsedValue)
+    $parsedComparisonValue = $null
 
-    if ($valueIsNumeric) {
+    if ([double]::TryParse($value.ToString(), [ref]$parsedValue)) {
         $value = $parsedValue
     }
 
-    $parsedComparisonValue = $null
-    $comparisonValueIsNumeric = [double]::TryParse($comparisonValue, [ref]$parsedComparisonValue)
-
-    if ($comparisonValueIsNumeric) {
+    if ([double]::TryParse($comparisonValue.ToString(), [ref]$parsedComparisonValue)) {
         $comparisonValue = $parsedComparisonValue
     }
 
     if($comparisonValue -like '*`**') {
         $comparisonOperator = 'Like'
     }
-
+    
     switch ($comparisonOperator) {
         'Equal'                { $result = $value -eq $comparisonValue }
         'Like'                 { $result = $value -like $comparisonValue }
@@ -55,10 +34,15 @@ function Resolve-StandardExpression {
         'GreaterThanOrEqual'   { $result = $value -ge $comparisonValue }
         'LessThan'             { $result = $value -lt $comparisonValue }
         'LessThanOrEqual'      { $result = $value -le $comparisonValue }
-        default                { throw "Unknown comparison operator: $comparisonOperator" }
+        default                { 
+            throw "Unknown comparison operator: $comparisonOperator" 
+        }
     }
 
-    $ExpressionTree.Value = [ExpressionNode]::new($comparisonOperator, $value, $comparisonValue, $result)
+    $expressionTree = [ExpressionNode]::new($comparisonOperator, $value, $comparisonValue, $result)
 
-    return $result
+    return @{
+        Result = $result
+        ExpressionTree = $expressionTree
+    }
 }

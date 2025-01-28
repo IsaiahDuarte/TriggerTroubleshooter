@@ -1,50 +1,27 @@
-<#
-    .SYNOPSIS
-
-    .DESCRIPTION
-
-    .PARAMETER value
-
-    .PARAMETER comparisonValue
-
-    .PARAMETER comparisonOperator
-
-    .PARAMETER isRegex
-
-    .EXAMPLE
-
-    .NOTES
-#>
 function Resolve-Expression {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [object] $value,
-        
-        [Parameter(Mandatory=$true)]
+
+        [Parameter(Mandatory = $true)]
         [object] $comparisonValue,
-        
-        [Parameter(Mandatory=$true)]
+
+        [Parameter(Mandatory = $true)]
         [ValidateSet('Equal', 'NotEqual', 'Like', 'GreaterThan', 'GreaterThanOrEqual', 'LessThan', 'LessThanOrEqual')]
         [string] $comparisonOperator,
-        
-        [Parameter(Mandatory=$true)]
-        [bool] $isRegex,
 
-        [Parameter(Mandatory=$true)]
-        [ref]$ExpressionTree
+        [Parameter(Mandatory = $true)]
+        [bool] $isRegex
     )
 
-    $splat = @{
-        value = $value
-        comparisonValue = $comparisonValue
-        comparisonOperator = $comparisonOperator
-        ExpressionTree = $ExpressionTree
-    }
-
     if ($isRegex) {
-        return Resolve-RegexExpression @splat
+        return Resolve-RegexExpression -value $value `
+                                       -comparisonValue $comparisonValue `
+                                       -comparisonOperator $comparisonOperator
     } else {
-        return Resolve-StandardExpression @splat
+        return Resolve-StandardExpression -value $value `
+                                          -comparisonValue $comparisonValue `
+                                          -comparisonOperator $comparisonOperator
     }
 }

@@ -1,44 +1,46 @@
 function Test-Nodes {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [array] $nodes,
 
-        [Parameter(Mandatory=$true)]
-        [object] $data,
-
-        [Parameter(Mandatory=$true)]
-        [ref]$ExpressionTree
+        [Parameter(Mandatory = $true)]
+        [object] $data
     )
 
-    $resultNode = $null
-    for ($i = 0; $i -lt $nodes.Count; $i++) {
-        $node = $nodes[$i]
-        $childExpressionTree = $null
-        $nodeResult = Test-Node -node $node -data $data -ExpressionTree ([ref]$childExpressionTree)
+    Write-Verbose "Starting Test-Nodes"
 
-        if ($node.IsNegation) {
-            $nodeResult = -not $nodeResult
-            $childExpressionTree = [ExpressionNode]::new('Not', $childExpressionTree, $null, $nodeResult)
-        }
-
-        if ($null -eq $resultNode) {
-            $resultNode = $childExpressionTree
-        } else {
-            $logicalOperator = $node.LogicalOperator
-            $combinedResult = $null
-            if ($logicalOperator -eq 'And') {
-                $combinedResult = $resultNode.Result -and $childExpressionTree.Result
-            } elseif ($logicalOperator -eq 'Or') {
-                $combinedResult = $resultNode.Result -or $childExpressionTree.Result
-            } else {
-                throw "Unknown LogicalOperator: $logicalOperator"
-            }
-            $resultNode = [ExpressionNode]::new($logicalOperator, $resultNode, $childExpressionTree, $combinedResult)
+    if ($nodes.Count -eq 0) {
+        $expressionTree = [ExpressionNode]::new('Default', $null, $null, $true)
+        return @{
+            Result = $true
+            ExpressionTree = $expressionTree
         }
     }
 
-    $ExpressionTree.Value = $resultNode
+    $resolvedNode = Test-Node -node $nodes[0] -data $data
+    $accumulatedResult = $resolvedNode.Result
+    $expressionTree = $resolvedNode.ExpressionTree
 
-    return $resultNode.Result
+    for ($i = 1; $i -lt $nodes.Count; $i++) {
+        $node = $nodes[$i]
+        $resolvedNode = Test-Node -node $node -data $data
+        $nodeResult = $resolvedNode.Result
+        $nodeExpressionTree = $resolvedNode.ExpressionTree
+
+        $logicalOperator = $node.LogicalOperator.ToString()
+
+        $accumulatedResult = switch ($logicalOperator) {
+            'And' { $accumulatedResult -and $nodeResult }
+            'Or'  { $accumulatedResult -or $nodeResult }
+            default { throw "Unknown LogicalOperator: $logicalOperator" }
+        }
+
+        $expressionTree = [ExpressionNode]::new($logicalOperator, $expressionTree, $nodeExpressionTree, $accumulatedResult)
+    }
+
+    return @{
+        Result = $accumulatedResult
+        ExpressionTree = $expressionTree
+    }
 }

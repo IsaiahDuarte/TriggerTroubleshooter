@@ -10,7 +10,7 @@ try {
     }
     Import-Module $path
     Import-Module "$PSScriptRoot\TriggerTroubleshooter\TriggerTroubleshooter.psd1" -Force
-    Test-Trigger -Name $triggerName -ErrorAction Stop -Display
+    $output = Test-Trigger -Name $triggerName -ErrorAction Stop -Display -Verbose
 } catch {
     throw $_
 }
