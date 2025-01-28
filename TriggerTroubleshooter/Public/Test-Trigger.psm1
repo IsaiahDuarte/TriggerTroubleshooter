@@ -1,22 +1,23 @@
 <#
     .SYNOPSIS
+    Tests if a given trigger logic is satisfied based on a dump of data.
 
     .DESCRIPTION
+    The Test-Trigger function evaluates the applicability of a trigger's conditions by processing a dump of the associated data. It examines each record against defined filter nodes and summarizes the results.
 
     .PARAMETER name
+    The trigger name whose conditions, scope, and associated data are to be evaluated.
 
     .EXAMPLE
 
     .NOTES
+    Integrates multiple functions for comprehensive data analysis, such as Test-Filter for evaluating individual records.
 #>
 function Test-Trigger {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$true)]
-        [string] $name,
-
-        [Parameter(Mandatory=$false)]
-        [switch] $display
+        [string] $name
     )
 
     $output = New-Object System.Collections.ArrayList
@@ -31,30 +32,15 @@ function Test-Trigger {
     $triggerDetails = Get-CUTriggerDetails -TriggerId $trigger.TriggerId
     foreach($key in $dump.Keys) {
         $record = $dump[$key]
-        $expressionTree = $null
-        
-        $result = Test-Filter -filterNodes $triggerDetails.FilterNodes -data $record -ExpressionTree ([ref]$expressionTree)
+        $result = Test-Filter -filterNodes $triggerDetails.FilterNodes -data $record
 
         $data = [pscustomobject]@{
-            ThresholdCrossed = $result
-            WithinSchedule = Test-Schedule -ScheduleID $triggerDetails.IncidentScheduleId
-            ExpressionTree = $expressionTree
+            ThreasholdCrossed = if($result) { $true } else { $false }
         }
 
         $properties = $record | Get-Member -MemberType NoteProperty | Where-Object {$_.Name -ne "key"}
-        foreach ($property in $properties) {
-            $data | Add-Member -MemberType NoteProperty -Name $property.Name -Value $record.$($property.Name)
-        }
-
+        $properties | Foreach-Object { Add-Member -InputObject $data -MemberType NoteProperty -Name $_.Name -Value $record.$($_.name) }
         $output.Add($data) | Out-Null
     }
-
-    if($Display) {
-        $output | Foreach-Object {
-            Write-Host "`n"
-            Show-NodeResults -Node $_.ExpressionTree
-        }
-    }
-
     return $output
 }

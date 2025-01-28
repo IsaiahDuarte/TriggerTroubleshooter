@@ -21,7 +21,7 @@ function Test-Node {
         [object] $data,
 
         [Parameter(Mandatory=$true)]
-        [ref]$ExpressionTree
+        [ref]$ComparisonDataList
     )
 
     if ($node.ExpressionDescriptor) {
@@ -39,15 +39,14 @@ function Test-Node {
 
         if ($null -eq $value) {
             $result = $false
-            $ExpressionTree.Value = [ExpressionNode]::new($comparisonOperator, $value, $comparisonValue, $result)
+            $ComparisonDataList.Value.Add([ComparisonData]::new($value, $comparisonOperator, $comparisonValue, $result))
         } else {
-            $result = Resolve-Expression -value $value -comparisonValue $comparisonValue -comparisonOperator $comparisonOperator -isRegex $isRegex -ExpressionTree $ExpressionTree
+            $result = Resolve-Expression -value $value -comparisonValue $comparisonValue -comparisonOperator $comparisonOperator -isRegex $isRegex -ComparisonDataList $ComparisonDataList
         }
     } elseif ($node.ChildNodes) {
-        $result = Test-Nodes -nodes $node.ChildNodes -data $data -ExpressionTree $ExpressionTree
+        $result = Test-Nodes -nodes $node.ChildNodes -data $data -ComparisonDataList $ComparisonDataList
     } else {
         $result = $true
-        $ExpressionTree.Value = [ExpressionNode]::new('Default', $null, $null, $result)
     }
 
     return $result

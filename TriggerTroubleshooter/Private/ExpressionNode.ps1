@@ -5,9 +5,8 @@ class ExpressionNode {
     [object]$Right
     [object]$Value
     [object]$ComparisonValue 
-    [bool]$Resul
+    [bool]$Result
 
-    # Constructor for comparison nodes
     ExpressionNode([string]$operator, [object]$value, [object]$comparisonValue, [bool]$result){
         $this.NodeType = 'Comparison'
         $this.Operator = $operator
@@ -16,10 +15,9 @@ class ExpressionNode {
         $this.Result = $result
     }
 
-    # Constructor for logical nodes
     ExpressionNode([string]$operator, [ExpressionNode]$left, [ExpressionNode]$right, [bool]$result){
         $this.NodeType = 'Logical'
-        $this.Operator = $operator  # 'And' or 'Or'
+        $this.Operator = $operator
         $this.Left = $left
         $this.Right = $right
         $this.Result = $result

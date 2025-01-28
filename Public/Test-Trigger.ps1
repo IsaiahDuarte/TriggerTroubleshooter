@@ -13,10 +13,7 @@ function Test-Trigger {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$true)]
-        [string] $name,
-
-        [Parameter(Mandatory=$false)]
-        [switch] $display
+        [string] $name
     )
 
     $output = New-Object System.Collections.ArrayList
@@ -31,14 +28,14 @@ function Test-Trigger {
     $triggerDetails = Get-CUTriggerDetails -TriggerId $trigger.TriggerId
     foreach($key in $dump.Keys) {
         $record = $dump[$key]
-        $expressionTree = $null
+        $comparisonDataList = [System.Collections.Generic.List[ComparisonData]]::new() # Initialize the comparison data list
         
-        $result = Test-Filter -filterNodes $triggerDetails.FilterNodes -data $record -ExpressionTree ([ref]$expressionTree)
+        $result = Test-Filter -filterNodes $triggerDetails.FilterNodes -data $record -ComparisonDataList ([ref]$comparisonDataList)
 
         $data = [pscustomobject]@{
             ThresholdCrossed = $result
             WithinSchedule = Test-Schedule -ScheduleID $triggerDetails.IncidentScheduleId
-            ExpressionTree = $expressionTree
+            ComparisonData = $comparisonDataList
         }
 
         $properties = $record | Get-Member -MemberType NoteProperty | Where-Object {$_.Name -ne "key"}
@@ -48,13 +45,5 @@ function Test-Trigger {
 
         $output.Add($data) | Out-Null
     }
-
-    if($Display) {
-        $output | Foreach-Object {
-            Write-Host "`n"
-            Show-NodeResults -Node $_.ExpressionTree
-        }
-    }
-
     return $output
 }

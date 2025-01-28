@@ -19,8 +19,8 @@ function Test-Filter {
         [object]$data,
 
         [Parameter(Mandatory=$true)]
-        [ref]$ExpressionTree
+        [ref]$ComparisonDataList
     )
-    $finalResult = Test-Nodes -nodes $filterNodes -data $data -ExpressionTree $ExpressionTree
+    $finalResult = Test-Nodes -nodes $filterNodes -data $data -ComparisonDataList $ComparisonDataList
     return $finalResult
 }

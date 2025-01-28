@@ -23,10 +23,10 @@ function Resolve-StandardExpression {
         [object] $comparisonValue,
 
         [Parameter(Mandatory=$true)]
-        [string] $comparisonOperator,
+        [object] $comparisonOperator,
 
         [Parameter(Mandatory=$true)]
-        [ref]$ExpressionTree
+        [ref]$ComparisonDataList
     )
 
     $parsedValue = $null
@@ -58,7 +58,7 @@ function Resolve-StandardExpression {
         default                { throw "Unknown comparison operator: $comparisonOperator" }
     }
 
-    $ExpressionTree.Value = [ExpressionNode]::new($comparisonOperator, $value, $comparisonValue, $result)
+    $ComparisonDataList.Value.Add([ComparisonData]::new($value, $comparisonOperator, $comparisonValue, $result))
 
     return $result
 }

@@ -1,56 +1,44 @@
 function Test-Nodes {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)]
-        [array] $Nodes,
+        [Parameter(Mandatory=$true)]
+        [array] $nodes,
 
-        [Parameter(Mandatory = $true)]
-        [object] $Data,
+        [Parameter(Mandatory=$true)]
+        [object] $data,
 
-        [Parameter(Mandatory = $true)]
-        [ref] $ComparisonDataList
+        [Parameter(Mandatory=$true)]
+        [ref]$ExpressionTree
     )
 
-    $result = $null
+    $resultNode = $null
+    for ($i = 0; $i -lt $nodes.Count; $i++) {
+        $node = $nodes[$i]
+        $childExpressionTree = $null
+        $nodeResult = Test-Node -node $node -data $data -ExpressionTree ([ref]$childExpressionTree)
 
-    for ($Index = 0; $Index -lt $Nodes.Count; $Index++) {
-        $result = $Nodes[$Index]
-
-        $nodeResult = Test-Node -Node $result -Data $Data -ComparisonDataList $ComparisonDataList
-        Write-Debug "Node $Index Result: $nodeResult"
-
-        if ($result.IsNegation) {
+        if ($node.IsNegation) {
             $nodeResult = -not $nodeResult
+            $childExpressionTree = [ExpressionNode]::new('Not', $childExpressionTree, $null, $nodeResult)
         }
 
-        if ($null -eq $result) {
-            $result = $nodeResult
-            Write-Debug "Initial Result Set To: $result"
+        if ($null -eq $resultNode) {
+            $resultNode = $childExpressionTree
         } else {
-            $logicalOperator = $result.LogicalOperator
-            Write-Debug "Logical Operator: $logicalOperator"
-
-            switch ($logicalOperator) {
-                'And' {
-                    $result = $result -and $nodeResult
-                    Write-Debug "Updated Result (And): $result"
-                    if (-not $result) { break }
-                }
-                'Or' {
-                    $result = $result -or $nodeResult
-                    Write-Debug "Updated Result (Or): $result"
-                    if ($result) { break }
-                }
-                default {
-                    throw "Unknown LogicalOperator: $logicalOperator"
-                }
+            $logicalOperator = $node.LogicalOperator
+            $combinedResult = $null
+            if ($logicalOperator -eq 'And') {
+                $combinedResult = $resultNode.Result -and $childExpressionTree.Result
+            } elseif ($logicalOperator -eq 'Or') {
+                $combinedResult = $resultNode.Result -or $childExpressionTree.Result
+            } else {
+                throw "Unknown LogicalOperator: $logicalOperator"
             }
+            $resultNode = [ExpressionNode]::new($logicalOperator, $resultNode, $childExpressionTree, $combinedResult)
         }
-
-        if ($logicalOperator -eq 'And' -and -not $result) { break }
-        if ($logicalOperator -eq 'Or' -and $result) { break }
     }
 
-    Write-Debug "Final Result: $result"
-    return $result
+    $ExpressionTree.Value = $resultNode
+
+    return $resultNode.Result
 }

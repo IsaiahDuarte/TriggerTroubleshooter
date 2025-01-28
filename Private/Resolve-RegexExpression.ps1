@@ -13,7 +13,7 @@
 
     .NOTES
 #>
-function Resolve-RegexExpression {
+unction Resolve-RegexExpression {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$true)]
@@ -26,20 +26,20 @@ function Resolve-RegexExpression {
         [string] $comparisonOperator,
 
         [Parameter(Mandatory=$true)]
-        [ref]$ExpressionTree
+        [ref]$ComparisonDataList
     )
 
     switch ($comparisonOperator) {
-        'Equal' {
+        'Equal'      {
             $result = [bool]($value -match $comparisonValue)
+            $ComparisonDataList.Value.Add([ComparisonData]::new($value, $comparisonOperator, $comparisonValue, $result))
+            return $result
         }
-        'NotEqual' {
+        'NotEqual'   {
             $result = -not ([bool]($value -match $comparisonValue))
+            $ComparisonDataList.Value.Add([ComparisonData]::new($value, $comparisonOperator, $comparisonValue, $result))
+            return $result
         }
-        default { throw "Unsupported comparison operator for regex: $comparisonOperator" }
+        default      { throw "Unsupported comparison operator for regex: $comparisonOperator" }
     }
-
-    $ExpressionTree.Value = [ExpressionNode]::new($comparisonOperator, $value, $comparisonValue, $result)
-
-    return $result
 }

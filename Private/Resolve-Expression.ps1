@@ -32,14 +32,14 @@ function Resolve-Expression {
         [bool] $isRegex,
 
         [Parameter(Mandatory=$true)]
-        [ref]$ExpressionTree
+        [ref]$ComparisonDataList
     )
 
     $splat = @{
         value = $value
         comparisonValue = $comparisonValue
         comparisonOperator = $comparisonOperator
-        ExpressionTree = $ExpressionTree
+        ComparisonDataList = $ComparisonDataList
     }
 
     if ($isRegex) {
