@@ -15,5 +15,3 @@ try {
 } catch {
     throw $_
 }
-
-#(Get-CUTriggerSchedules | Where-object {$_.name -eq 'test'}).Weekdays.SelectedHours

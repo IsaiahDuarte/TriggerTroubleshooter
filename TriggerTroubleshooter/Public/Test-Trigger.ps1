@@ -36,6 +36,7 @@ function Test-Trigger {
 
         $data = [pscustomobject]@{
             ThreasholdCrossed = if($result) { $true } else { $false }
+            WithinSchedule = Test-Schedule -ScheduleID $triggerDetails.IncidentScheduleId
         }
 
         $properties = $record | Get-Member -MemberType NoteProperty | Where-Object {$_.Name -ne "key"}
