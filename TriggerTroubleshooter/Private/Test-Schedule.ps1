@@ -1,22 +1,14 @@
 <#
     .SYNOPSIS
-        Tests whether a schedule is active at the current time.
 
     .DESCRIPTION
-        The Test-Schedule function checks if a specified schedule is active at the current time.
-        You can specify the schedule by name or by ID. If multiple schedules with the same name
-        exist, an error is thrown when using the ScheduleName parameter.
 
     .PARAMETER ScheduleName
-        The name of the schedule to test. If multiple schedules with the same name exist, an error is thrown.
 
     .PARAMETER ScheduleID
-        The ID of the schedule to test.
 
     .EXAMPLE
-        Test-Schedule -ScheduleName "Nightly Backup"
 
-        Tests if the schedule named "Nightly Backup" is active at the current time.
 #>
 function Test-Schedule {
     [CmdletBinding()]

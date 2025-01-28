@@ -1,17 +1,13 @@
 <#
     .SYNOPSIS
-    Retrieves a dump of scoped trigger data based on a trigger name.
 
     .DESCRIPTION
-    The Get-ScopedTriggerDump function performs a query to obtain trigger details and validates the existence of associated tables. It iterates through folder data and compiled results, collecting those which match the trigger specifications.
 
     .PARAMETER name
-    The name of the scoped trigger for which to collect the data dump.
 
     .EXAMPLE
 
     .NOTES
-    Relies on other functions such as Invoke-CUQuery for querying the database and Get-TableName for table validation.
 #>
 function Get-ScopedTriggerDump {
     [CmdletBinding()]

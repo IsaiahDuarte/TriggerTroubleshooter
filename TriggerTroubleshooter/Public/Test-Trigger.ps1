@@ -1,17 +1,13 @@
 <#
     .SYNOPSIS
-    Tests if a given trigger logic is satisfied based on a dump of data.
 
     .DESCRIPTION
-    The Test-Trigger function evaluates the applicability of a trigger's conditions by processing a dump of the associated data. It examines each record against defined filter nodes and summarizes the results.
 
     .PARAMETER name
-    The trigger name whose conditions, scope, and associated data are to be evaluated.
 
     .EXAMPLE
 
     .NOTES
-    Integrates multiple functions for comprehensive data analysis, such as Test-Filter for evaluating individual records.
 #>
 function Test-Trigger {
     [CmdletBinding()]
@@ -32,15 +28,21 @@ function Test-Trigger {
     $triggerDetails = Get-CUTriggerDetails -TriggerId $trigger.TriggerId
     foreach($key in $dump.Keys) {
         $record = $dump[$key]
-        $result = Test-Filter -filterNodes $triggerDetails.FilterNodes -data $record
+        $comparisonDataList = [System.Collections.Generic.List[ComparisonData]]::new() # Initialize the comparison data list
+        
+        $result = Test-Filter -filterNodes $triggerDetails.FilterNodes -data $record -ComparisonDataList ([ref]$comparisonDataList)
 
         $data = [pscustomobject]@{
-            ThreasholdCrossed = if($result) { $true } else { $false }
+            ThresholdCrossed = $result
             WithinSchedule = Test-Schedule -ScheduleID $triggerDetails.IncidentScheduleId
+            ComparisonData = $comparisonDataList
         }
 
         $properties = $record | Get-Member -MemberType NoteProperty | Where-Object {$_.Name -ne "key"}
-        $properties | Foreach-Object { Add-Member -InputObject $data -MemberType NoteProperty -Name $_.Name -Value $record.$($_.name) }
+        foreach ($property in $properties) {
+            $data | Add-Member -MemberType NoteProperty -Name $property.Name -Value $record.$($property.Name)
+        }
+
         $output.Add($data) | Out-Null
     }
     return $output

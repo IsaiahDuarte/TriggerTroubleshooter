@@ -1,20 +1,15 @@
 <#
     .SYNOPSIS
-    Evaluates a single node based on its defined expression descriptor or child nodes.
 
     .DESCRIPTION
-    The Test-Node function evaluates a node by checking its expression descriptor if present, using the Resolve-Expression function for value comparison. If the node has child nodes, it delegates evaluation to Test-Nodes. If neither is present, it defaults to returning true.
 
     .PARAMETER node
-    An individual node object containing an expression descriptor or child nodes for logical evaluation.
 
     .PARAMETER data
-    The data object that contains properties for comparison against the node's expression if applicable.
 
     .EXAMPLE
 
     .NOTES
-    This function is for evaluating individual nodes within a larger expression hierarchy.
 #>
 function Test-Node {
     [CmdletBinding()]
@@ -23,7 +18,10 @@ function Test-Node {
         [object] $node,
         
         [Parameter(Mandatory=$true)]
-        [object] $data
+        [object] $data,
+
+        [Parameter(Mandatory=$true)]
+        [ref]$ComparisonDataList
     )
 
     if ($node.ExpressionDescriptor) {
@@ -41,11 +39,12 @@ function Test-Node {
 
         if ($null -eq $value) {
             $result = $false
+            $ComparisonDataList.Value.Add([ComparisonData]::new($value, $comparisonOperator, $comparisonValue, $result))
         } else {
-            $result = Resolve-Expression -value $value -comparisonValue $comparisonValue -comparisonOperator $comparisonOperator -isRegex $isRegex
+            $result = Resolve-Expression -value $value -comparisonValue $comparisonValue -comparisonOperator $comparisonOperator -isRegex $isRegex -ComparisonDataList $ComparisonDataList
         }
     } elseif ($node.ChildNodes) {
-        $result = Test-Nodes -nodes $node.ChildNodes -data $data
+        $result = Test-Nodes -nodes $node.ChildNodes -data $data -ComparisonDataList $ComparisonDataList
     } else {
         $result = $true
     }
