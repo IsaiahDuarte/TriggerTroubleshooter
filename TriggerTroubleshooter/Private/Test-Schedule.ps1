@@ -40,6 +40,12 @@ function Test-Schedule {
             if (-not $schedule) {
                 throw "Schedule with ID '$ScheduleID' not found."
             }
+
+            # For some reason this returns two
+            if($ScheduleID -eq "All Days") {
+                $schedule = $Schedule[0]
+            }
+            
             $schedule
         }
     }
