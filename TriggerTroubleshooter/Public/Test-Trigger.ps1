@@ -28,7 +28,7 @@ function Test-Trigger {
     $triggerDetails = Get-CUTriggerDetails -TriggerId $trigger.TriggerId
     foreach($key in $dump.Keys) {
         $record = $dump[$key]
-        $comparisonDataList = [System.Collections.Generic.List[ComparisonData]]::new() # Initialize the comparison data list
+        $comparisonDataList = [System.Collections.Generic.List[ComparisonData]]::new()
         
         $result = Test-Filter -filterNodes $triggerDetails.FilterNodes -data $record -ComparisonDataList ([ref]$comparisonDataList)
 

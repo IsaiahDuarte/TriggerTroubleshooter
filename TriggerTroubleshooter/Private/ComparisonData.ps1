@@ -10,10 +10,10 @@
     .NOTES
 #>
 class ComparisonData {
-    [object]$LeftValue
-    [string]$Operator
-    [object]$RightValue
-    [bool]$Result
+    [object] $LeftValue
+    [string] $Operator
+    [object] $RightValue
+    [bool] $Result
 
     ComparisonData([object]$leftValue, [string]$operator, [object]$rightValue, [bool]$result){
         $this.LeftValue = $leftValue
