@@ -1,4 +1,5 @@
-Get-ChildItem -Path $PSScriptRoot\public\*.ps1, $PSScriptRoot\private\*.ps1 |
+
+Get-ChildItem -Path $PSScriptRoot\Public\*.ps1, $PSScriptRoot\Private\*.ps1 |
 ForEach-Object {
     . $_.FullName
 }
