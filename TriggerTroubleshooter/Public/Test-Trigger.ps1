@@ -29,42 +29,26 @@ function Test-Trigger {
 
     $triggerDetails = Get-CUTriggerDetails -TriggerId $trigger.TriggerId
 
+    [System.Collections.Generic.List[ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode]] $triggerFilter = $triggerDetails.FilterNodes
+
     foreach ($key in $dump.Keys) {
         $record = $dump[$key]
-
-        $rootNode = @{
-            ChildNodes = $triggerDetails.FilterNodes
-            ExpressionDescriptor = $null
-            IsNegation = $false
-            LogicalOperator = "And"
+        
+        $syntheticRootNode = [PSCustomObject]@{
+            ExpressionDescriptor = $null 
+            IsNegation           = $false
+            LogicalOperator      = 'And' 
+            ChildNodes           = $TriggerFilter
         }
 
-        Write-Verbose "Processing record with key: $key"
-
-        $testResult = Test-Node -node $rootNode -data $record
-
-        $data = [pscustomobject]@{
-            ThresholdCrossed = $testResult.Result
-            WithinSchedule   = Test-Schedule -ScheduleID $triggerDetails.IncidentScheduleId
-            ExpressionTree   = $testResult.ExpressionTree
-        }
-
-        Write-Verbose "Data populated for key: $key. ThresholdCrossed: $($data.ThresholdCrossed), WithinSchedule: $($data.WithinSchedule)"
-
-        $record.PSObject.Properties | ForEach-Object {
-            if ($_.Name -ne "key") {
-                $data | Add-Member -NotePropertyName $_.Name -NotePropertyValue $_.Value
-            }
-        }
-
-        $output += $data
+        $output += Test-TriggerFilterNode -Node $syntheticRootNode -Record $record
+        
     }
 
     Write-Verbose "Returning output with $($output.Count) records."
 
     if($display) {
-        Write-Host $($testResult.ExpressionTree.GetExpression(0))
-        $testResult.ExpressionTree.WriteExpression(0)
+        Write-TriggerFilterResult -Nodes $output
     }
 
     return $output
