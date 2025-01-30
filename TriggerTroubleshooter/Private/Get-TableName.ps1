@@ -2,31 +2,19 @@ function Get-TableName {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        [string] $name
+        [string] $Name
     )
 
-    Write-Verbose "Getting table name for: $name"
+    Write-Verbose "Getting table name for: $Name"
 
     $table = ""
-    switch($name) {
-        "ComputerView"    { 
-            $table = "Computers"
-            Write-Verbose "Mapped $name to $table"
-        }
-        "Services"        { 
-            $table = "'$($name)' not implemented" 
-            Write-Verbose "Table for $name is not implemented."
-        }
-        "SessionsView"    { 
-            $table = "Sessions" 
-            Write-Verbose "Mapped $name to $table"
-        }
+    switch($Name) {
         ""                { 
             $table = "Not returned by observable details"
             Write-Verbose "No name provided; returning: $table"
         }
         Default           { 
-            $table = $name 
+            $table = $Name 
             Write-Verbose "No specific mapping found; returning the original name: $table"
         }
     }

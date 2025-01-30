@@ -2,26 +2,32 @@ function Get-ScopedTriggerDump {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        [string] $name
+        [string] $Name
     )
     
-    Write-Verbose "Starting the Get-ScopedTriggerDump process for trigger: $name"
+    Write-Verbose "Starting the Get-ScopedTriggerDump process for trigger: $Name"
     
-    $tables = (Invoke-CUQuery -Scheme Information -Fields SchemaName, TableName -Table Tables).data.TableName
+    $tables = (Invoke-CUQuery -Scheme Information -Fields SchemaName, TableName -Table Tables -take 200).data.TableName
     Write-Verbose "Retrieved table names: $tables"
 
-    $triggerObservableDetails = Get-CUObservableTriggerDetails -Trigger $name
+    $triggerObservableDetails = Get-CUObservableTriggerDetails -Trigger $Name
+
+    if([string]::IsNullOrEmpty($triggerObservableDetails.Table)) {
+        Write-Warning "Observable Details didn't return a table for $Name"
+        return
+    }
+ 
     Write-Verbose "Fetched trigger observable details: $triggerObservableDetails"
 
     $table = Get-TableName -Name $triggerObservableDetails.Table
     Write-Verbose "Resolved table name: $table"
 
     if ($table -notin $tables) {
-        Write-Verbose "Table not found in the list of tables."
+        Write-Verbose "$table not found in the list of tables."
         throw "Table was not found: $table. If it is a built-in trigger or old one, export it, rename it, and import it"
     }
 
-    Write-Verbose "Table $table found. Proceeding to fetch data."
+    Write-Verbose "$table found. Proceeding to fetch data."
 
     $dump = @{}
     foreach ($folder in $triggerObservableDetails.Folders) {

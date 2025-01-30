@@ -2,53 +2,50 @@ function Test-Trigger {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        [string] $name,
+        [string] $Name,
 
         [Parameter(Mandatory = $false)]
-        [switch] $display
+        [switch] $Display
     )
 
-    Write-Verbose "Starting Test-Trigger for trigger name: $name"
-    $output = @()
+    Write-Verbose "Starting Test-Trigger for trigger name: $Name"
+    $output = [System.Collections.Generic.List[TriggerFilterResult]]::New()
 
-    $dump = Get-ScopedTriggerDump -Name $name
+    Write-Verbose "Getting trigger dump"
+    $dump = Get-ScopedTriggerDump -Name $Name
     if ($dump.Count -eq 0) {
         Write-Warning "No data was returned by the query."
         return
     }
-
     Write-Verbose "Data retrieved from Get-ScopedTriggerDump: $($dump.Count) records found."
 
-    $trigger = Get-CUTriggers | Where-Object { $_.TriggerName -eq $name }
+    Write-Verbose "Getting Trigger"
+    $trigger = Get-CUTriggers | Where-Object { $_.TriggerName -eq $Name }
     if (-not $trigger) {
-        Write-Warning "Trigger with name '$name' not found."
+        Write-Warning "Trigger with name '$Name' not found."
         return
     }
-
     Write-Verbose "Trigger found: $trigger"
 
+    Write-Verbose "Getting trigger configuration"
     $triggerDetails = Get-CUTriggerDetails -TriggerId $trigger.TriggerId
 
-    [System.Collections.Generic.List[ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode]] $triggerFilter = $triggerDetails.FilterNodes
-
+    Write-Verbose "Testing each entry from dump"
     foreach ($key in $dump.Keys) {
+        Write-Verbose "Testing $Key"
         $record = $dump[$key]
         
-        $syntheticRootNode = [PSCustomObject]@{
-            ExpressionDescriptor = $null 
-            IsNegation           = $false
-            LogicalOperator      = 'And' 
-            ChildNodes           = $TriggerFilter
-        }
+        $rootNode = [ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode]::New()
+        $rootNode.ChildNodes = $triggerDetails.FilterNodes
 
-        $output += Test-TriggerFilterNode -Node $syntheticRootNode -Record $record
+        [void] $output.Add((Test-TriggerFilterNode -Node $rootNode -Record $record))
         
     }
 
     Write-Verbose "Returning output with $($output.Count) records."
 
-    if($display) {
-        Write-TriggerFilterResult -Nodes $output
+    if($Display) {
+        $output.DisplayResult()
     }
 
     return $output
