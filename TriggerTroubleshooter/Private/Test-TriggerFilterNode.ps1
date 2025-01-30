@@ -36,7 +36,8 @@ function Test-TriggerFilterNode {
         $result.Details = [TriggerDataResult]::New(
             $recordValue,
             $comparison.comparisonUsed,
-            $comparison.comparisonResult
+            $comparison.comparisonResult,
+            $record.Key
         )
 
         $currentResult = $exprResult

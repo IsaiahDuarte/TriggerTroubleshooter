@@ -19,13 +19,8 @@ function Test-Comparison {
 
     switch ($CompOp) {
         'Equal' {
-            if ($IsRegex) {
-                $comparisonResult = $RecordValue -match $Value
-                $comparisonUsed   = "-match"
-            } else {
-                $comparisonResult = $RecordValue -eq $Value
-                $comparisonUsed   = "-eq"
-            }
+            $comparisonResult = $RecordValue -eq $Value
+            $comparisonUsed   = "-eq"
         }
         'Like' {
             $comparisonResult = $RecordValue -like $Value
@@ -73,6 +68,11 @@ function Test-Comparison {
         }
     }
 
+    if ($IsRegex) {
+        $comparisonResult = $RecordValue -match $Value
+        $comparisonUsed   = "-match"
+    }
+    
     return [PSCustomObject]@{
         comparisonResult = $comparisonResult
         comparisonUsed = $comparisonUsed
