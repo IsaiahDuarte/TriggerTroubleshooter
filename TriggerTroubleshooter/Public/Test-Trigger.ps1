@@ -42,6 +42,8 @@ function Test-Trigger {
         
     }
 
+    $output.SetScheduleResult((Test-Schedule -ScheduleID $triggerDetails.IncidentScheduleId))
+
     Write-Verbose "Returning output with $($output.Count) records."
 
     if($Display) {

@@ -32,7 +32,7 @@ function Get-ScopedTriggerDump {
     $dump = @{}
     foreach ($folder in $triggerObservableDetails.Folders) {
         Write-Verbose "Processing folder: $folder"
-        $results = (Invoke-CUQuery -Table $table -Fields $triggerObservableDetails.Filters -Focus $folder).Data
+        $results = (Invoke-CUQuery -Table $table -Fields $triggerObservableDetails.Filters -Where "FolderPath='$folder'").Data
 
         foreach ($item in $results) {
             Write-Verbose "Adding item with key: $($item.key) to the dump."
