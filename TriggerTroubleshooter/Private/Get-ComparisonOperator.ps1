@@ -5,11 +5,18 @@ function Get-ComparisonOperator {
         [string] $CompOp,
 
         [Parameter(Mandatory = $true)]
-        [string] $Value
+        [string] $Value,
+
+        [Parameter(Mandatory=$false)]
+        [bool] $IsRegex = $false
     )
 
-    if ($CompOp -eq 'Equal' -and $Value -like '*`**') {
+    if ($CompOp -eq 'Equal' -and $Value -like '*`**' -and !$IsRegex) {
         $CompOp = 'Like'
+    }
+
+    if($IsRegex) {
+        $CompOp = 'Match'
     }
 
     Write-Verbose "ComparisonOperator resolved to: $CompOp"

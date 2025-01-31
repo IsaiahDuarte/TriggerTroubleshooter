@@ -21,12 +21,12 @@ function Test-TriggerFilterNode {
         $expr        = $Node.ExpressionDescriptor
         $column      = $expr.Column
         $value       = $expr.Value
-        $compOp      = Get-ComparisonOperator -compOp $expr.ComparisonOperator.ToString() -value $value
+        $compOp      = Get-ComparisonOperator -compOp $expr.ComparisonOperator.ToString() -value $value -IsRegex $expr.IsRegex
         $isRegex     = $expr.IsRegex
         $recordValue = $Record.$column
 
         Write-Verbose "Evaluating ExpressionDescriptor with column: $column, value: $value, ComparisonOperator: $compOp, isRegex: $isRegex"
-        $comparison = Test-Comparison -compOp $compOp -recordValue $recordValue -value $value -isRegex $isRegex
+        $comparison = Test-Comparison -compOp $compOp -recordValue $recordValue -value $value
         $exprResult = $comparison.comparisonResult
 
         if ($Node.IsNegation) {

@@ -1,6 +1,6 @@
 try {
     $ErrorActionPreference = 'Stop'
-    $triggerName = "Service Advanced Trigger"
+    $triggerName = "Regex"
 
     $path = Get-ChildItem "C:\Program Files\Smart-X\ControlUpMonitor\*\ControlUp.Powershell.User.dll" | Sort-Object -Property LastAccessTime -Descending
     if(!$path) {

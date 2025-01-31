@@ -1,5 +1,6 @@
 # TriggerTroubleshooter
-- Define what types of triggers are supported or not with this configuration.
+- Define if the fields being observed by the monitor
+- 
 
 
 # What works

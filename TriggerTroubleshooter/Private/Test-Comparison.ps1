@@ -8,10 +8,7 @@ function Test-Comparison {
         [object] $RecordValue,
         
         [Parameter(Mandatory = $true)]
-        [object] $Value,
-        
-        [Parameter(Mandatory = $true)]
-        [bool] $IsRegex
+        [object] $Value
     )   
 
     $comparisonResult = $null
@@ -27,13 +24,8 @@ function Test-Comparison {
             $comparisonUsed   = "-like"
         }
         'NotEqual' {
-            if ($IsRegex) {
-                $comparisonResult = -not ($RecordValue -match $Value)
-                $comparisonUsed   = "-notmatch"
-            } else {
-                $comparisonResult = $RecordValue -ne $Value
-                $comparisonUsed   = "-ne"
-            }
+            $comparisonResult = $RecordValue -ne $Value
+            $comparisonUsed   = "-ne"
         }
         'LessThan' {
             $comparisonResult = [double]$RecordValue -lt [double]$Value
@@ -51,26 +43,13 @@ function Test-Comparison {
             $comparisonResult = [double]$RecordValue -ge [double]$Value
             $comparisonUsed   = "-ge"
         }
-        'Contains' {
-            $comparisonResult = $RecordValue -like "*$Value*"
-            $comparisonUsed   = "-like"
-        }
-        'StartsWith' {
-            $comparisonResult = $RecordValue -like "$Value*"
-            $comparisonUsed   = "-like"
-        }
-        'EndsWith' {
-            $comparisonResult = $RecordValue -like "*$Value"
-            $comparisonUsed   = "-like"
+        'Match' {
+            $comparisonResult = $RecordValue -match $Value
+            $comparisonUsed   = "-match"
         }
         default {
             throw "Unsupported ComparisonOperator: $CompOp"
         }
-    }
-
-    if ($IsRegex) {
-        $comparisonResult = $RecordValue -match $Value
-        $comparisonUsed   = "-match"
     }
     
     return [PSCustomObject]@{
