@@ -16,7 +16,6 @@ function Get-CUQueryData {
     
     Write-Verbose "Starting Get-CUQueryData function."
 
-    Write-Verbose "Creating splat hashtable with provided parameters."
     $splat = @{
         Table  = $Table
         Fields = $Fields

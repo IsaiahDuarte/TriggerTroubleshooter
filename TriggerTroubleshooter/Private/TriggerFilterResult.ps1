@@ -7,6 +7,7 @@ class TriggerFilterResult {
     [bool] $EvaluationResult
     [bool] $IsNegation
     [bool] $ScheduleResult
+    [bool] $ArePropertiesObserved
 
     TriggerFilterResult () {
         $this.ChildNodes = [System.Collections.Generic.List[TriggerFilterResult]]::new()
@@ -25,6 +26,7 @@ class TriggerFilterResult {
         if($IndentLevel -eq 0) {
             Write-Host "`nKey: $($this.ChildNodes[0].Details.Key)" -ForegroundColor White
             Write-Host "In Schedule: $($this.ScheduleResult)" -ForegroundColor White
+            Write-Host "Are Properties Observed: $($this.ArePropertiesObserved)" -ForegroundColor White
         }
         
         $indent = (' ' * 4) * $IndentLevel

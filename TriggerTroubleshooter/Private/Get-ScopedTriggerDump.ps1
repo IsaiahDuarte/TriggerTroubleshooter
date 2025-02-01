@@ -1,17 +1,20 @@
 function Get-ScopedTriggerDump {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory)]
         [string] $Name,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory)]
         [bool] $UseExport,
 
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory)]
+        [ControlUp.PowerShell.Common.Contract.ObservableTriggerService.GetObservableTriggerResponse] $TriggerObservableDetails,
+
+        [Parameter(Mandatory)]
         [string] $TriggerType,
 
         [Parameter(Mandatory = $false)]
-        [string] $RecordType,
+        [string] $Table,
 
         [Parameter(Mandatory = $false)]
         [string[]] $Fields
@@ -22,26 +25,18 @@ function Get-ScopedTriggerDump {
     $tables = (Invoke-CUQuery -Scheme Information -Fields SchemaName, TableName -Table Tables -take 200).data.TableName
     Write-Verbose "Retrieved table names: $tables"
 
-    $triggerObservableDetails = Get-CUObservableTriggerDetails -Trigger $Name
-
-    Write-Verbose $triggerName
-    $table = Get-TableName -Name $triggerObservableDetails.Table -TriggerType $TriggerType -RecordType $RecordType
-    Write-Verbose "Resolved table name: $table"
-
-    if([string]::IsNullOrEmpty($table)) {
+    if([string]::IsNullOrEmpty($Table)) {
         Write-Warning "Observable Details didn't return a table for $Name"
         return
     }
- 
-    Write-Verbose "Fetched trigger observable details: $triggerObservableDetails"
 
 
-    if ($table -notin $tables) {
-        Write-Verbose "$table not found in the list of tables."
-        throw "Table was not found: $table. If it is a built-in trigger or old one, export it, rename it, and import it"
+    if ($Table -notin $tables) {
+        Write-Verbose "$Table not found in the list of tables."
+        throw "Table was not found: $Table. If it is a built-in trigger or old one, export it, rename it, and import it"
     }
 
-    Write-Verbose "$table found. Proceeding to fetch data."
+    Write-Verbose "$Table found. Proceeding to fetch data."
 
     $dump = @{}
 
@@ -49,7 +44,7 @@ function Get-ScopedTriggerDump {
     foreach ($folder in $triggerObservableDetails.Folders) {
         Write-Verbose "Processing folder: $folder"
         $splat = @{
-            Table = $table
+            Table = $Table
             Fields = $triggerObservableDetails.Filters
             Where = "FolderPath='$folder'"
             UseExport = $UseExport
@@ -57,7 +52,7 @@ function Get-ScopedTriggerDump {
 
         
         if($TriggerType -eq "UserLoggedOff") {
-            Write-Verbose "UserLoggedOff trigger fields: $Feilds"
+            Write-Verbose "UserLoggedOff trigger fields: $Fields"
             $splat.Fields = $Fields
         }
 

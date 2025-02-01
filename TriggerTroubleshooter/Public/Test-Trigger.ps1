@@ -29,13 +29,23 @@ function Test-Trigger {
     Write-Verbose "Testing the schedule"
     $scheduleResult = Test-Schedule -ScheduleID $triggerDetails.IncidentScheduleId
 
+    Write-Verbose "Getting Trigger Observable Details"
+    $triggerObservableDetails = Get-CUObservableTriggerDetails -Trigger $Name
+
+    Write-Verbose "Getting the Table"
+    $table = Get-TableName -Name $triggerObservableDetails.Table -TriggerType $triggerDetails.TriggerType -RecordType $triggerDetails.AdvancedTriggerSettings.TriggerStressRecordType
+
+    Write-Verbose "Testing if properties are in the Observables runtime"
+    $arePropertiesObserved = Test-ObserverdProperties -ResourceName $table -Properties $triggerDetails.FilterNodes.ExpressionDescriptor.Column
+
     Write-Verbose "Getting trigger dump"
     $dumpSplat = @{
         Name = $Name
         UseExport = $UseExport
-        TriggerType = $triggerDetails.TriggerType
-        RecordType = $triggerDetails.AdvancedTriggerSettings.TriggerStressRecordType
         Fields = $triggerDetails.FilterNodes.ExpressionDescriptor.Column
+        Table = $table
+        TriggerObservableDetails = $triggerObservableDetails
+        TriggerType = $triggerDetails.TriggerType
     }
     $dump = Get-ScopedTriggerDump @dumpSplat
 
@@ -56,6 +66,7 @@ function Test-Trigger {
 
         $result = Test-TriggerFilterNode -Node $rootNode -Record $record
         $result.ScheduleResult = $scheduleResult
+        $result.ArePropertiesObserved = $arePropertiesObserved
         [void] $output.Add($result)
         
     }
