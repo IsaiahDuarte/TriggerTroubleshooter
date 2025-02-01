@@ -44,6 +44,11 @@ function Get-CUQueryData {
 
             Write-Verbose "Converting exported JSON data to PowerShell objects."
             $json = Get-Content $fullPath -ErrorAction Stop  | ConvertFrom-Json -ErrorAction Stop
+
+            if($json.count -eq 0) {
+                
+            }
+
             $results = $json  | ForEach-Object {
                 $obj = @{
                     Key = $_.RecordId
@@ -54,8 +59,12 @@ function Get-CUQueryData {
                         $obj[$property.PropertyName] = $property.Value.InnerValue
                     }
 
-                    if($property.InnerValue -ne $_.InnerValue) {
+                    if($null -ne $property.InnerValue.fAvarageValue) {
                         $obj[$property.PropertyName] = $property.InnerValue.fAvarageValue
+                    } 
+
+                    if($null -ne $property.InnerValue) {
+                        $obj[$property.PropertyName] = $property.InnerValue
                     }
                 }
          

@@ -8,6 +8,12 @@ function Test-TriggerFilterNode {
         [object] $Record
     )
 
+    $nullProps = $object.PSObject.Properties | Where-Object { $_.Value -eq $null }
+    if ($nullProps) {
+    $nullProps | ForEach-Object { Write-Warning "Null property: $($_.Name)";  }
+    }
+
+        
     Write-Verbose "Evaluating node..."
 
     $result = [TriggerFilterResult]::New()
@@ -43,13 +49,14 @@ function Test-TriggerFilterNode {
         $currentResult = $exprResult
     }
 
-    if ($null -ne $Node.ChildNodes -and $Node.ChildNodes.Count -gt 0) {
+    if ($null -ne $Node.ChildNodes -and $Node.ChildNodes.Count -gt 0 ) {
 
         Write-Verbose "Processing child nodes..."
         $accumulatedResult = $currentResult
 
         for ($i = 0; $i -lt $Node.ChildNodes.Count; $i++) {
             $child = $Node.ChildNodes[$i]
+            if($null -eq $child) { continue }
             $childResult = Test-TriggerFilterNode -Node $child -Record $Record
             [void] $result.ChildNodes.Add($childResult)
 

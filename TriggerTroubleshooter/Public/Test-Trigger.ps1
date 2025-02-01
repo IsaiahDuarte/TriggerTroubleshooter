@@ -9,18 +9,11 @@ function Test-Trigger {
 
         [Parameter(Mandatory = $false)]
         [bool] $UseExport = $false
+        
     )
 
     Write-Verbose "Starting Test-Trigger for trigger name: $Name"
     $output = [System.Collections.Generic.List[TriggerFilterResult]]::New()
-
-    Write-Verbose "Getting trigger dump"
-    $dump = Get-ScopedTriggerDump -Name $Name -UseExport $UseExport
-    if ($dump.Count -eq 0) {
-        Write-Warning "No data was returned by the query."
-        return
-    }
-    Write-Verbose "Data retrieved from Get-ScopedTriggerDump: $($dump.Count) records found."
 
     Write-Verbose "Getting Trigger"
     $trigger = Get-CUTriggers | Where-Object { $_.TriggerName -eq $Name }
@@ -35,6 +28,23 @@ function Test-Trigger {
 
     Write-Verbose "Testing the schedule"
     $scheduleResult = Test-Schedule -ScheduleID $triggerDetails.IncidentScheduleId
+
+    Write-Verbose "Getting trigger dump"
+    $dumpSplat = @{
+        Name = $Name
+        UseExport = $UseExport
+        TriggerType = $triggerDetails.TriggerType
+        RecordType = $triggerDetails.AdvancedTriggerSettings.TriggerStressRecordType
+        Fields = $triggerDetails.FilterNodes.ExpressionDescriptor.Column
+    }
+    $dump = Get-ScopedTriggerDump @dumpSplat
+
+    if ($dump.Count -eq 0) {
+        Write-Warning "No data was returned by the query."
+        return
+    }
+    Write-Verbose "Data retrieved from Get-ScopedTriggerDump: $($dump.Count) records found."
+
 
     Write-Verbose "Testing each entry from dump"
     foreach ($key in $dump.Keys) {

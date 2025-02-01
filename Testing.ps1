@@ -1,5 +1,4 @@
-try {
-    $ErrorActionPreference = 'Stop'
+
     $triggerName = "Folder Advanced Trigger"
 
     $path = Get-ChildItem "C:\Program Files\Smart-X\ControlUpMonitor\*\ControlUp.Powershell.User.dll" | Sort-Object -Property LastAccessTime -Descending
@@ -10,13 +9,11 @@ try {
     Import-Module $path
     Import-Module "$PSScriptRoot\TriggerTroubleshooter\TriggerTroubleshooter.psd1" -Force
 
-    $result = Test-Trigger -Name $triggerName -Verbose -UseExport $True
-
-    # Get-SupportTriggerDump -Name $triggerName 
-
-    if($null -ne $result) {
-        $result.DisplayResult()
+    Get-CUTriggers -IsEnabled $true | Foreach-Object {
+        Write-host "`n`nProcessing Trigger $($_.TriggerName)" -ForegroundColor Blue
+        $result = Test-Trigger -Name $_.TriggerName -UseExport $true
+        
+        if($null -ne $result -and $_.TriggerName -notlike "*process*") {
+            $result.DisplayResult()
+        }
     }
-} catch {
-    throw $_
-}

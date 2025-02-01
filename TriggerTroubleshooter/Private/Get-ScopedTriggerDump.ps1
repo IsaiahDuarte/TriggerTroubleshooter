@@ -5,7 +5,16 @@ function Get-ScopedTriggerDump {
         [string] $Name,
 
         [Parameter(Mandatory = $true)]
-        [bool] $UseExport
+        [bool] $UseExport,
+
+        [Parameter(Mandatory = $false)]
+        [string] $TriggerType,
+
+        [Parameter(Mandatory = $false)]
+        [string] $RecordType,
+
+        [Parameter(Mandatory = $false)]
+        [string[]] $Fields
     )
     
     Write-Verbose "Starting the Get-ScopedTriggerDump process for trigger: $Name"
@@ -15,15 +24,17 @@ function Get-ScopedTriggerDump {
 
     $triggerObservableDetails = Get-CUObservableTriggerDetails -Trigger $Name
 
-    if([string]::IsNullOrEmpty($triggerObservableDetails.Table)) {
+    Write-Verbose $triggerName
+    $table = Get-TableName -Name $triggerObservableDetails.Table -TriggerType $TriggerType -RecordType $RecordType
+    Write-Verbose "Resolved table name: $table"
+
+    if([string]::IsNullOrEmpty($table)) {
         Write-Warning "Observable Details didn't return a table for $Name"
         return
     }
  
     Write-Verbose "Fetched trigger observable details: $triggerObservableDetails"
 
-    $table = Get-TableName -Name $triggerObservableDetails.Table
-    Write-Verbose "Resolved table name: $table"
 
     if ($table -notin $tables) {
         Write-Verbose "$table not found in the list of tables."
@@ -33,6 +44,8 @@ function Get-ScopedTriggerDump {
     Write-Verbose "$table found. Proceeding to fetch data."
 
     $dump = @{}
+
+
     foreach ($folder in $triggerObservableDetails.Folders) {
         Write-Verbose "Processing folder: $folder"
         $splat = @{
@@ -41,6 +54,13 @@ function Get-ScopedTriggerDump {
             Where = "FolderPath='$folder'"
             UseExport = $UseExport
         }
+
+        
+        if($TriggerType -eq "UserLoggedOff") {
+            Write-Verbose "UserLoggedOff trigger fields: $Feilds"
+            $splat.Fields = $Fields
+        }
+
         $results = Get-CUQueryData @splat
 
         foreach ($item in $results) {
