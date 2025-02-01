@@ -1,0 +1,93 @@
+function Get-CUQueryData {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Table,
+
+        [Parameter(Mandatory = $true)]
+        [string[]] $Fields,
+
+        [Parameter(Mandatory = $true)]
+        [string] $Where,
+
+        [Parameter(Mandatory = $false)]
+        [bool] $UseExport = $false
+    )
+    
+    Write-Verbose "Starting Get-CUQueryData function."
+
+    Write-Verbose "Creating splat hashtable with provided parameters."
+    $splat = @{
+        Table  = $Table
+        Fields = $Fields
+        Where  = $Where
+    }
+
+    try {
+        if ($UseExport) {
+            Write-Verbose "UseExport is set to TRUE. Proceeding with export method."
+
+            Write-Verbose "Generating temporary file and directory."
+            $tempFile = "$(([guid]::NewGuid().ToString("N"))).json"
+            $dir = Split-Path -Path $env:TEMP
+            $fullPath = Join-Path -Path $dir -ChildPath $tempFile
+            Write-Verbose "Full Path $fullPath"
+
+            Write-Verbose "Updating splat hashtable with export parameters."
+            $splat.OutputFolder = $dir
+            $splat.FileName       = $tempFile
+            $splat.FileFormat     = "Json"
+
+            Write-Verbose "Executing Export-CUQuery with provided parameters."
+            Export-CUQuery @splat | Out-Null
+            Write-Verbose "Export-CUQuery executed successfully. Reading exported data from $fullPath."
+
+            Write-Verbose "Converting exported JSON data to PowerShell objects."
+            $json = Get-Content $fullPath -ErrorAction Stop  | ConvertFrom-Json -ErrorAction Stop
+            $results = $json  | ForEach-Object {
+                $obj = @{
+                    Key = $_.RecordId
+                }
+         
+                foreach ($property in $_.Properties) {
+                    if($null -ne $property.Value) {
+                        $obj[$property.PropertyName] = $property.Value.InnerValue
+                    }
+
+                    if($property.InnerValue -ne $_.InnerValue) {
+                        $obj[$property.PropertyName] = $property.InnerValue.fAvarageValue
+                    }
+                }
+         
+                [PSCustomObject]$obj
+            }
+         
+         
+            Write-Verbose "Successfully converted JSON data. Processing records."
+
+            Write-Verbose "Removing temporary file at $fullPath."
+            Remove-Item -Path $fullPath -Force -ErrorAction Stop
+            Write-Verbose "Temporary file removed successfully."
+
+            Write-Verbose "Returning the processed results."
+            return $results
+        }
+        else {
+            Write-Verbose "UseExport is set to FALSE. Proceeding with Invoke-CUQuery method."
+
+            Write-Verbose "Executing Invoke-CUQuery with provided parameters."
+            $invokeResult = Invoke-CUQuery @splat
+            Write-Verbose "Invoke-CUQuery executed successfully. Retrieving data."
+
+            Write-Verbose "Returning the retrieved data."
+            return $invokeResult.Data
+        }
+    }
+    catch {
+        Write-Error "An error occurred in Get-CUQueryData: $_"
+        throw
+    }
+    finally {
+        Write-Verbose "Get-CUQueryData function completed."
+    }
+}

@@ -2,7 +2,10 @@ function Get-ScopedTriggerDump {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        [string] $Name
+        [string] $Name,
+
+        [Parameter(Mandatory = $true)]
+        [bool] $UseExport
     )
     
     Write-Verbose "Starting the Get-ScopedTriggerDump process for trigger: $Name"
@@ -32,7 +35,13 @@ function Get-ScopedTriggerDump {
     $dump = @{}
     foreach ($folder in $triggerObservableDetails.Folders) {
         Write-Verbose "Processing folder: $folder"
-        $results = (Invoke-CUQuery -Table $table -Fields $triggerObservableDetails.Filters -Where "FolderPath='$folder'").Data
+        $splat = @{
+            Table = $table
+            Fields = $triggerObservableDetails.Filters
+            Where = "FolderPath='$folder'"
+            UseExport = $UseExport
+        }
+        $results = Get-CUQueryData @splat
 
         foreach ($item in $results) {
             Write-Verbose "Adding item with key: $($item.key) to the dump."

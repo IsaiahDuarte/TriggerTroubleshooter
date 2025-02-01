@@ -5,14 +5,17 @@ function Test-Trigger {
         [string] $Name,
 
         [Parameter(Mandatory = $false)]
-        [switch] $Display
+        [switch] $Display,
+
+        [Parameter(Mandatory = $false)]
+        [bool] $UseExport = $false
     )
 
     Write-Verbose "Starting Test-Trigger for trigger name: $Name"
     $output = [System.Collections.Generic.List[TriggerFilterResult]]::New()
 
     Write-Verbose "Getting trigger dump"
-    $dump = Get-ScopedTriggerDump -Name $Name
+    $dump = Get-ScopedTriggerDump -Name $Name -UseExport $UseExport
     if ($dump.Count -eq 0) {
         Write-Warning "No data was returned by the query."
         return
@@ -30,6 +33,9 @@ function Test-Trigger {
     Write-Verbose "Getting trigger configuration"
     $triggerDetails = Get-CUTriggerDetails -TriggerId $trigger.TriggerId
 
+    Write-Verbose "Testing the schedule"
+    $scheduleResult = Test-Schedule -ScheduleID $triggerDetails.IncidentScheduleId
+
     Write-Verbose "Testing each entry from dump"
     foreach ($key in $dump.Keys) {
         Write-Verbose "Testing $Key"
@@ -38,11 +44,11 @@ function Test-Trigger {
         $rootNode = [ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode]::New()
         $rootNode.ChildNodes = $triggerDetails.FilterNodes
 
-        [void] $output.Add((Test-TriggerFilterNode -Node $rootNode -Record $record))
+        $result = Test-TriggerFilterNode -Node $rootNode -Record $record
+        $result.ScheduleResult = $scheduleResult
+        [void] $output.Add($result)
         
     }
-
-    $output.SetScheduleResult((Test-Schedule -ScheduleID $triggerDetails.IncidentScheduleId))
 
     Write-Verbose "Returning output with $($output.Count) records."
 

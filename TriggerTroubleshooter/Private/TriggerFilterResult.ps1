@@ -24,7 +24,7 @@ class TriggerFilterResult {
     [void] DisplayResult([int] $IndentLevel, [string] $PrefixOperator) {
         if($IndentLevel -eq 0) {
             Write-Host "`nKey: $($this.ChildNodes[0].Details.Key)" -ForegroundColor White
-            Write-Host "Schedule Result: $($this.ScheduleResult)" -ForegroundColor White
+            Write-Host "In Schedule: $($this.ScheduleResult)" -ForegroundColor White
         }
         
         $indent = (' ' * 4) * $IndentLevel

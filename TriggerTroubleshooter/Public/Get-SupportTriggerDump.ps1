@@ -7,7 +7,7 @@ function Get-SupportTriggerDump {
 
         [Parameter(Mandatory = $false, HelpMessage = "Directory where the dump will be saved.")]
         [ValidateScript({ Test-Path $_ -PathType 'Container' })]
-        [string] $OutputDirectory = [System.IO.Path]::GetTempPath()
+        [string] $OutputDirectory = $env:TEMP
     )
 
     Write-Verbose "Starting Get-SupportTriggerDump for TriggerName: '$TriggerName'"
@@ -23,13 +23,6 @@ function Get-SupportTriggerDump {
         }
 
         Write-Verbose "Trigger found. TriggerID: $($trigger.TriggerID)"
-
-        $tempDirectoryName = [Guid]::NewGuid().ToString("N")
-        $tempDirectory = Join-Path -Path $OutputDirectory -ChildPath $tempDirectoryName
-
-        Write-Verbose "Creating temporary directory at: '$tempDirectory'"
-        New-Item -Path $tempDirectory -ItemType Directory -Force | Out-Null
-        Write-Verbose "Temporary directory created successfully."
 
         $triggerDetailsPath = Join-Path -Path $tempDirectory -ChildPath "TriggerDetails.json"
         Write-Verbose "Exporting Trigger Details to '$triggerDetailsPath'"
