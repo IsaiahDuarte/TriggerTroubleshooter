@@ -45,10 +45,6 @@ function Get-CUQueryData {
             Write-Verbose "Converting exported JSON data to PowerShell objects."
             $json = Get-Content $fullPath -ErrorAction Stop  | ConvertFrom-Json -ErrorAction Stop
 
-            if($json.count -eq 0) {
-                
-            }
-
             $results = $json  | ForEach-Object {
                 $obj = @{
                     Key = $_.RecordId
@@ -57,21 +53,22 @@ function Get-CUQueryData {
                 foreach ($property in $_.Properties) {
                     if($null -ne $property.Value) {
                         $obj[$property.PropertyName] = $property.Value.InnerValue
+                        continue
                     }
 
                     if($null -ne $property.InnerValue.fAvarageValue) {
                         $obj[$property.PropertyName] = $property.InnerValue.fAvarageValue
+                        continue
                     } 
 
                     if($null -ne $property.InnerValue) {
                         $obj[$property.PropertyName] = $property.InnerValue
+                        continue
                     }
                 }
          
                 [PSCustomObject]$obj
             }
-         
-         
             Write-Verbose "Successfully converted JSON data. Processing records."
 
             Write-Verbose "Removing temporary file at $fullPath."
@@ -95,8 +92,5 @@ function Get-CUQueryData {
     catch {
         Write-Error "An error occurred in Get-CUQueryData: $_"
         throw
-    }
-    finally {
-        Write-Verbose "Get-CUQueryData function completed."
     }
 }

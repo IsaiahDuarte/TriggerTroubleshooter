@@ -8,7 +8,7 @@ function Test-TriggerFilterNode {
         [object] $Record
     )
 
-    $nullProps = $object.PSObject.Properties | Where-Object { $_.Value -eq $null }
+    $nullProps = $object.PSObject.Properties | Where-Object { $null -eq $_.Value }
     if ($nullProps) {
     $nullProps | ForEach-Object { Write-Warning "Null property: $($_.Name)";  }
     }
