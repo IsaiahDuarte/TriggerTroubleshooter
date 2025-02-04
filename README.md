@@ -21,7 +21,7 @@ Has the option to use Export-CUQuery to test all records.
 ![alt text](photos/sbaParameters.png)
 
 ## SBA Result
-![alt text](photos/sbaResult.png)
+![alt text](photos/sbaresult.png)
 
 # To Do
 - Process Events trigger differently
