@@ -3,8 +3,12 @@ param (
     [string] $TriggerName,
 
     [Parameter(Mandatory=$false)]
-    [ValidateSet("False","Trues")]
-    [string] $UseExport
+    [ValidateSet("False","True")]
+    [string] $UseExport,
+
+    [Parameter(Mandatory=$false)]
+    [ValidateSet("False","True")]
+    [string] $CollectSupportZip
 )
 function Get-GitPath {
     param(
@@ -54,4 +58,8 @@ $result = Test-Trigger -Name $TriggerName -UseExport ($UseExport -eq "True")
 if($null -ne $result) {
     Write-Host "`nTested $($result.count) recrods against trigger conditions"
     $result.DisplayResult()
+}
+if($CollectSupportZip -eq "True") {
+    Write-Host "Collecting Support Dump"
+    Get-SupportTriggerDump -Name $TriggerName
 }

@@ -1,5 +1,5 @@
 function Get-CUQueryData {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName="Take")]
     param(
         [Parameter(Mandatory = $true)]
         [string] $Table,
@@ -10,8 +10,11 @@ function Get-CUQueryData {
         [Parameter(Mandatory = $true)]
         [string] $Where,
 
-        [Parameter(Mandatory = $false)]
-        [bool] $UseExport = $false
+        [Parameter(Mandatory = $false, ParameterSetName = "UseExport")]
+        [switch] $UseExport,
+
+        [Parameter(Mandatory = $false, ParameterSetName = "Take")]
+        [int] $Take = 100
     )
     
     Write-Verbose "Starting Get-CUQueryData function."
@@ -23,7 +26,7 @@ function Get-CUQueryData {
     }
 
     try {
-        if ($UseExport) {
+        if ($PSCmdlet.ParameterSetName -eq "UseExport" -and $UseExport) {
             Write-Verbose "UseExport is set to TRUE. Proceeding with export method."
 
             Write-Verbose "Generating temporary file and directory."
@@ -77,9 +80,8 @@ function Get-CUQueryData {
             Write-Verbose "Returning the processed results."
             return $results
         }
-        else {
-            Write-Verbose "UseExport is set to FALSE. Proceeding with Invoke-CUQuery method."
-
+        elseif ($PSCmdlet.ParameterSetName -eq "Take") {
+            $splat.Take = $Take
             Write-Verbose "Executing Invoke-CUQuery with provided parameters."
             $invokeResult = Invoke-CUQuery @splat
             Write-Verbose "Invoke-CUQuery executed successfully. Retrieving data."

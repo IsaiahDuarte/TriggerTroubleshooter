@@ -1,11 +1,11 @@
 function Get-ScopedTriggerDump {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName="Take")]
     param(
         [Parameter(Mandatory)]
         [string] $Name,
-
-        [Parameter(Mandatory)]
-        [bool] $UseExport,
+        
+        [Parameter(Mandatory = $false, ParameterSetName = "Export")]
+        [switch] $UseExport,
 
         [Parameter(Mandatory)]
         [ControlUp.PowerShell.Common.Contract.ObservableTriggerService.GetObservableTriggerResponse] $TriggerObservableDetails,
@@ -17,12 +17,15 @@ function Get-ScopedTriggerDump {
         [string] $Table,
 
         [Parameter(Mandatory = $false)]
-        [string[]] $Fields
+        [string[]] $Fields,
+
+        [Parameter(Mandatory = $false, ParameterSetName = "Take")]
+        [int] $Take = 100
     )
     
     Write-Verbose "Starting the Get-ScopedTriggerDump process for trigger: $Name"
     
-    $tables = (Invoke-CUQuery -Scheme Information -Fields SchemaName, TableName -Table Tables -take 200).data.TableName
+    $tables = (Invoke-CUQuery -Scheme Information -Fields SchemaName, TableName -Table Tables -take 500).data.TableName
     Write-Verbose "Retrieved table names: $tables"
 
     if([string]::IsNullOrEmpty($Table)) {
@@ -47,10 +50,16 @@ function Get-ScopedTriggerDump {
             Table = $Table
             Fields = $triggerObservableDetails.Filters
             Where = "FolderPath='$folder'"
-            UseExport = $UseExport
         }
 
-        
+        if($PSCmdlet.ParameterSetName -eq "Export") {
+            $splat.UseExport = $UseExport
+        }
+
+        if($PSCmdlet.ParameterSetName -eq "Take") {
+            $splat.Take = $Take
+        }
+
         if($TriggerType -eq "UserLoggedOff") {
             Write-Verbose "UserLoggedOff trigger fields: $Fields"
             $splat.Fields = $Fields

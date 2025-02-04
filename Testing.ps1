@@ -9,11 +9,13 @@ Import-Module "$PSScriptRoot\TriggerTroubleshooter\TriggerTroubleshooter.psd1" -
 Get-CUTriggers -IsEnabled $true | Foreach-Object {
     if($_.TriggerName -match 'Trigger2' ) { 
         Write-host "`n`nProcessing Trigger $($_.TriggerName)" -ForegroundColor Blue
-        $result = Test-Trigger -Name $_.TriggerName -UseExport $false
+        $result = Test-Trigger -Name $_.TriggerName -RecordsPerFolder 5
         
         if($null -ne $result -and $_.TriggerName -notlike "*process*") {
             $result.DisplayResult()
         }
+
+        Get-SupportTriggerDump -Name $_.TriggerName
     }
 }
 

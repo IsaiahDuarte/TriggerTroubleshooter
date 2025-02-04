@@ -1,5 +1,5 @@
 function Test-Trigger {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = "UseQuery")]
     param(
         [Parameter(Mandatory = $true)]
         [string] $Name,
@@ -7,8 +7,12 @@ function Test-Trigger {
         [Parameter(Mandatory = $false)]
         [switch] $Display,
 
-        [Parameter(Mandatory = $false)]
-        [bool] $UseExport = $false
+        [Parameter(Mandatory = $false, ParameterSetName = "UseExport")]
+        [bool] $UseExport,
+
+        # This is Per folder due to how the data is pulled
+        [Parameter(Mandatory = $false, ParameterSetName = "UseQuery")]
+        [int] $RecordsPerFolder = 100
         
     )
 
@@ -41,18 +45,27 @@ function Test-Trigger {
     Write-Verbose "Getting trigger dump"
     $dumpSplat = @{
         Name = $Name
-        UseExport = $UseExport
         Fields = $triggerDetails.FilterNodes.ExpressionDescriptor.Column
         Table = $table
         TriggerObservableDetails = $triggerObservableDetails
         TriggerType = $triggerDetails.TriggerType
     }
+
+    if($PSCmdlet.ParameterSetName -eq "UseExport") {
+        $dumpSplat.UseExport = $UseExport
+    }
+
+    if($PSCmdlet.ParameterSetName -eq "UseQuery") {
+        $dumpSplat.Take = $RecordsPerFolder
+    }
+
     $dump = Get-ScopedTriggerDump @dumpSplat
 
     if ($dump.Count -eq 0) {
         Write-Warning "No data was returned by the query."
         return
     }
+
     Write-Verbose "Data retrieved from Get-ScopedTriggerDump: $($dump.Count) records found."
 
 
