@@ -1,4 +1,4 @@
-class TriggerFilterResult {
+﻿class TriggerFilterResult {
     [System.Collections.Generic.List[TriggerFilterResult]] $ChildNodes
     [TriggerDataResult] $Details
     [string] $LogicalOperator
@@ -22,57 +22,45 @@ class TriggerFilterResult {
         $this.DisplayResult(0, [string]::Empty)
     }
 
-    [void] DisplayResult([int] $IndentLevel, [string] $PrefixOperator) {
-        if($IndentLevel -eq 0) {
-            Write-Host "`nKey: $($this.ChildNodes[0].Details.Key)" -ForegroundColor White
-            Write-Host "In Schedule: $($this.ScheduleResult)" -ForegroundColor White
-            Write-Host "Are Properties Observed: $($this.ArePropertiesObserved)" -ForegroundColor White
+    [void] DisplayResult([int] $IndentLevel = 0, [string] $PrefixOperator = '') {
+        if ($IndentLevel -eq 0) {
+            $separator = '─' * 60
+            Write-Host "`n$separator" -ForegroundColor White
+            Write-Host ("Key: {0}" -f $this.ChildNodes[0].Details.Key) -ForegroundColor White
+            Write-Host ("In Schedule: {0}" -f $this.ScheduleResult) -ForegroundColor White
+            Write-Host ("Are Properties Observed: {0}" -f $this.ArePropertiesObserved) -ForegroundColor White
+            Write-Host ("Will Fire: {0}" -f $this.EvaluationResult) -ForegroundColor White
+            Write-Host "$separator" -ForegroundColor White
         }
-        
-        $indent = (' ' * 4) * $IndentLevel
-
-        if ($this.EvaluationResult -eq $true) {
-            $color = 'Green'
-            $resultSymbol = '[TRUE ]'
-        } else {
-            $color = 'Yellow'
-            $resultSymbol = '[FALSE]'
-        }
-
-        if ($PrefixOperator -ne '') {
-            $prefix = "$PrefixOperator "
-        } else {
-            $prefix = ''
-        }
-
-        if ($null -ne $this.ExpressionDescriptor) {
-            $expr         = $this.ExpressionDescriptor
-            $column       = $expr.Column
-            $value        = $expr.Value
-            $compOp       = $expr.ComparisonOperator.ToString()
-            $conditionStr = "'$column`' $compOp `'$value`'"
-
+    
+        $indent = ('    ' * $IndentLevel)
+        $color = if ($this.EvaluationResult) { 'Green' } else { 'Yellow' }
+        $resultSymbol = if ($this.EvaluationResult) { '[TRUE ]' } else { '[FALSE]' }
+        $prefix = if ($PrefixOperator) { "$PrefixOperator " } else { '' }
+    
+        if ($this.ExpressionDescriptor) {
+            $expr = $this.ExpressionDescriptor
+            $column = $expr.Column
+            $value = $expr.Value
+            $compOp = $expr.ComparisonOperator.ToString()
+            $conditionStr = "'$column' $compOp '$value'"
+    
             $detailString = ''
-            if ($null -ne $this.Details) {
-                $detailString = "(Value: $($this.Details.RecordValue), Operator: $($this.Details.ComparisonUsed))"
+            if ($this.Details) {
+                $detailString = "(Value: $($this.Details.RecordValue), Operator: $($this.Details.ComparisonUsed)) "
             }
-
-            Write-Host "$indent$prefix- Condition: IsRegex ($($expr.IsRegex)) $conditionStr $detailString $resultSymbol" -ForegroundColor $color
+    
+            Write-Host ("{0}{1}- Condition: IsRegex ({2}) {3} {4}{5}" -f $indent, $prefix, $expr.IsRegex, $conditionStr, $detailString, $resultSymbol) -ForegroundColor $color
         }
-
-        if ($null -ne $this.ChildNodes -and $this.ChildNodes.Count -gt 0) {
-            if ($null -eq $this.ExpressionDescriptor) {
-                Write-Host "$indent$prefix($($this.LogicalOperator)) $resultSymbol" -ForegroundColor $color
+    
+        if ($this.ChildNodes -and $this.ChildNodes.Count -gt 0) {
+            if (-not $this.ExpressionDescriptor) {
+                Write-Host ("{0}{1}({2}) {3}" -f $indent, $prefix, $this.LogicalOperator, $resultSymbol) -ForegroundColor $color
             }
-
+    
             for ($i = 0; $i -lt $this.ChildNodes.Count; $i++) {
                 $child = $this.ChildNodes[$i]
-                $childOperator = ''
-
-                if ($i -gt 0) {
-                    $childOperator = $child.LogicalOperator
-                }
-
+                $childOperator = if ($i -gt 0) { $child.LogicalOperator } else { '' }
                 $child.DisplayResult($IndentLevel + 1, $childOperator)
             }
         }
