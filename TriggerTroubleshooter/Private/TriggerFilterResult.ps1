@@ -39,12 +39,6 @@ class TriggerFilterResult {
             $resultSymbol = '[FALSE]'
         }
 
-        if ($this.IsNegation) {
-            $notStr = 'Not '
-        } else {
-            $notStr = ''
-        }
-
         if ($PrefixOperator -ne '') {
             $prefix = "$PrefixOperator "
         } else {
@@ -56,7 +50,7 @@ class TriggerFilterResult {
             $column       = $expr.Column
             $value        = $expr.Value
             $compOp       = $expr.ComparisonOperator.ToString()
-            $conditionStr = "$notStr`'$column`' $compOp `'$value`'"
+            $conditionStr = "'$column`' $compOp `'$value`'"
 
             $detailString = ''
             if ($null -ne $this.Details) {

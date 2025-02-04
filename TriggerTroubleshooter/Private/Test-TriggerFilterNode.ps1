@@ -10,7 +10,7 @@ function Test-TriggerFilterNode {
 
     $nullProps = $object.PSObject.Properties | Where-Object { $null -eq $_.Value }
     if ($nullProps) {
-    $nullProps | ForEach-Object { Write-Warning "Null property: $($_.Name)";  }
+        $nullProps | ForEach-Object { Write-Warning "Null property: $($_.Name)";  }
     }
 
         
@@ -32,12 +32,8 @@ function Test-TriggerFilterNode {
         $recordValue = $Record.$column
 
         Write-Verbose "Evaluating ExpressionDescriptor with column: $column, value: $value, ComparisonOperator: $compOp, isRegex: $isRegex"
-        $comparison = Test-Comparison -compOp $compOp -recordValue $recordValue -value $value
+        $comparison = Test-Comparison -compOp $compOp -recordValue $recordValue -value $value -IsNegation $Node.IsNegation
         $exprResult = $comparison.comparisonResult
-
-        if ($Node.IsNegation) {
-            $exprResult = -not $exprResult
-        }
 
         $result.Details = [TriggerDataResult]::New(
             $recordValue,
@@ -85,11 +81,7 @@ function Test-TriggerFilterNode {
     } else {
         $accumulatedResult = $currentResult
     }
-
-    if ($Node.IsNegation) {
-        $accumulatedResult = -not $accumulatedResult
-    }
-
+    
     $result.EvaluationResult = $accumulatedResult
 
     Write-Verbose "Node evaluation result: $($result.EvaluationResult)"

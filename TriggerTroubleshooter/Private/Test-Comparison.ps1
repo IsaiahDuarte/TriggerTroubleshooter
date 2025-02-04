@@ -8,20 +8,35 @@ function Test-Comparison {
         [object] $RecordValue,
         
         [Parameter(Mandatory = $true)]
-        [object] $Value
+        [object] $Value,
+
+        [Parameter(Mandatory = $true)]
+        [bool] $IsNegation
     )   
 
     $comparisonResult = $null
     $comparisonUsed = ""
-
+    
     switch ($CompOp) {
         'Equal' {
-            $comparisonResult = $RecordValue -eq $Value
-            $comparisonUsed   = "-eq"
+            if($IsNegation) {
+                $comparisonResult = $RecordValue -ne $Value
+                $comparisonUsed   = "-ne"    
+            } else {
+                $comparisonResult = $RecordValue -eq $Value
+                $comparisonUsed   = "-eq"
+            }
+            break
         }
         'Like' {
-            $comparisonResult = $RecordValue -like $Value
-            $comparisonUsed   = "-like"
+            if($IsNegation) {
+                $comparisonResult = $RecordValue -notlike $Value
+                $comparisonUsed   = "-notlike"    
+            } else {
+                $comparisonResult = $RecordValue -like $Value
+                $comparisonUsed   = "-like"
+            }
+            break
         }
         'NotEqual' {
             $comparisonResult = $RecordValue -ne $Value
@@ -30,22 +45,27 @@ function Test-Comparison {
         'LessThan' {
             $comparisonResult = [double]$RecordValue -lt [double]$Value
             $comparisonUsed   = "-lt"
+            break
         }
         'LessThanOrEqual' {
             $comparisonResult = [double]$RecordValue -le [double]$Value
             $comparisonUsed   = "-le"
+            break
         }
         'GreaterThan' {
             $comparisonResult = [double]$RecordValue -gt [double]$Value
             $comparisonUsed   = "-gt"
+            break
         }
         'GreaterThanOrEqual' {
             $comparisonResult = [double]$RecordValue -ge [double]$Value
             $comparisonUsed   = "-ge"
+            break
         }
         'Match' {
             $comparisonResult = $RecordValue -match $Value
             $comparisonUsed   = "-match"
+            break
         }
         default {
             throw "Unsupported ComparisonOperator: $CompOp"

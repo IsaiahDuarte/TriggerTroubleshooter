@@ -23,6 +23,12 @@ function Test-ObserverdProperties {
         Write-Verbose "Invoke-CUQuery executed successfully."
         
         Write-Verbose "Converting the 'ObserverdProps' JSON string to a PowerShell object."
+        if($result.Total -eq 0) {
+            Write-Verbose "No data retruned from query."
+            Write-Warning "Properties are not being observed by monitor"
+            return $false
+        }
+        
         $ObserverdProps = $result.Data.ObserverdProps | ConvertFrom-Json -ErrorAction Stop
         
         foreach ($property in $Properties) {

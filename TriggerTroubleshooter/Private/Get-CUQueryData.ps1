@@ -28,7 +28,7 @@ function Get-CUQueryData {
 
             Write-Verbose "Generating temporary file and directory."
             $tempFile = "$(([guid]::NewGuid().ToString("N"))).json"
-            $dir = Split-Path -Path $env:TEMP
+            $dir = $env:TEMP
             $fullPath = Join-Path -Path $dir -ChildPath $tempFile
             Write-Verbose "Full Path $fullPath"
 
