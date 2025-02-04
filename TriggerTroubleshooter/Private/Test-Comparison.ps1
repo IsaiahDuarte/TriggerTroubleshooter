@@ -11,12 +11,23 @@ function Test-Comparison {
         [object] $Value,
 
         [Parameter(Mandatory = $true)]
-        [bool] $IsNegation
+        [bool] $IsNegation,
+
+        [Parameter(Mandatory=$true)]
+        [bool] $IsRegex
     )   
 
     $comparisonResult = $null
     $comparisonUsed = ""
     
+    if ($CompOp -eq 'Equal' -and $Value -like '*`**' -and !$IsRegex) {
+        $CompOp = 'Like'
+    }
+
+    if($IsRegex) {
+        $CompOp = 'Match'
+    }
+
     switch ($CompOp) {
         'Equal' {
             if($IsNegation) {

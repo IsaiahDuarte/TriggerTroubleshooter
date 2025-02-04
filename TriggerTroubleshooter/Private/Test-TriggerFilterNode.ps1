@@ -27,12 +27,12 @@ function Test-TriggerFilterNode {
         $expr        = $Node.ExpressionDescriptor
         $column      = $expr.Column
         $value       = $expr.Value
-        $compOp      = Get-ComparisonOperator -compOp $expr.ComparisonOperator.ToString() -value $value -IsRegex $expr.IsRegex
+        $compOp      = $expr.ComparisonOperator.ToString()
         $isRegex     = $expr.IsRegex
         $recordValue = $Record.$column
 
         Write-Verbose "Evaluating ExpressionDescriptor with column: $column, value: $value, ComparisonOperator: $compOp, isRegex: $isRegex"
-        $comparison = Test-Comparison -compOp $compOp -recordValue $recordValue -value $value -IsNegation $Node.IsNegation
+        $comparison = Test-Comparison -compOp $compOp -recordValue $recordValue -value $value -IsNegation $Node.IsNegation -IsRegex $isRegex
         $exprResult = $comparison.comparisonResult
 
         $result.Details = [TriggerDataResult]::New(
@@ -81,7 +81,7 @@ function Test-TriggerFilterNode {
     } else {
         $accumulatedResult = $currentResult
     }
-    
+
     $result.EvaluationResult = $accumulatedResult
 
     Write-Verbose "Node evaluation result: $($result.EvaluationResult)"
