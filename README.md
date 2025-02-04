@@ -17,8 +17,11 @@ Has the option to use Export-CUQuery to test all records.
 ## Trigger Configuration
 ![alt text](photos/triggerfilter.png)
 
+## SBA Parameters
+![alt text](photos/sbaParameters.png)
+
 ## SBA Result
-![alt text](photos/sbaresult.png)
+![alt text](photos/sbaResult.png)
 
 # To Do
 - Process Events trigger differently

@@ -18,4 +18,3 @@ Get-CUTriggers -IsEnabled $true | Foreach-Object {
         Get-SupportTriggerDump -Name $_.TriggerName
     }
 }
-
