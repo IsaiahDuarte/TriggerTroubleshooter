@@ -1,90 +1,131 @@
 function Test-Comparison {
+    <#
+    .SYNOPSIS
+        Compares a record value to a given value using a specified comparison operator. 
+
+    .DESCRIPTION
+        This function evaluates a comparison between the provided record value and value based on 
+        the operator specified by the CompOp parameter. It supports additional modifiers such as 
+        negation and regex matching. Depending on the operator and modifiers, it returns the comparison
+        result and the operator used in the evaluation.
+
+    .PARAMETER CompOp
+        The comparison operator to use. Supported values include: Equal, Like, NotEqual, LessThan, 
+        LessThanOrEqual, GreaterThan, GreaterThanOrEqual, and Match.
+
+    .PARAMETER RecordValue
+        The value from the record that will be compared.
+
+    .PARAMETER Value
+        The value to compare against the RecordValue.
+
+    .PARAMETER IsNegation
+        A switch indicating whether to negate the result of the comparison.
+
+    .PARAMETER IsRegex
+        A switch indicating whether the comparison should be performed based on regular expression matching.
+
+    .EXAMPLE
+        $result = Test-Comparison -CompOp 'Equal' -RecordValue 'abc' -Value 'abc' -IsNegation $false -IsRegex $false
+    #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
         [string] $CompOp,
-        
+
         [Parameter(Mandatory = $true)]
         [object] $RecordValue,
-        
+
         [Parameter(Mandatory = $true)]
         [object] $Value,
 
         [Parameter(Mandatory = $true)]
         [bool] $IsNegation,
 
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [bool] $IsRegex
-    )   
+    )
 
-    $comparisonResult = $null
-    $comparisonUsed = ""
-    
-    if ($CompOp -eq 'Equal' -and $Value -like '*`**' -and !$IsRegex) {
-        $CompOp = 'Like'
-    }
+    try {
+        $comparisonResult = $null
+        $comparisonUsed = ""
 
-    if($IsRegex) {
-        $CompOp = 'Match'
-    }
+        # Adjust the operator: if CompOp is Equal and the value contains wildcards (unless using regex),
+        # use the Like operator.
+        if ($CompOp -eq 'Equal' -and $Value -like '*`**' -and -not $IsRegex) {
+            $CompOp = 'Like'
+        }
 
-    switch ($CompOp) {
-        'Equal' {
-            if($IsNegation) {
+        # If regex matching is requested, force the operator to Match.
+        if ($IsRegex) {
+            $CompOp = 'Match'
+        }
+
+        switch ($CompOp) {
+            'Equal' {
+                if ($IsNegation) {
+                    $comparisonResult = $RecordValue -ne $Value
+                    $comparisonUsed = "-ne"    
+                }
+                else {
+                    $comparisonResult = $RecordValue -eq $Value
+                    $comparisonUsed = "-eq"
+                }
+                break
+            }
+            'Like' {
+                if ($IsNegation) {
+                    $comparisonResult = $RecordValue -notlike $Value
+                    $comparisonUsed = "-notlike"    
+                }
+                else {
+                    $comparisonResult = $RecordValue -like $Value
+                    $comparisonUsed = "-like"
+                }
+                break
+            }
+            'NotEqual' {
                 $comparisonResult = $RecordValue -ne $Value
-                $comparisonUsed   = "-ne"    
-            } else {
-                $comparisonResult = $RecordValue -eq $Value
-                $comparisonUsed   = "-eq"
+                $comparisonUsed = "-ne"
+                break
             }
-            break
-        }
-        'Like' {
-            if($IsNegation) {
-                $comparisonResult = $RecordValue -notlike $Value
-                $comparisonUsed   = "-notlike"    
-            } else {
-                $comparisonResult = $RecordValue -like $Value
-                $comparisonUsed   = "-like"
+            'LessThan' {
+                $comparisonResult = [double]$RecordValue -lt [double]$Value
+                $comparisonUsed = "-lt"
+                break
             }
-            break
+            'LessThanOrEqual' {
+                $comparisonResult = [double]$RecordValue -le [double]$Value
+                $comparisonUsed = "-le"
+                break
+            }
+            'GreaterThan' {
+                $comparisonResult = [double]$RecordValue -gt [double]$Value
+                $comparisonUsed = "-gt"
+                break
+            }
+            'GreaterThanOrEqual' {
+                $comparisonResult = [double]$RecordValue -ge [double]$Value
+                $comparisonUsed = "-ge"
+                break
+            }
+            'Match' {
+                $comparisonResult = $RecordValue -match $Value
+                $comparisonUsed = "-match"
+                break
+            }
+            default {
+                throw "Unsupported ComparisonOperator: $CompOp"
+            }
         }
-        'NotEqual' {
-            $comparisonResult = $RecordValue -ne $Value
-            $comparisonUsed   = "-ne"
-        }
-        'LessThan' {
-            $comparisonResult = [double]$RecordValue -lt [double]$Value
-            $comparisonUsed   = "-lt"
-            break
-        }
-        'LessThanOrEqual' {
-            $comparisonResult = [double]$RecordValue -le [double]$Value
-            $comparisonUsed   = "-le"
-            break
-        }
-        'GreaterThan' {
-            $comparisonResult = [double]$RecordValue -gt [double]$Value
-            $comparisonUsed   = "-gt"
-            break
-        }
-        'GreaterThanOrEqual' {
-            $comparisonResult = [double]$RecordValue -ge [double]$Value
-            $comparisonUsed   = "-ge"
-            break
-        }
-        'Match' {
-            $comparisonResult = $RecordValue -match $Value
-            $comparisonUsed   = "-match"
-            break
-        }
-        default {
-            throw "Unsupported ComparisonOperator: $CompOp"
+
+        return [PSCustomObject]@{
+            comparisonResult = $comparisonResult
+            comparisonUsed   = $comparisonUsed
         }
     }
-    
-    return [PSCustomObject]@{
-        comparisonResult = $comparisonResult
-        comparisonUsed = $comparisonUsed
+    catch {
+        Write-Error "Error in Test-Comparison: $($_.Exception.Message)"
+        throw
     }
-}
+} 
