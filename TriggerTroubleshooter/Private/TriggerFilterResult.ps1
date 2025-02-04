@@ -52,7 +52,7 @@ class TriggerFilterResult {
     [void] DisplayResult([int] $IndentLevel = 0, [string] $PrefixOperator = '') {
         try {
             if ($IndentLevel -eq 0) {
-                $separator = '─' * 60
+                $separator = '=' * 60
                 Write-Host "`n$separator" -ForegroundColor White
                 # Guard access to ChildNodes in case it is empty
                 if ($this.ChildNodes.Count -gt 0 -and $this.ChildNodes[0].Details) {
