@@ -36,6 +36,17 @@ function Get-TableName {
                 Write-Verbose "UserLoggedOff detected. Returning SessionsView table."
                 return "SessionsView"
             }
+
+            "UserLoggedOn" {
+                Write-Verbose "UserLoggedOn detected. Returning SessionsView table."
+                return "SessionsView"
+            }
+
+            "WindowsEvent" {
+                Write-Verbose "UserLoggedOn detected. Returning SessionsView table."
+                return "Events"
+            }
+
             default {
                 Write-Verbose "No trigger type mapping found for '$TriggerType'."
             }

@@ -49,11 +49,6 @@ function Get-TriggerTroubleshooter {
     }
 }
 
-# Import the latest ControlUp module from the monitor.
-Write-Host "Importing latest module from monitor"
-$pathToUserModule = (Get-ChildItem "C:\Program Files\Smart-X\ControlUpMonitor\*\ControlUp.PowerShell.User.dll" -Recurse | Sort-Object LastWriteTime -Descending)[0]
-Import-Module $pathToUserModule
-
 # Download and import TriggerTroubleshooter
 $path = Get-TriggerTroubleshooter -GitPath (Get-GitPath) -DestinationPath $ENV:TEMP
 Write-Host "Importing TriggerTroubleshooter module"

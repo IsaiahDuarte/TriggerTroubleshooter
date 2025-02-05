@@ -11,6 +11,8 @@ Has the option to use Export-CUQuery to test all records.
 - Advanced Session
 - Advanced Computer
 - User logged off
+- User Logged On
+- Events
 
 # Example
 
@@ -24,4 +26,3 @@ Has the option to use Export-CUQuery to test all records.
 ![alt text](photos/sbaresult.png)
 
 # To Do
-- Process Events trigger differently

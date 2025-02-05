@@ -1,4 +1,4 @@
-$path = Get-ChildItem "C:\Program Files\Smart-X\ControlUpMonitor\*\ControlUp.Powershell.User.dll" | Sort-Object -Property LastAccessTime -Descending
+$path = (Get-ChildItem "C:\Program Files\Smart-X\ControlUpMonitor\*\ControlUp.Powershell.User.dll" | Sort-Object -Property LastAccessTime -Descending)[0]
 if (!$path) {
     throw "Unable to find dll"
 }
@@ -7,9 +7,9 @@ Import-Module $path
 Import-Module "$PSScriptRoot\TriggerTroubleshooter\TriggerTroubleshooter.psd1" -Force
 
 Get-CUTriggers -IsEnabled $true | Foreach-Object {
-    if ($_.TriggerName -eq 'Logical Disk Advanced Trigger' ) { 
+    if ($_.TriggerName -eq 'Windows Event matching a custom filter' ) { 
         Write-host "`n`nProcessing Trigger $($_.TriggerName)" -ForegroundColor Blue
-        $result = Test-Trigger -Name $_.TriggerName -RecordsPerFolder 5
+        $result = Test-Trigger -Name $_.TriggerName -RecordsPerFolder 100
         
         if ($null -ne $result -and $_.TriggerName -notlike "*process*") {
             $result.DisplayResult()

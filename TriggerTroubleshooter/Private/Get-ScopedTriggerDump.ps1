@@ -96,12 +96,17 @@ function Get-ScopedTriggerDump {
                 $splat.Take = $Take
             }
 
-            if ($TriggerType -eq "UserLoggedOff") {
-                Write-Verbose "UserLoggedOff trigger: overriding fields with: $Fields"
+            if ($TriggerType -eq "UserLoggedOff" -or $TriggerType -eq "UserLoggedOn" -or $TriggerType -eq "WindowsEvent") {
+                Write-Verbose "Trigger is one of the following that doesn't return data: UserLoggedOff/On, WindowsEvent. overriding fields with: $Fields"
                 $splat.Fields = $Fields
             }
 
             $results = Get-CUQueryData @splat
+
+            # We need to adjust the data if its a WindowsEvent
+            if($TriggerType -eq "WindowsEvent") {
+                $results = Set-WindowsEventData -Data $results
+            }
 
             foreach ($item in $results) {
                 Write-Verbose "Adding item with key: $($item.key) to the dump."
