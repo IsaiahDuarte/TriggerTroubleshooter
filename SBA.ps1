@@ -54,10 +54,10 @@ param (
 
     [Parameter(Mandatory=$false)]
     [ValidateSet("False", "True")]
-    [switch]$EnableVerbose
+    [string]$EnableVerbose
 )
 
-if ($EnableVerbose) {
+if ($EnableVerbose -eq "True") {
     $VerbosePreference = "Continue"
 }
 
@@ -93,10 +93,14 @@ function Get-TriggerTroubleshooter {
 }
 
 try {
+    Write-Host "Importing latest module from monitor"
+    $pathToUserModule = (Get-ChildItem "C:\Program Files\Smart-X\ControlUpMonitor\*\ControlUp.PowerShell.User.dll" -Recurse | Sort-Object LastWriteTime -Descending)[0]
+    Import-Module $pathToUserModule
+
     if ($UseExport -eq "True" -and $PSBoundParameters.ContainsKey("RecordsPerFolder")) {
         Write-Verbose "The 'RecordsPerFolder' value will be ignored because 'UseExport' is set to True."
     }
-    if ($ModuleOfflinePath) {
+    if ($ModuleOfflinePath -and $ModuleOfflinePath -ne "NA") {
         Write-Host "Importing TriggerTroubleshooter from offline path: $ModuleOfflinePath"
         Import-Module $ModuleOfflinePath
     }
