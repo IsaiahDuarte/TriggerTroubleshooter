@@ -26,7 +26,14 @@ Notes:
 - Events 
 - User Logged Off  
 - User Logged On  
+- Scheduled
+- Machine Down
+- Process Started
+- Process Ended
+- Session State Changed
 
+# Non-Supported Triggers
+- Stress
 
 ## Example
 

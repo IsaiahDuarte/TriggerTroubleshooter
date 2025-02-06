@@ -43,8 +43,32 @@ function Get-TableName {
             }
 
             "WindowsEvent" {
-                Write-Verbose "UserLoggedOn detected. Returning SessionsView table."
+                Write-Verbose "UserLoggedOn detected. Returning Events table."
                 return "Events"
+            }
+
+            "ProcessStarted" {
+                Write-Verbose "UserLoggedOn detected. Returning Processes table."
+                return "Processes"
+            }
+
+            "ProcessEnded" {
+                Write-Verbose "UserLoggedOn detected. Returning Processes table."
+                return "Processes"
+            }
+
+            "StressLevel" {
+                Write-Warning "Stress Level triggers are not implemented."
+            }
+
+            "MachineDown" {
+                Write-Verbose "MachineDown detected. Returning ComputerView table."
+                return "ComputerView"
+            }
+
+            "SessionStateChanged" {
+                Write-Verbose "SessionStateChanged detected. Returning SessionsView table."
+                return "SessionsView"
             }
 
             default {

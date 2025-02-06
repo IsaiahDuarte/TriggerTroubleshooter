@@ -7,7 +7,7 @@ Import-Module $path
 Import-Module "$PSScriptRoot\TriggerTroubleshooter\TriggerTroubleshooter.psd1" -Force
 
 Get-CUTriggers -IsEnabled $true | Foreach-Object {
-    if ($_.TriggerName -eq 'Logical Disk Advanced Trigger' ) { 
+    if ($_.TriggerName -eq 'Machine Scheduled Trigger' ) { 
         Write-host "`n`nProcessing Trigger $($_.TriggerName)" -ForegroundColor Blue
         $result = Test-Trigger -Name $_.TriggerName -UseExport
         

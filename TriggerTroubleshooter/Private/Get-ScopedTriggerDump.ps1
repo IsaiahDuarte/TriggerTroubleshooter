@@ -61,7 +61,7 @@ function Get-ScopedTriggerDump {
     try {
         Write-Verbose "Starting the Get-ScopedTriggerDump process for trigger: $Name"
 
-        $tables = (Invoke-CUQuery -Scheme Information -Fields SchemaName, TableName -Table Tables -take 500).data.TableName
+        $tables = (Invoke-CUQuery -Scheme Information -Fields SchemaName, TableName -Table Tables -take 500).data.TableName | Sort-Object
         Write-Verbose "Retrieved table names: $tables"
 
         if ([string]::IsNullOrEmpty($Table)) {
@@ -95,8 +95,9 @@ function Get-ScopedTriggerDump {
                 $splat.Take = $Take
             }
 
-            if ($TriggerType -eq "UserLoggedOff" -or $TriggerType -eq "UserLoggedOn" -or $TriggerType -eq "WindowsEvent") {
-                Write-Verbose "Trigger is one of the following that doesn't return data: UserLoggedOff/On, WindowsEvent. overriding fields with: $Fields"
+            $NoTableTypes = @("UserLoggedOff", "UserLoggedOn", "WindowsEvent", "ProcessStarted", "ProcessEnded", "MachineDown", "SessionStateChanged")
+            if ($TriggerType -in $NoTableTypes) {
+                Write-Verbose "Trigger is one of the following that doesn't return data: $NoTableTypes. overriding fields with: $Fields"
                 $splat.Fields = $Fields
             }
 
