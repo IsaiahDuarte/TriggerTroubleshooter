@@ -13,11 +13,10 @@ function Test-TriggerFilterNode {
 
     .PARAMETER Record
         A mandatory object that contains the data record. The record is expected to have properties
-        that correspond to the column names specified in the node’s expression descriptor.
+        that correspond to the column names specified in the node's expression descriptor.
 
     .EXAMPLE
         $result = Test-TriggerFilterNode -Node $triggerNode -Record $dataRecord
-        Evaluates the trigger filter node and returns a TriggerFilterResult.
     #>
     [CmdletBinding()]
     param (

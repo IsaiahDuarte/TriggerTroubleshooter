@@ -7,11 +7,11 @@ Import-Module $path
 Import-Module "$PSScriptRoot\TriggerTroubleshooter\TriggerTroubleshooter.psd1" -Force
 
 Get-CUTriggers -IsEnabled $true | Foreach-Object {
-    if ($_.TriggerName -eq 'Windows Event matching a custom filter' ) { 
+    if ($_.TriggerName -eq 'Logical Disk Advanced Trigger' ) { 
         Write-host "`n`nProcessing Trigger $($_.TriggerName)" -ForegroundColor Blue
-        $result = Test-Trigger -Name $_.TriggerName -RecordsPerFolder 100
+        $result = Test-Trigger -Name $_.TriggerName -UseExport
         
-        if ($null -ne $result -and $_.TriggerName -notlike "*process*") {
+        if ($null -ne $result) {
             $result.DisplayResult()
         }
 

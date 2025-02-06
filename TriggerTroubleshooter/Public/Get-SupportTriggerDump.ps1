@@ -1,23 +1,19 @@
 function Get-SupportTriggerDump {
     <#
     .SYNOPSIS
-        Creates a dump of trigger details and compresses the results into a ZIP file. 
+        Exports trigger details into a ZIP file.
 
     .DESCRIPTION
-        This function retrieves a trigger by name and exports its details, observable trigger details,
-        and scoped dump to JSON files in a temporary directory. After exporting the files, it compresses
-        the directory into a ZIP file saved in the specified output directory.
+        Retrieves specified trigger details and compresses them into a ZIP file in the provided directory.
 
     .PARAMETER Name
-        The name of the trigger to dump. This parameter is mandatory and cannot be null or empty.
+        Trigger name. Mandatory.
 
     .PARAMETER OutputDirectory
-        The directory where the ZIP file will be saved. This must be an existing directory.
-        Defaults to the value of the TEMP environment variable.
+        Existing directory path, uses $ENV:TEMP by default if not specified.
 
     .EXAMPLE
         Get-SupportTriggerDump -Name "MyTrigger" -OutputDirectory "C:\Dumps"
-        Retrieves all dump details for the trigger "MyTrigger" and saves the resulting ZIP file in "C:\Dumps".
     #>
 
     [CmdletBinding()]
@@ -67,7 +63,7 @@ function Get-SupportTriggerDump {
         Write-Verbose "Observable Trigger Details exported successfully."
 
         Write-Verbose "Determining table to query..."
-        $table = Get-TableName -Name $observableDetails.Table -TriggerType $triggerDetails.TriggerType
+        $table = Get-TableName -TableName $observableDetails.Table -TriggerType $triggerDetails.TriggerType
 
         # Export Scoped Data
         $scopedDumpParams = @{

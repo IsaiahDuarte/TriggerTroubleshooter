@@ -1,13 +1,12 @@
 function Get-CUQueryData {
     <#
     .SYNOPSIS
-        Retrieves data from a specified table using either export or direct query methods. 
+        Retrieves data from a specified table using either export-cuquery or invoke-cuquery. 
 
     .DESCRIPTION
         This function queries a data source by either exporting the results to a JSON file and reading it back
-        (when using export-cuquery) or by directly using invoke-cuquery. When using export mode, it generates a temporary 
-        file to store the JSON output, converts the JSON data into PowerShell objects, and returns the processed records.
-        When using direct query mode, it uses the provided 'Take' parameter to limit the number of records.
+        (using export-cuquery) or by directly using invoke-cuquery. When using invoke-cuquery, it uses the
+        provided 'Take' parameter to limit the number of records.
 
     .PARAMETER Table
         The name of the table to query.
@@ -16,13 +15,13 @@ function Get-CUQueryData {
         An array of field names to retrieve.
 
     .PARAMETER Where
-        A filter expression for Invoke-CUQuery
+        A filter expression for Invoke-CUQuery.
 
     .PARAMETER UseExport
-        A switch used in the "UseExport" parameter set to indicate that the data should be exported and read back.
+        A switch used to get data using export-cuquery.
 
     .PARAMETER Take
-        The maximum number of records to retrieve. Defaults to 100. (Valid when using the "Take" parameter set)
+        The maximum number of records to retrieve. Defaults to 100.
 
     .EXAMPLE
         Get-CUQueryData -Table "MyTable" -Fields @("Field1", "Field2") -Where "Field1='value'" -Take 50

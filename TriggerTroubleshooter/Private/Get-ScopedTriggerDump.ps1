@@ -6,31 +6,30 @@ function Get-ScopedTriggerDump {
     .DESCRIPTION
         This function retrieves trigger dump data by querying a specified table based on the trigger's
         observable details. It iterates over provided folders in the observable details, executes a query 
-        for each folder using dynamic parameters, and collates the returned data into a hash table. It 
-        supports two parameter sets: "Take" (to limit the number of records per folder) and "Export" (to use export-cuquery).
+        for each folder, and collates the returned data into a hash table.
 
     .PARAMETER Name
         The name of the trigger.
 
     .PARAMETER UseExport
-        A switch to indicate that export mode should be used. Only valid when using the "Export" parameter set.
+        A switch used to get data using export-cuquery.
 
     .PARAMETER TriggerObservableDetails
-        The trigger observable details object, expected to be of type 
+        The trigger observable details object, type of
         ControlUp.PowerShell.Common.Contract.ObservableTriggerService.GetObservableTriggerResponse.
 
     .PARAMETER TriggerType
         The type of the trigger (e.g. "UserLoggedOff").
 
     .PARAMETER Table
-        The name of the table to query. If not provided by the observable details, it must be provided externally.
+        The name of the table to query.
 
     .PARAMETER Fields
-        An array of fields to be retrieved. For some trigger types (e.g., "UserLoggedOff"), this may override
-        the fields obtained from the observable details.
+        An array of fields to be retrieved from TriggerDetails.FilterNodes.ExpressionDescriptor.Column but may be
+        ignored if they are returned by observable details.
 
     .PARAMETER Take
-        The number of records to retrieve per folder. Defaults to 100. (Valid in the "Take" parameter set) 
+        The maximum number of records to retrieve. Defaults to 100.
 
     .EXAMPLE
         Get-ScopedTriggerDump -Name "SampleTrigger" -TriggerObservableDetails $obsDetails -TriggerType "UserLoggedOff" -Table "Sessions" -Take 100

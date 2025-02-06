@@ -1,27 +1,25 @@
 function Test-Trigger {
     <#
     .SYNOPSIS
-        Tests and retrieves trigger data based on the provided trigger name and related parameters. 
+        Tests a trigger by name and performs configuration checks and property testing. 
 
     .DESCRIPTION
-        This function retrieves a trigger by its name, fetches detailed configuration information,
-        and then uses a schedule test along with testing for observed properties. Depending on the 
-        parameters provided, it executes a query or export operation to retrieve related data. 
-        Finally, it runs a test on each record retrieved and outputs the results.
+        This function retrieves a trigger by its name, fetches its configuration, and then test the schedule
+        along with testing if the properties are observed by the monitor. Depending on the 
+        parameters provided, it uses invoke-cuquery or export-cuquery to obtain data. 
+        It tests each record againts the trigger configuration and optionally outputs the results.
 
     .PARAMETER Name
-        The name of the trigger to search for. This parameter is mandatory.
+        The name of the trigger to search for.
 
     .PARAMETER Display
         A switch parameter. If specified, the formatted results will be displayed.
 
     .PARAMETER UseExport
-        A boolean value to indicate whether to use export mode when retrieving trigger dump details.
-        Only valid for the "UseExport" parameter set.
+        A switch used to get data using export-cuquery.
 
     .PARAMETER RecordsPerFolder
-        The number of records to retrieve per folder (applies to the "UseQuery" parameter set).
-        Defaults to 100.
+        The number of records to retrieve per folder. Defaults to 100
 
     .EXAMPLE
         Test-Trigger -Name "SampleTrigger" -Display
@@ -36,7 +34,7 @@ function Test-Trigger {
         [switch] $Display,
 
         [Parameter(Mandatory = $false, ParameterSetName = "UseExport")]
-        [bool] $UseExport,
+        [switch] $UseExport,
 
         [Parameter(Mandatory = $false, ParameterSetName = "UseQuery")]
         [int] $RecordsPerFolder = 100
@@ -64,7 +62,7 @@ function Test-Trigger {
         $triggerObservableDetails = Get-CUObservableTriggerDetails -Trigger $Name
 
         Write-Verbose "Getting the Table"
-        $table = Get-TableName -Name $triggerObservableDetails.Table -TriggerType $triggerDetails.TriggerType
+        $table = Get-TableName -TableName $triggerObservableDetails.Table -TriggerType $triggerDetails.TriggerType
 
         Write-Verbose "Testing if properties are in the Observables runtime"
         $arePropertiesObserved = Test-ObserverdProperties -ResourceName $table -Properties $triggerDetails.FilterNodes.ExpressionDescriptor.Column
@@ -119,5 +117,4 @@ function Test-Trigger {
     catch {
         Write-Error -Message "Error in Test-Trigger: $($_.Exception.Message)" -ErrorAction Stop
     }
-
 } 

@@ -5,12 +5,11 @@ function Test-Comparison {
 
     .DESCRIPTION
         This function evaluates a comparison between the provided record value and value based on 
-        the operator specified by the CompOp parameter. It supports additional modifiers such as 
-        negation and regex matching. Depending on the operator and modifiers, it returns the comparison
-        result and the operator used in the evaluation.
+        the operator specified by the CompOp parameter. Other options such as negation and regex.
+        This was made for data from a TriggerFilterNode
 
     .PARAMETER CompOp
-        The comparison operator to use. Supported values include: Equal, Like, NotEqual, LessThan, 
+        The comparison operator to use. Supported values include: Equal, Like, LessThan, 
         LessThanOrEqual, GreaterThan, GreaterThanOrEqual, and Match.
 
     .PARAMETER RecordValue
@@ -82,11 +81,6 @@ function Test-Comparison {
                     $comparisonResult = $RecordValue -like $Value
                     $comparisonUsed = "-like"
                 }
-                break
-            }
-            'NotEqual' {
-                $comparisonResult = $RecordValue -ne $Value
-                $comparisonUsed = "-ne"
                 break
             }
             'LessThan' {

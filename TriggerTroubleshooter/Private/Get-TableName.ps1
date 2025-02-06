@@ -4,19 +4,19 @@ function Get-TableName {
         Retrieves the table name based on the trigger type and optional provided name. 
 
     .DESCRIPTION
-        This function maps the trigger type and an optional provided name to a specific database
-        table (or view) name. For example, if the trigger type is "UserLoggedOff", it returns the
+        This function maps the trigger type and an optional provided name to a specific
+        table. For example, if the trigger type is "UserLoggedOff", it returns the
         "SessionsView" table. If no specific mapping is found based on the name, it returns the name
         provided, or a default message if no name is given.
 
     .PARAMETER TriggerType
         Specifies the type of trigger (e.g., "UserLoggedOff"). This parameter is mandatory.
 
-    .PARAMETER Name
-        An optional name parameter that can be used to further determine the table mapping.
+    .PARAMETER TableName
+        Expects table from TriggerObservableDetails if returned
 
     .EXAMPLE
-        Get-TableName -TriggerType "UserLoggedOff" -Name "SomeName"
+        Get-TableName -TriggerType "UserLoggedOff" -Name "SessionsView"
     #>
     [CmdletBinding()]
     param(
@@ -24,11 +24,11 @@ function Get-TableName {
         [string] $TriggerType,
 
         [Parameter(Mandatory = $false)]
-        [string] $Name
+        [string] $TableName
     )
 
     try {
-        Write-Verbose "Getting table name for: $Name with TriggerType: $TriggerType"
+        Write-Verbose "Getting table name for: $TableName with TriggerType: $TriggerType"
 
         # check for specific trigger type mappings
         switch ($TriggerType) {
@@ -52,15 +52,14 @@ function Get-TableName {
             }
         }
 
-        # Determine table name based on the provided Name parameter
         $table = ""
-        switch ($Name) {
+        switch ($TableName) {
             "" {
                 $table = "Not returned by observable details"
                 Write-Verbose "No name provided; defaulting table name to: $table"
             }
             Default {
-                $table = $Name
+                $table = $TableName
                 Write-Verbose "No specific mapping for name; returning the original name: $table"
             }
         }

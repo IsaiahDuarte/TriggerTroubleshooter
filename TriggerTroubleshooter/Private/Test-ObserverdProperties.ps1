@@ -30,7 +30,6 @@ function Test-ObserverdProperties {
 
     Write-Verbose "Starting Test-ObserverdProperties function."
 
-    # Build query parameters to search for observed properties based on the resource name.
     $splat = @{
         Table  = 'Observables'
         Scheme = 'Runtime'
@@ -43,7 +42,6 @@ function Test-ObserverdProperties {
         $result = Invoke-CUQuery @splat
         Write-Verbose "Invoke-CUQuery executed successfully."
 
-        # Check if any data was returned, if not, then the properties are not observed.
         if ($result.Total -eq 0) {
             Write-Verbose "No data returned from query."
             Write-Warning "Properties are not being observed by monitor."
@@ -53,7 +51,6 @@ function Test-ObserverdProperties {
         Write-Verbose "Converting the 'ObserverdProps' JSON string to a PowerShell object."
         $ObserverdProps = $result.Data.ObserverdProps | ConvertFrom-Json -ErrorAction Stop
 
-        # Verify each specified property exists in the observed properties list.
         foreach ($property in $Properties) {
             Write-Verbose "Checking if property '$property' is present in ObserverdProps."
             if ($property -notin $ObserverdProps) {

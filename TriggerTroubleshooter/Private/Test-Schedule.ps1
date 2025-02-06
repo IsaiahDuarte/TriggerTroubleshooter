@@ -1,7 +1,7 @@
 function Test-Schedule {
     <#
     .SYNOPSIS
-        Tests whether the current hour falls within the schedule for today. 
+        Tests whether the current hour falls within a trigger schedule. 
         
     .DESCRIPTION
         This function retrieves a schedule either by its name or ID, then determines if the
@@ -17,7 +17,6 @@ function Test-Schedule {
 
     .EXAMPLE
         Test-Schedule -ScheduleName "WorkingHours"
-        This tests the schedule named "WorkingHours" for the current day and hour.
     #>
     [CmdletBinding()]
     param(
@@ -35,7 +34,6 @@ function Test-Schedule {
         $currentHour = $now.Hour
         Write-Verbose "Current Day: $currentDay, Current Hour: $currentHour"
 
-        # Retrieve the schedule based on the parameter set provided
         $schedule = switch ($PSCmdlet.ParameterSetName) {
             'ByName' {
                 Write-Verbose "Retrieving schedule by name: $ScheduleName"
@@ -68,7 +66,6 @@ function Test-Schedule {
             }
         }
 
-        # Check for the selected hours for the current day within the schedule's weekdays info.
         $selectedHoursEntry = $schedule.Weekdays | Where-Object { $_.Day -eq $currentDay }
         Write-Verbose "Selected hours entry for current day ($currentDay): $selectedHoursEntry"
 
@@ -80,11 +77,9 @@ function Test-Schedule {
         $selectedHours = $selectedHoursEntry.SelectedHours
         Write-Verbose "Selected hours for current day: $selectedHours"
 
-        # Create a bitmask for the current hour using left shift
         $hourMask = 1 -shl $currentHour
         Write-Verbose "Hour mask for current hour ($currentHour): $hourMask"
 
-        # Determine if the current hour is active in the schedule by performing a bitwise AND
         $isHourSelected = ($selectedHours -band $hourMask) -ne 0
         Write-Verbose "Is current hour selected: $isHourSelected"
 

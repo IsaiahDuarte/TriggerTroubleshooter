@@ -4,8 +4,8 @@
 
 .DESCRIPTION
     The TriggerDataResult class encapsulates the results of a single data record evaluation.
-    It includes the record value, the comparison used during evaluation, the resultant 
-    comparison outcome, and a key identifier for the record. 
+    It includes the record value, the comparison used during evaluation, comparison outcome, 
+    and a key identifier for the record.
 
 .PARAMETER recordValue
     The value of the record being evaluated. This can be of any object type. 

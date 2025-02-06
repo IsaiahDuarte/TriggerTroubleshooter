@@ -5,8 +5,7 @@
 .DESCRIPTION
     The TriggerFilterResult class holds the evaluation output for a trigger's filtering criteria.
     It includes properties for child nodes, details, logical operator, and evaluation results. It also
-    supports a recursive display of results with indentation. The default constructor initializes the
-    child nodes list. 
+    supports displaying of results.
 #>
 class TriggerFilterResult {
     [System.Collections.Generic.List[TriggerFilterResult]] $ChildNodes
@@ -25,9 +24,6 @@ class TriggerFilterResult {
     <#
     .SYNOPSIS
         Displays the trigger filter result with default formatting.
-    .DESCRIPTION
-        Calls the detailed DisplayResult method with no indentation and no prefix.
-        This overload facilitates a simpler call without parameters.
     #>
     [void] DisplayResult () {
         try {
@@ -41,20 +37,12 @@ class TriggerFilterResult {
     <#
     .SYNOPSIS
         Displays the trigger filter result with formatting support.
-    .DESCRIPTION
-        Recursively displays the trigger filter result and its child nodes with appropriate
-        indentation. Uses Write-Host with color coding to display evaluation results and details.
-    .PARAMETER IndentLevel
-        An integer indicating the indentation level for the display.
-    .PARAMETER PrefixOperator
-        An optional string prefix to show any logical operator before the condition.
     #>
     [void] DisplayResult([int] $IndentLevel = 0, [string] $PrefixOperator = '') {
         try {
             if ($IndentLevel -eq 0) {
                 $separator = '=' * 60
                 Write-Host "`n$separator" -ForegroundColor White
-                # Guard access to ChildNodes in case it is empty
                 if ($this.ChildNodes.Count -gt 0 -and $this.ChildNodes[0].Details) {
                     Write-Host ("Key: {0}" -f $this.ChildNodes[0].Details.Key) -ForegroundColor White
                 }
@@ -68,7 +56,6 @@ class TriggerFilterResult {
             $resultSymbol = if ($this.EvaluationResult) { '[TRUE ]' } else { '[FALSE]' }
             $prefix = if ($PrefixOperator) { "$PrefixOperator " } else { '' }
 
-            # Display condition if ExpressionDescriptor is provided
             if ($this.ExpressionDescriptor) {
                 $expr = $this.ExpressionDescriptor
                 $column = $expr.Column
@@ -82,7 +69,6 @@ class TriggerFilterResult {
                 Write-Host ("{0}{1}- Condition: IsRegex ({2}) {3} {4}{5}" -f $indent, $prefix, $expr.IsRegex, $conditionStr, $detailString, $resultSymbol) -ForegroundColor $color
             }
 
-            # Display logical operator for non-expression nodes and process child nodes recursively
             if ($this.ChildNodes -and $this.ChildNodes.Count -gt 0) {
                 if (-not $this.ExpressionDescriptor) {
                     Write-Host ("{0}{1}({2}) {3}" -f $indent, $prefix, $this.LogicalOperator, $resultSymbol) -ForegroundColor $color
