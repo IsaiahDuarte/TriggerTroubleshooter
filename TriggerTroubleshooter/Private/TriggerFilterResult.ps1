@@ -23,7 +23,7 @@ class TriggerFilterResult {
 
     <#
     .SYNOPSIS
-        Displays the trigger filter result with default formatting.
+        Displays the trigger filter result. Sends default args.
     #>
     [void] DisplayResult () {
         try {
@@ -36,7 +36,7 @@ class TriggerFilterResult {
 
     <#
     .SYNOPSIS
-        Displays the trigger filter result with formatting support.
+        Displays the trigger filter result.
     #>
     [void] DisplayResult([int] $IndentLevel = 0, [string] $PrefixOperator = '') {
         try {
