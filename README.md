@@ -5,7 +5,7 @@ Trigger Troubleshooter takes a trigger name, retrieves its filter, scope, and sc
 ## SBA
 
 • Provide a trigger name to test against live data.  
-• The script will:
+• The script will:  
   – Download the latest TriggerTroubleshooter module from GitHub (unless an offline path is provided).  
   – Import the module.  
   – Run the Test-Trigger function.  
