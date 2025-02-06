@@ -32,7 +32,7 @@ Notes:
 - Process Ended
 - Session State Changed
 
-# Non-Supported Triggers
+## Non-Supported Triggers
 - Stress
 
 ## Example
