@@ -27,45 +27,47 @@ function Get-SupportTriggerDump {
         [string] $OutputDirectory = $env:TEMP
     )
 
-    Write-Verbose "Starting Get-SupportTriggerDump for TriggerName: '$Name'"
-    Write-Verbose "OutputDirectory set to: '$OutputDirectory'"
+    Write-Debug "Starting Get-SupportTriggerDump for TriggerName: '$Name'"
+    Write-Debug "OutputDirectory set to: '$OutputDirectory'"
 
     try {
-        Write-Verbose "Retrieving trigger details..."
+        Write-Debug "Retrieving trigger details..."
         $trigger = Get-CUTriggers | Where-Object { $_.TriggerName -eq $Name }
 
+        # Check if the retrieved trigger exists
         if (-not $trigger) {
             Write-Warning "Unable to find trigger with name '$Name'. Exiting function."
             return
         }
 
-        Write-Verbose "Trigger found. TriggerID: $($trigger.TriggerID)"
+        Write-Debug "Trigger found. TriggerID: $($trigger.TriggerID)"
 
-        Write-Verbose "Creating temporary directory for dump files..."
+        # Create a unique temporary directory for storing dump files
+        Write-Debug "Creating temporary directory for dump files..."
         $tempRoot = [System.IO.Path]::GetTempPath()
         $tempDirectory = Join-Path -Path $tempRoot -ChildPath ([Guid]::NewGuid())
-
         New-Item -ItemType Directory -Path $tempDirectory | Out-Null
-        Write-Verbose "Created temporary directory: $tempDirectory"
+        Write-Debug "Created temporary directory: $tempDirectory"
 
-        # Export Trigger Details
+        # Export Trigger Details into JSON format
         $triggerDetails = Get-CUTriggerDetails -TriggerId $trigger.TriggerID
         $triggerDetailsPath = Join-Path -Path $tempDirectory -ChildPath "TriggerDetails.json"
-        Write-Verbose "Exporting Trigger Details to '$triggerDetailsPath'"
+        Write-Debug "Exporting Trigger Details to '$triggerDetailsPath'"
         $triggerDetails | ConvertTo-Json -Depth 20 -Compress | Out-File -FilePath $triggerDetailsPath -Encoding UTF8
-        Write-Verbose "Trigger Details exported successfully."
+        Write-Debug "Trigger Details exported successfully."
 
-        # Export Observable Trigger Details
+        # Export Observable Trigger Details into JSON format
         $observableDetails = Get-CUObservableTriggerDetails -Trigger $Name
         $observableDetailsPath = Join-Path -Path $tempDirectory -ChildPath "ObservableTriggerDetails.json"
-        Write-Verbose "Exporting Observable Trigger Details to '$observableDetailsPath'"
+        Write-Debug "Exporting Observable Trigger Details to '$observableDetailsPath'"
         $observableDetails | ConvertTo-Json -Depth 20 -Compress | Out-File -FilePath $observableDetailsPath -Encoding UTF8
-        Write-Verbose "Observable Trigger Details exported successfully."
+        Write-Debug "Observable Trigger Details exported successfully."
 
-        Write-Verbose "Determining table to query..."
+        # Determine the table name based on observable details and trigger type
+        Write-Debug "Determining table to query..."
         $table = Get-TableName -TableName $observableDetails.Table -TriggerType $triggerDetails.TriggerType
 
-        # Export Scoped Data
+        # Prepare parameters for exporting scoped data 
         $scopedDumpParams = @{
             Table                    = $table
             Name                     = $Name
@@ -75,25 +77,28 @@ function Get-SupportTriggerDump {
             Fields                   = $triggerDetails.FilterNodes.ExpressionDescriptor.Column
         }
 
+        # Export Scoped Trigger Dump into JSON format
         $scopedDumpPath = Join-Path -Path $tempDirectory -ChildPath "ScopedTriggerDump.json"
-        Write-Verbose "Exporting Scoped Trigger Dump to '$scopedDumpPath'"
+        Write-Debug "Exporting Scoped Trigger Dump to '$scopedDumpPath'"
         Get-ScopedTriggerDump @scopedDumpParams | ConvertTo-Json -Compress -Depth 20 | Out-File -FilePath $scopedDumpPath -Encoding UTF8
-        Write-Verbose "Scoped Trigger Dump exported successfully."
+        Write-Debug "Scoped Trigger Dump exported successfully."
 
-        # Prepare ZIP
+        # Prepare the ZIP file for the output
         $zipFileName = "$Name.zip"
         $zipFilePath = Join-Path -Path $OutputDirectory -ChildPath $zipFileName
-        Write-Verbose "Compressing dump files into archive '$zipFilePath'"
+        Write-Debug "Compressing dump files into archive '$zipFilePath'"
         Compress-Archive -Path $tempDirectory -DestinationPath $zipFilePath -Force
-        Write-Verbose "Compression completed successfully."
+        Write-Debug "Compression completed successfully."
 
-        Write-Verbose "Removing temporary directory '$tempDirectory'"
+         # Clean up the temporary directory
+        Write-Debug "Removing temporary directory '$tempDirectory'"
         Remove-Item -Path $tempDirectory -Recurse -Force
-        Write-Verbose "Temporary directory removed successfully."
+        Write-Debug "Temporary directory removed successfully."
 
         Write-Output "Trigger dump saved to '$zipFilePath'"
     }
     catch {
         Write-Error "An error occurred during the trigger dump process: $($_.Exception.Message)"
+        throw
     }
 } 

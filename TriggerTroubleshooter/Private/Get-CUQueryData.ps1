@@ -1,30 +1,30 @@
 function Get-CUQueryData {
     <#
-    .SYNOPSIS
-        Retrieves data from a specified table using either export-cuquery or invoke-cuquery. 
+        .SYNOPSIS
+            Retrieves data from a specified table using either export-cuquery or invoke-cuquery. 
 
-    .DESCRIPTION
-        This function queries a data source by either exporting the results to a JSON file and reading it back
-        (using export-cuquery) or by directly using invoke-cuquery. When using invoke-cuquery, it uses the
-        provided 'Take' parameter to limit the number of records.
+        .DESCRIPTION
+            This function queries a data source by either exporting the results to a JSON file and reading it back
+            (using export-cuquery) or by directly using invoke-cuquery. When using invoke-cuquery, it uses the
+            provided 'Take' parameter to limit the number of records.
 
-    .PARAMETER Table
-        The name of the table to query.
+        .PARAMETER Table
+            The name of the table to query.
 
-    .PARAMETER Fields
-        An array of field names to retrieve.
+        .PARAMETER Fields
+            An array of field names to retrieve.
 
-    .PARAMETER Where
-        A filter expression for Invoke-CUQuery.
+        .PARAMETER Where
+            A filter expression for Invoke-CUQuery.
 
-    .PARAMETER UseExport
-        A switch used to get data using export-cuquery.
+        .PARAMETER UseExport
+            A switch used to get data using export-cuquery.
 
-    .PARAMETER Take
-        The maximum number of records to retrieve. Defaults to 100.
+        .PARAMETER Take
+            The maximum number of records to retrieve. Defaults to 100.
 
-    .EXAMPLE
-        Get-CUQueryData -Table "MyTable" -Fields @("Field1", "Field2") -Where "Field1='value'" -Take 50
+        .EXAMPLE
+            Get-CUQueryData -Table "MyTable" -Fields @("Field1", "Field2") -Where "Field1='value'" -Take 50
     #>
     [CmdletBinding(DefaultParameterSetName = "Take")]
     param(
@@ -44,7 +44,7 @@ function Get-CUQueryData {
         [int] $Take = 100
     )
 
-    Write-Verbose "Starting Get-CUQueryData function."
+    Write-Debug "Starting Get-CUQueryData function."
 
     $splat = @{
         Table  = $Table
@@ -54,23 +54,23 @@ function Get-CUQueryData {
 
     try {
         if ($PSCmdlet.ParameterSetName -eq "UseExport" -and $UseExport) {
-            Write-Verbose "UseExport is set to TRUE. Proceeding with export method."
+            Write-Debug "UseExport is set to TRUE. Proceeding with export method."
 
-            Write-Verbose "Generating temporary file and directory."
+            Write-Debug "Generating temporary file and directory."
             $tempFile = "$(([guid]::NewGuid().ToString("N"))).json"
             $dir = $env:TEMP
             $fullPath = Join-Path -Path $dir -ChildPath $tempFile
-            Write-Verbose "Full path for export: $fullPath"
+            Write-Debug "Full path for export: $fullPath"
 
             $splat.OutputFolder = $dir
             $splat.FileName = $tempFile
             $splat.FileFormat = "Json"
 
-            Write-Verbose "Executing Export-CUQuery with provided parameters."
+            Write-Debug "Executing Export-CUQuery with provided parameters."
             Export-CUQuery @splat | Out-Null
-            Write-Verbose "Export-CUQuery executed successfully. Reading exported data from $fullPath."
+            Write-Debug "Export-CUQuery executed successfully. Reading exported data from $fullPath."
 
-            Write-Verbose "Converting exported JSON data to PowerShell objects."
+            Write-Debug "Converting exported JSON data to PowerShell objects."
             $json = Get-Content $fullPath -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
 
             $results = $json | ForEach-Object {
@@ -94,25 +94,25 @@ function Get-CUQueryData {
                     }
                 }
 
-                [PSCustomObject]$obj
+                [PSCustomObject] $obj
             }
 
-            Write-Verbose "Successfully converted JSON data. Processing records."
+            Write-Debug "Successfully converted JSON data. Processing records."
 
-            Write-Verbose "Removing temporary file at $fullPath."
+            Write-Debug "Removing temporary file at $fullPath."
             Remove-Item -Path $fullPath -Force -ErrorAction Stop
-            Write-Verbose "Temporary file removed successfully."
+            Write-Debug "Temporary file removed successfully."
 
-            Write-Verbose "Returning the processed export results."
+            Write-Debug "Returning the processed export results."
             return $results
         }
         elseif ($PSCmdlet.ParameterSetName -eq "Take") {
             $splat.Take = $Take
-            Write-Verbose "Executing Invoke-CUQuery with provided parameters."
+            Write-Debug "Executing Invoke-CUQuery with provided parameters."
             $invokeResult = Invoke-CUQuery @splat
-            Write-Verbose "Invoke-CUQuery executed successfully. Processing returned data."
+            Write-Debug "Invoke-CUQuery executed successfully. Processing returned data."
 
-            Write-Verbose "Returning the retrieved data."
+            Write-Debug "Returning the retrieved data."
             return $invokeResult.Data
         }
     }

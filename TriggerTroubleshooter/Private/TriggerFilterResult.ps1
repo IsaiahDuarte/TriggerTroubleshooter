@@ -1,11 +1,11 @@
 ﻿<#
-.SYNOPSIS
-    Represents the result of filtering a trigger, including child filter results and detailed evaluation data. 
+    .SYNOPSIS
+        Represents the result of filtering a trigger, including child filter results and detailed evaluation data. 
 
-.DESCRIPTION
-    The TriggerFilterResult class holds the evaluation output for a trigger's filtering criteria.
-    It includes properties for child nodes, details, logical operator, and evaluation results. It also
-    supports displaying of results.
+    .DESCRIPTION
+        The TriggerFilterResult class holds the evaluation output for a trigger's filtering criteria.
+        It includes properties for child nodes, details, logical operator, and evaluation results. It also
+        supports displaying of results.
 #>
 class TriggerFilterResult {
     [System.Collections.Generic.List[TriggerFilterResult]] $ChildNodes
@@ -22,8 +22,8 @@ class TriggerFilterResult {
     }
 
     <#
-    .SYNOPSIS
-        Displays the trigger filter result. Sends default args.
+        .SYNOPSIS
+            Displays the trigger filter result. Sends default args.
     #>
     [void] DisplayResult () {
         try {
@@ -35,8 +35,8 @@ class TriggerFilterResult {
     }
 
     <#
-    .SYNOPSIS
-        Displays the trigger filter result.
+        .SYNOPSIS
+            Displays the trigger filter result.
     #>
     [void] DisplayResult([int] $IndentLevel = 0, [string] $PrefixOperator = '') {
         try {

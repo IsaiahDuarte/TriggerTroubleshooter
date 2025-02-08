@@ -1,23 +1,23 @@
 <#
-.SYNOPSIS
-    Represents detailed data for a trigger evaluation record. 
+    .SYNOPSIS
+        Represents detailed data for a trigger evaluation record. 
 
-.DESCRIPTION
-    The TriggerDataResult class encapsulates the results of a single data record evaluation.
-    It includes the record value, the comparison used during evaluation, comparison outcome, 
-    and a key identifier for the record.
+    .DESCRIPTION
+        The TriggerDataResult class encapsulates the results of a single data record evaluation.
+        It includes the record value, the comparison used during evaluation, comparison outcome, 
+        and a key identifier for the record.
 
-.PARAMETER recordValue
-    The value of the record being evaluated. This can be of any object type. 
+    .PARAMETER recordValue
+        The value of the record being evaluated. This can be of any object type. 
 
-.PARAMETER comparisonUsed
-    A string representing the comparison operator or method that was used during evaluation. 
+    .PARAMETER comparisonUsed
+        A string representing the comparison operator or method that was used during evaluation. 
 
-.PARAMETER comparisonResult
-    A Boolean representing whether the record met the comparison criteria. 
+    .PARAMETER comparisonResult
+        A Boolean representing whether the record met the comparison criteria. 
 
-.PARAMETER key
-    A string identifier to distinguish this record in the context of trigger data results. 
+    .PARAMETER key
+        A string identifier to distinguish this record in the context of trigger data results. 
 #>
 class TriggerDataResult {
     [object] $RecordValue

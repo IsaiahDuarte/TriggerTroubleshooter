@@ -1,31 +1,31 @@
 function Test-Comparison {
     <#
-    .SYNOPSIS
-        Compares a record value to a given value using a specified comparison operator. 
+        .SYNOPSIS
+            Compares a record value to a given value using a specified comparison operator. 
 
-    .DESCRIPTION
-        This function evaluates a comparison between the provided record value and value based on 
-        the operator specified by the CompOp parameter. Other options such as negation and regex.
-        This was made for data from a TriggerFilterNode
+        .DESCRIPTION
+            This function evaluates a comparison between the provided record value and value based on 
+            the operator specified by the CompOp parameter. Other options such as negation and regex.
+            This was made for data from a TriggerFilterNode
 
-    .PARAMETER CompOp
-        The comparison operator to use. Supported values include: Equal, Like, LessThan, 
-        LessThanOrEqual, GreaterThan, GreaterThanOrEqual, and Match.
+        .PARAMETER CompOp
+            The comparison operator to use. Supported values include: Equal, Like, LessThan, 
+            LessThanOrEqual, GreaterThan, GreaterThanOrEqual, and Match.
 
-    .PARAMETER RecordValue
-        The value from the record that will be compared.
+        .PARAMETER RecordValue
+            The value from the record that will be compared.
 
-    .PARAMETER Value
-        The value to compare against the RecordValue.
+        .PARAMETER Value
+            The value to compare against the RecordValue.
 
-    .PARAMETER IsNegation
-        A switch indicating whether to negate the result of the comparison.
+        .PARAMETER IsNegation
+            A switch indicating whether to negate the result of the comparison.
 
-    .PARAMETER IsRegex
-        A switch indicating whether the comparison should be performed based on regular expression matching.
+        .PARAMETER IsRegex
+            A switch indicating whether the comparison should be performed based on regular expression matching.
 
-    .EXAMPLE
-        $result = Test-Comparison -CompOp 'Equal' -RecordValue 'abc' -Value 'abc' -IsNegation $false -IsRegex $false
+        .EXAMPLE
+            $result = Test-Comparison -CompOp 'Equal' -RecordValue 'abc' -Value 'abc' -IsNegation $false -IsRegex $false
     #>
     [CmdletBinding()]
     param(
@@ -57,7 +57,7 @@ function Test-Comparison {
 
         # If regex matching is requested, force the operator to Match.
         if ($IsRegex) {
-            $CompOp = 'Match'
+            $CompOp = 'Regex'
         }
 
         switch ($CompOp) {
@@ -72,6 +72,8 @@ function Test-Comparison {
                 }
                 break
             }
+            
+            # Need to verify how this is actually processed by the monitor
             'Like' {
                 if ($IsNegation) {
                     $comparisonResult = $RecordValue -notlike $Value
@@ -83,29 +85,34 @@ function Test-Comparison {
                 }
                 break
             }
+
             'LessThan' {
                 $comparisonResult = [double]$RecordValue -lt [double]$Value
                 $comparisonUsed = "-lt"
                 break
             }
+
             'LessThanOrEqual' {
                 $comparisonResult = [double]$RecordValue -le [double]$Value
                 $comparisonUsed = "-le"
                 break
             }
+
             'GreaterThan' {
                 $comparisonResult = [double]$RecordValue -gt [double]$Value
                 $comparisonUsed = "-gt"
                 break
             }
+
             'GreaterThanOrEqual' {
                 $comparisonResult = [double]$RecordValue -ge [double]$Value
                 $comparisonUsed = "-ge"
                 break
             }
-            'Match' {
-                $comparisonResult = $RecordValue -match $Value
-                $comparisonUsed = "-match"
+
+            'Regex' {
+                $comparisonResult = ([Regex]::Match($RecordValue, $Value)).Success
+                $comparisonUsed = "[Regex]::Match"
                 break
             }
             default {

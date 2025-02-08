@@ -1,22 +1,22 @@
 function Test-TriggerFilterNode {
     <#
-    .SYNOPSIS
-        Recursively evaluates a trigger filter node against a provided record. 
-        
-    .DESCRIPTION
-        This function processes a trigger filter node by evaluating its expression descriptor
-        using the Test-Comparison function. It then recursively processes any child nodes and
-        accumulates the evaluation result based on their LogicalOperator properties.
+        .SYNOPSIS
+            Recursively evaluates a trigger filter node against a provided record. 
+            
+        .DESCRIPTION
+            This function processes a trigger filter node by evaluating its expression descriptor
+            using the Test-Comparison function. It then recursively processes any child nodes and
+            accumulates the evaluation result based on their LogicalOperator properties.
 
-    .PARAMETER Node
-        A mandatory trigger filter node of type ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode.
+        .PARAMETER Node
+            A mandatory trigger filter node of type ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode.
 
-    .PARAMETER Record
-        A mandatory object that contains the data record. The record is expected to have properties
-        that correspond to the column names specified in the node's expression descriptor.
+        .PARAMETER Record
+            A mandatory object that contains the data record. The record is expected to have properties
+            that correspond to the column names specified in the node's expression descriptor.
 
-    .EXAMPLE
-        $result = Test-TriggerFilterNode -Node $triggerNode -Record $dataRecord
+        .EXAMPLE
+            $result = Test-TriggerFilterNode -Node $triggerNode -Record $dataRecord
     #>
     [CmdletBinding()]
     param (
@@ -28,29 +28,34 @@ function Test-TriggerFilterNode {
     )
 
     try {
+        # Write warnings for any null record properties
         $nullProps = $Record.PSObject.Properties | Where-Object { $null -eq $_.Value }
         if ($nullProps) {
             $nullProps | ForEach-Object { Write-Warning "Null property: $($_.Name)" }
         }
 
-        Write-Verbose "Evaluating node..."
+        Write-Debug "Evaluating node..."
 
+        # Initialize the result
         $result = [TriggerFilterResult]::New()
         $result.ExpressionDescriptor = $Node.ExpressionDescriptor
         $result.IsNegation = $Node.IsNegation
         $result.LogicalOperator = $Node.LogicalOperator.ToString()
 
-        $currentResult = $null
-        if ($null -ne $Node.ExpressionDescriptor) {
+        # Evaluate the expression descriptor, if present
+        $exprResult = $null
+        if ($Node.ExpressionDescriptor) {
             $expr = $Node.ExpressionDescriptor
             $column = $expr.Column
             $value = $expr.Value
             $compOp = $expr.ComparisonOperator.ToString()
             $isRegex = $expr.IsRegex
 
+            # Retrieve the corresponding property value from the record
             $recordValue = $Record.$column
 
-            Write-Verbose "Evaluating ExpressionDescriptor with column: $column, value: $value, ComparisonOperator: $compOp, isRegex: $isRegex"
+            Write-Debug "Evaluating ExpressionDescriptor: Column[$column], Value[$value], ComparisonOperator[$compOp], IsRegex[$isRegex]"
+
             $comparison = Test-Comparison -compOp $compOp -recordValue $recordValue -value $value -IsNegation $Node.IsNegation -IsRegex $isRegex
             $exprResult = $comparison.comparisonResult
 
@@ -60,29 +65,29 @@ function Test-TriggerFilterNode {
                 $comparison.comparisonResult,
                 $Record.Key
             )
-
-            $currentResult = $exprResult
         }
 
-        if ($null -ne $Node.ChildNodes -and $Node.ChildNodes.Count -gt 0) {
-            Write-Verbose "Processing child nodes..."
-            $accumulatedResult = $currentResult
+        # Start with the evaluated expression result; it may be $null if no expression was defined
+        $accumulatedResult = $exprResult
 
-            for ($i = 0; $i -lt $Node.ChildNodes.Count; $i++) {
-                $child = $Node.ChildNodes[$i]
-                if ($null -eq $child) { continue }
+        # Process any child nodes
+        if ($Node.ChildNodes -and $Node.ChildNodes.Count -gt 0) {
+            Write-Debug "Processing child nodes..."
+            foreach ($child in $Node.ChildNodes) {
+                if (-not $child) { continue }
 
                 $childResult = Test-TriggerFilterNode -Node $child -Record $Record
-                [void] $result.ChildNodes.Add($childResult)
+                $result.ChildNodes.Add($childResult)
 
-                if ($i -eq 0 -and $null -eq $accumulatedResult) {
+                # If accumulated result hasn't been set yet, use the child's result
+                if ($null -eq $accumulatedResult) {
                     $accumulatedResult = $childResult.EvaluationResult
                 }
                 else {
+                    # Determine and apply the logical operator from the child node
                     $operator = $child.LogicalOperator
-
                     if ([string]::IsNullOrEmpty($operator)) {
-                        throw "Child node at position $i is missing LogicalOperator."
+                        throw "Child node is missing a LogicalOperator."
                     }
 
                     switch ($operator) {
@@ -99,14 +104,10 @@ function Test-TriggerFilterNode {
                 }
             }
         }
-        else {
-            $accumulatedResult = $currentResult
-        }
 
+        # Finalize and return the result
         $result.EvaluationResult = $accumulatedResult
-
-        Write-Verbose "Node evaluation result: $($result.EvaluationResult)"
-
+        Write-Debug "Node evaluation result: $($result.EvaluationResult)"
         return $result
     }
     catch {

@@ -1,13 +1,13 @@
 function Set-WindowsEventData {
     <#
-    .SYNOPSIS
-        Maps the EntryType to a string
-    .DESCRIPTION
-        The Events database stores the EntryType as a int but in the trigger we comapre by string
-    .PARAMETER Data
-        Expecting output from Get-CUQueryData.
-    .EXAMPLE
-        Set-WindowsEventData
+        .SYNOPSIS
+            Maps the EntryType to a string
+        .DESCRIPTION
+            The Events database stores the EntryType as a int but in the trigger we comapre by string
+        .PARAMETER Data
+            Expecting output from Get-CUQueryData.
+        .EXAMPLE
+            Set-WindowsEventData
     #>
     [CmdletBinding()]
     param(
@@ -19,7 +19,7 @@ function Set-WindowsEventData {
         $properties = $results | Get-Member -MemberType NoteProperty
 
         if($properties.Name -notcontains "EntryType") {
-            Write-Verbose "No need to adjust Windows Event Data, EntryTye is NOT a property"
+            Write-Debug "No need to adjust Windows Event Data, EntryTye is NOT a property"
             return $Data
         }
 
