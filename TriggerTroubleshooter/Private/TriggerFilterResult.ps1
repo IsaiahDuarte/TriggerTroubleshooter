@@ -12,7 +12,6 @@ class TriggerFilterResult {
     [TriggerDataResult] $Details
     [string] $LogicalOperator
     [object] $ExpressionDescriptor
-    [object] $TriggerDetails
     [bool] $EvaluationResult
     [bool] $IsNegation
     [bool] $ScheduleResult
@@ -21,38 +20,25 @@ class TriggerFilterResult {
         $this.ChildNodes = [System.Collections.Generic.List[TriggerFilterResult]]::new()
     }
 
-    <#
-        .SYNOPSIS
-            Displays the trigger filter result. Sends default args.
-    #>
-    [void] DisplayResult () {
-        try {
-            $this.DisplayResult(0, [string]::Empty)
-        }
-        catch {
-            Write-Error "Error in DisplayResult (parameterless): $($_.Exception.Message)"
-        }
-    }
+    [string] BuildResultString([int] $IndentLevel = 0, [string] $PrefixOperator = '') {
+        # Create a new string builder for the accumulated output.
+        $sb = New-Object System.Text.StringBuilder
 
-    <#
-        .SYNOPSIS
-            Displays the trigger filter result.
-    #>
-    [void] DisplayResult([int] $IndentLevel = 0, [string] $PrefixOperator = '') {
         try {
             if ($IndentLevel -eq 0) {
                 $separator = '=' * 60
-                Write-Host "`n$separator" -ForegroundColor White
+                # Append the header lines.
+                $sb.AppendLine("`n$separator") | Out-Null
                 if ($this.ChildNodes.Count -gt 0 -and $this.ChildNodes[0].Details) {
-                    Write-Host ("Key: {0}" -f $this.ChildNodes[0].Details.Key) -ForegroundColor White
+                    $sb.AppendLine(("Key: {0}" -f $this.ChildNodes[0].Details.Key)) | Out-Null
                 }
-                Write-Host ("In Schedule: {0}" -f $this.ScheduleResult) -ForegroundColor White
-                Write-Host ("Are Properties Observed: {0}" -f $this.ArePropertiesObserved) -ForegroundColor White
-                Write-Host ("Will Fire: {0}" -f $this.EvaluationResult) -ForegroundColor White
-                Write-Host "$separator" -ForegroundColor White
+                $sb.AppendLine(("In Schedule: {0}" -f $this.ScheduleResult)) | Out-Null
+                $sb.AppendLine(("Are Properties Observed: {0}" -f $this.ArePropertiesObserved)) | Out-Null
+                $sb.AppendLine(("Will Fire: {0}" -f $this.EvaluationResult)) | Out-Null
+                $sb.AppendLine($separator) | Out-Null
             }
+
             $indent = ('    ' * $IndentLevel)
-            $color = if ($this.EvaluationResult) { 'Green' } else { 'Yellow' }
             $resultSymbol = if ($this.EvaluationResult) { '[TRUE ]' } else { '[FALSE]' }
             $prefix = if ($PrefixOperator) { "$PrefixOperator " } else { '' }
 
@@ -64,25 +50,35 @@ class TriggerFilterResult {
                 $conditionStr = "'$column' $compOp '$value'"
                 $detailString = ''
                 if ($this.Details) {
-                    $detailString = "(Value: $($this.Details.RecordValue), Operator: $($this.Details.ComparisonUsed)) "
+                    $detailString = "(Value: $($this.Details.RecordValue), Operator: $($this.Details.ComparisonUsed))"
                 }
-                Write-Host ("{0}{1}- Condition: IsRegex ({2}) {3} {4}{5}" -f $indent, $prefix, $expr.IsRegex, $conditionStr, $detailString, $resultSymbol) -ForegroundColor $color
+                $line = "{0}{1}- Condition: IsRegex ({2}) {3} {4} {5}" -f $indent, $prefix, $expr.IsRegex, $conditionStr, $detailString, $resultSymbol
+                $sb.AppendLine($line) | Out-Null
             }
 
             if ($this.ChildNodes -and $this.ChildNodes.Count -gt 0) {
                 if (-not $this.ExpressionDescriptor) {
-                    Write-Host ("{0}{1}({2}) {3}" -f $indent, $prefix, $this.LogicalOperator, $resultSymbol) -ForegroundColor $color
+                    $line = "{0}{1}({2}) {3}" -f $indent, $prefix, $this.LogicalOperator, $resultSymbol
+                    $sb.AppendLine($line) | Out-Null
                 }
+
                 for ($i = 0; $i -lt $this.ChildNodes.Count; $i++) {
                     $child = $this.ChildNodes[$i]
                     $childOperator = if ($i -gt 0) { $child.LogicalOperator } else { '' }
-                    $child.DisplayResult($IndentLevel + 1, $childOperator)
+                    # Recursively build the child’s string output.
+                    $childSb = $child.BuildResultString($IndentLevel + 1, $childOperator)
+                    $sb.Append($childSb.ToString()) | Out-Null
                 }
             }
         }
         catch {
-            Write-Error "Error in DisplayResult (detailed): $($_.Exception.Message)"
+            $sb.AppendLine("Error in BuildResultString: $($_.Exception.Message)") | Out-Null
         }
+
+        return $sb.ToString()
     }
 
+    [void] DisplayResult() {
+        Write-Host $this.BuildResultString(0, "")
+    }
 } 

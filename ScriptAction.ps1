@@ -31,6 +31,9 @@
         If provided, the module will be imported from this location rather than downloading
         from GitHub. You can download the module here:
         https://github.com/IsaiahDuarte/TriggerTroubleshooter/releases
+    
+    .PARAMETER SaveResultsPath
+        If provided, it will output the test results to the specified path.
 
     .EXAMPLE
         .\TestTriggerScript.ps1 -TriggerName "MyTrigger" -UseExport "True"
@@ -44,17 +47,23 @@
         Requires:          The CU Monitor's ControlUp.PowerShell.User.dll
         Creation Date:     1/27/2025    
         Updated:           2/8/2025
+    
+    .LINK
+        https://support.controlup.com/docs/monitor-cluster-powershell-api-cmdlets
+        https://support.controlup.com/docs/monitor-cluster-powershell-fields-by-table
+        https://support.controlup.com/docs/powershell-cmdlets-for-triggers
+
 #>
 
 param (
-    [Parameter(Mandatory)]
+    [Parameter(Mandatory = $true)]
     [string] $TriggerName,
 
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory = $false)]
     [ValidateSet("False", "True")]
     [string] $UseExportParameter = "False",
 
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory = $false)]
     [ValidateSet("False", "True")]
     [string] $CollectSupportZipParameter = "False",
 
@@ -62,22 +71,16 @@ param (
     [int] $RecordsPerFolder = 1,
 
     [Parameter(Mandatory=$false)]
-    [string] $ModuleOfflinePath
+    [string] $ModuleOfflinePath,
+
+    [Parameter(Mandatory = $false)]
+    [ValidateScript({ Test-Path -Path (Split-Path -Path $_) })]
+    [string] $SaveResultsPath
 )
 
 <#
     .SYNOPSIS
-        Downloads and extracts the TriggerTroubleshooter module from GitHub.
-
-    .DESCRIPTION
-        This helper function downloads a zip file from a provided Git URL, extracts it to a
-        temporary folder, and then returns the full path to the module manifest (psd1 file).
-
-    .PARAMETER GitPath
-        The URL to download the TriggerTroubleshooter zip file.
-    
-    .PARAMETER DestinationPath
-        The local directory in which to store the downloaded zip and extracted module.
+        A helper function that will download the TriggerTroubleshooter module from Github
 #>
 function Get-TriggerTroubleshooter {
     param(
@@ -114,7 +117,7 @@ function Get-TriggerTroubleshooter {
 # Set preferences for error handling, verbosity, and debugging.
 $ErrorActionPreference = 'Stop' 
 $VerbosePreference     = 'SilentlyContinue' 
-$DebugPreference       = 'Continue' 
+$DebugPreference       = 'SilentlyContinue' 
 $ProgressPreference    = 'SilentlyContinue' 
 $PSBoundParameters.GetEnumerator() | Foreach-Object { 
     Switch ($_.Key) { 
@@ -127,6 +130,12 @@ $PSBoundParameters.GetEnumerator() | Foreach-Object {
 # Convert the string parameters for UseExport and CollectSupportZip to Boolean values.
 $UseExport = [System.Convert]::ToBoolean($UseExportParameter)
 $CollectSupportZip = [System.Convert]::ToBoolean($CollectSupportZipParameter)
+
+# Null parameters that are N/A
+switch("N/A") {
+    $ModuleOfflinePath { $ModuleOfflinePath = $null }
+    $SaveResultsPath { $SaveResultsPath = $null }
+}
 
 # Define the GitHub API URL to fetch the latest release details.
 $githubURL = 'https://api.github.com/repos/IsaiahDuarte/TriggerTroubleshooter/releases/latest'
@@ -153,7 +162,7 @@ try {
     }
 
      # If a local offline path was specified for the module, import it from that path.
-    if ($ModuleOfflinePath -and $ModuleOfflinePath -ne "NA") {
+    if ($ModuleOfflinePath -and $ModuleOfflinePath) {
         Write-Output "Importing TriggerTroubleshooter from offline path: $ModuleOfflinePath"
         Import-Module $ModuleOfflinePath
     } else {
@@ -177,9 +186,14 @@ try {
     }
 
     # If results were returned, display the count and formatted output.
-    if ($null -ne $result) {
+    # If SaveResultsPath was passed, it will process differently.
+    if ($null -ne $result -and !$SaveResultsPath) {
         Write-Output "`nTested $($result.count) records against trigger conditions"
         $result.DisplayResult()
+    } elseif ($null -ne $result -and $SaveResultsPath) {
+        Write-Output "`nTested $($result.count) records against trigger conditions"
+        Write-Output "Saving results to $SaveResultsPath"
+        $result.BuildResultString(0, "") | Out-File -FilePath $SaveResultsPath -Force -Append
     }
 
     # Collecting support dump if specified
@@ -191,4 +205,4 @@ try {
 } catch {
     Write-Error $_.Exception.Message
     throw
-} 
+}

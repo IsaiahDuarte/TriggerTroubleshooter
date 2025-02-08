@@ -31,6 +31,9 @@
         If provided, the module will be imported from this location rather than downloading
         from GitHub. You can download the module here:
         https://github.com/IsaiahDuarte/TriggerTroubleshooter/releases
+    
+    .PARAMETER SaveResultsPath
+        If provided, it will output the test results to the specified path.
 
     .EXAMPLE
         .\TestTriggerScript.ps1 -TriggerName "MyTrigger" -UseExport "True"
@@ -68,7 +71,11 @@ param (
     [int] $RecordsPerFolder = 1,
 
     [Parameter(Mandatory=$false)]
-    [string] $ModuleOfflinePath
+    [string] $ModuleOfflinePath,
+
+    [Parameter(Mandatory = $false)]
+    [ValidateScript({ Test-Path -Path (Split-Path -Path $_) })]
+    [string] $SaveResultsPath
 )
 
 <#
@@ -126,6 +133,12 @@ $PSBoundParameters.GetEnumerator() | Foreach-Object {
 $UseExport = [System.Convert]::ToBoolean($UseExportParameter)
 $CollectSupportZip = [System.Convert]::ToBoolean($CollectSupportZipParameter)
 
+# Null parameters that are N/A
+switch("N/A") {
+    $ModuleOfflinePath { $ModuleOfflinePath = $null }
+    $SaveResultsPath { $SaveResultsPath = $null }
+}
+
 # Define the GitHub API URL to fetch the latest release details.
 $githubURL = 'https://api.github.com/repos/IsaiahDuarte/TriggerTroubleshooter/releases/latest'
 
@@ -151,7 +164,7 @@ try {
     }
 
      # If a local offline path was specified for the module, import it from that path.
-    if ($ModuleOfflinePath -and $ModuleOfflinePath -ne "NA") {
+    if ($ModuleOfflinePath -and $ModuleOfflinePath) {
         Write-Output "Importing TriggerTroubleshooter from offline path: $ModuleOfflinePath"
         Import-Module $ModuleOfflinePath
     } else {
@@ -175,9 +188,14 @@ try {
     }
 
     # If results were returned, display the count and formatted output.
-    if ($null -ne $result) {
+    # If SaveResultsPath was passed, it will process differently.
+    if ($null -ne $result -and !$SaveResultsPath) {
         Write-Output "`nTested $($result.count) records against trigger conditions"
         $result.DisplayResult()
+    } elseif ($null -ne $result -and $SaveResultsPath) {
+        Write-Output "`nTested $($result.count) records against trigger conditions"
+        Write-Output "Saving results to $SaveResultsPath"
+        $result.BuildResultString(0, "") | Out-File -FilePath $SaveResultsPath -Force -Append
     }
 
     # Collecting support dump if specified
@@ -189,4 +207,4 @@ try {
 } catch {
     Write-Error $_.Exception.Message
     throw
-} 
+}

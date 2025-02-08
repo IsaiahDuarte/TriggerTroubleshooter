@@ -78,8 +78,7 @@ function Test-Comparison {
                 if ($IsNegation) {
                     $comparisonResult = $RecordValue -notlike $Value
                     $comparisonUsed = "-notlike"    
-                }
-                else {
+                } else {
                     $comparisonResult = $RecordValue -like $Value
                     $comparisonUsed = "-like"
                 }
