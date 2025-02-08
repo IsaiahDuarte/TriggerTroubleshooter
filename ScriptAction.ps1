@@ -74,7 +74,6 @@ param (
     [string] $ModuleOfflinePath,
 
     [Parameter(Mandatory = $false)]
-    [ValidateScript({ Test-Path -Path (Split-Path -Path $_) })]
     [string] $SaveResultsPath
 )
 
@@ -110,6 +109,7 @@ function Get-TriggerTroubleshooter {
         exit 1
     }
 }
+
 
 # Ensure that TLS 1.2 is used for secure web requests.
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 

@@ -74,7 +74,6 @@ param (
     [string] $ModuleOfflinePath,
 
     [Parameter(Mandatory = $false)]
-    [ValidateScript({ Test-Path -Path (Split-Path -Path $_) })]
     [string] $SaveResultsPath
 )
 
@@ -181,10 +180,10 @@ try {
     Write-Output "`nTesting trigger: $TriggerName"
     if ($UseExport) {
         Write-Debug "Using Export logic."
-        $result = Test-Trigger -Name $TriggerName -UseExport $true
+        $result = Test-Trigger -Name $TriggerName -UseExport $true -Debug
     } else {
         Write-Debug "Using Query logic with RecordsPerFolder = $RecordsPerFolder."
-        $result = Test-Trigger -Name $TriggerName -RecordsPerFolder $RecordsPerFolder
+        $result = Test-Trigger -Name $TriggerName -RecordsPerFolder $RecordsPerFolder -Debug
     }
 
     # If results were returned, display the count and formatted output.
