@@ -90,17 +90,14 @@ $CollectSupportZip = [System.Convert]::ToBoolean($CollectSupportZipParameter)
 
 # Null parameters that are N/A
 switch("N/A") {
-    $ModuleOfflinePath { $ModuleOfflinePath = $null }
     $SaveResultsPath { $SaveResultsPath = $null }
 }
 
 try {   
     Write-Output "Importing latest module from monitor"
-
-    # This is required to import and use the TriggerTroubleshooter module.
-    $programFiles = [Environment]::GetEnvironmentVariable("ProgramW6432")
     
     # Get the latest version of the ControlUp.PowerShell.User.dll using LastWriteTime.
+    $programFiles = [Environment]::GetEnvironmentVariable("ProgramW6432")
     $userModulePath = Join-Path -Path $programFiles -ChildPath "\Smart-X\ControlUpMonitor\*\ControlUp.PowerShell.User.dll"
     $latestUserModulePath = (Get-ChildItem $userModulePath -Recurse | Sort-Object LastWriteTime -Descending)[0]
     Import-Module $latestUserModulePath

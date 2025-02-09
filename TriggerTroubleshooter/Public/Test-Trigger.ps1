@@ -111,8 +111,9 @@ function Test-Trigger {
         if ($Display) {
             $output.DisplayResult()
         }
-
-        return $output
+        
+        # Force output to be TriggerFilterResult[]
+        , $output.ToArray()
     }
     catch {
         Write-Error -Message "Error in Test-Trigger: $($_.Exception.Message)" -ErrorAction Stop

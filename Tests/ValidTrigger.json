@@ -1,0 +1,71 @@
+{
+  "Triggers": [
+    {
+      "IsVolatileFolder": false,
+      "TriggerName": "ValidTrigger",
+      "TriggerTypeEnum": "LogicalDiskStress",
+      "ComputerDownProperties": null,
+      "SessionStateChangedProperties": null,
+      "TriggerStressRecordSettings": null,
+      "AdvancedTriggerSettings": {
+        "TriggerStressRecordTypeEnum": "LogicalDisk",
+        "TriggerStressMDT": "00:00:03",
+        "FromFilter": "",
+        "IncludeComputers": true,
+        "TimeUnitsEnum": "Seconds"
+      },
+      "TriggerScheduleSettings": null,
+      "FolderID": "",
+      "IncludeSubFolders": 0,
+      "ScopeFolders": null,
+      "TriggerScopeIncludedFolders": [],
+      "TriggerScopeExcludedFolders": [],
+      "TableName": "LogicalDisks",
+      "LastModifiedTime": "2025-02-09T14:24:46.247069",
+      "Description": "When a Logical Disk Advanced trigger occurs on a specific scope matching a custom filter",
+      "Filter": "<FilterNodeDescriptor xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" Connective=\"0\" Negation=\"0\" IsCollection=\"true\" IsRegex=\"false\"><Childrens><FilterNodeDescriptor Connective=\"0\" Negation=\"0\" IsCollection=\"false\" Expression=\"FreeSpacePercentage&lt;=40\" IsRegex=\"false\"><Childrens /></FilterNodeDescriptor><FilterNodeDescriptor Connective=\"0\" Negation=\"0\" IsCollection=\"true\" Expression=\"\" IsRegex=\"false\"><Childrens><FilterNodeDescriptor Connective=\"0\" Negation=\"0\" IsCollection=\"false\" Expression=\"DiskName=C:\\\" IsRegex=\"false\"><Childrens /></FilterNodeDescriptor><FilterNodeDescriptor Connective=\"1\" Negation=\"0\" IsCollection=\"false\" Expression=\"DiskName=D:\\\" IsRegex=\"false\"><Childrens /></FilterNodeDescriptor><FilterNodeDescriptor Connective=\"1\" Negation=\"0\" IsCollection=\"false\" Expression=\"DiskName=M:\\\" IsRegex=\"false\"><Childrens /></FilterNodeDescriptor></Childrens></FilterNodeDescriptor></Childrens></FilterNodeDescriptor>",
+      "Enabled": 1,
+      "Actions": [],
+      "MinTimeBetweenIncidents": "00:00:05",
+      "IncidentScheduleID": "All days"
+    }
+  ],
+  "Templates": [],
+  "Schedules": [
+    {
+      "IncidentSchedules": [
+        {
+          "HourEnum": "All",
+          "DayEnum": "Monday"
+        },
+        {
+          "HourEnum": "All",
+          "DayEnum": "Saturday"
+        },
+        {
+          "HourEnum": "All",
+          "DayEnum": "Wednesday"
+        },
+        {
+          "HourEnum": "All",
+          "DayEnum": "Thursday"
+        },
+        {
+          "HourEnum": "All",
+          "DayEnum": "Friday"
+        },
+        {
+          "HourEnum": "All",
+          "DayEnum": "Tuesday"
+        },
+        {
+          "HourEnum": "All",
+          "DayEnum": "Sunday"
+        }
+      ],
+      "ID": "All days",
+      "FriendlyName": "All days"
+    }
+  ],
+  "OrganizationId": ""
+}
