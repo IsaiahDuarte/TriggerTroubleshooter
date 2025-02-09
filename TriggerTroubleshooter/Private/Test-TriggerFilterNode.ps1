@@ -34,7 +34,7 @@ function Test-TriggerFilterNode {
             $nullProps | ForEach-Object { Write-Warning "Null property: $($_.Name)" }
         }
 
-        Write-Debug "Evaluating node..."
+        Write-Verbose "Evaluating node..."
 
         # Initialize the result
         $result = [TriggerFilterResult]::New()
@@ -54,7 +54,7 @@ function Test-TriggerFilterNode {
             # Retrieve the corresponding property value from the record
             $recordValue = $Record.$column
 
-            Write-Debug "Evaluating ExpressionDescriptor: Column[$column], Value[$value], ComparisonOperator[$compOp], IsRegex[$isRegex]"
+            Write-Verbose "Evaluating ExpressionDescriptor: Column[$column], Value[$value], ComparisonOperator[$compOp], IsRegex[$isRegex]"
 
             $comparison = Test-Comparison -compOp $compOp -recordValue $recordValue -value $value -IsNegation $Node.IsNegation -IsRegex $isRegex
             $exprResult = $comparison.comparisonResult
@@ -72,7 +72,7 @@ function Test-TriggerFilterNode {
 
         # Process any child nodes
         if ($Node.ChildNodes -and $Node.ChildNodes.Count -gt 0) {
-            Write-Debug "Processing child nodes..."
+            Write-Verbose "Processing child nodes..."
             foreach ($child in $Node.ChildNodes) {
                 if (-not $child) { continue }
 
@@ -107,7 +107,7 @@ function Test-TriggerFilterNode {
 
         # Finalize and return the result
         $result.EvaluationResult = $accumulatedResult
-        Write-Debug "Node evaluation result: $($result.EvaluationResult)"
+        Write-Verbose "Node evaluation result: $($result.EvaluationResult)"
         return $result
     }
     catch {

@@ -21,7 +21,6 @@ class TriggerFilterResult {
     }
 
     [string] BuildResultString([int] $IndentLevel = 0, [string] $PrefixOperator = '') {
-        # Create a new string builder for the accumulated output.
         $sb = New-Object System.Text.StringBuilder
 
         try {

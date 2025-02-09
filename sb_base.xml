@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ArrayOfSBADescriptor xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <SBADescriptor>
+        <SBAId>ba454da4-52e9-445f-a15d-52de37f46a87</SBAId>
+        <RootSBAId>e15a1154-5e42-40ac-ba76-fab88446869f</RootSBAId>
+        <SQN>0</SQN>
+        <Name>Trigger Troubleshooter</Name>
+        <Description>Test a given trigger against live data. Please see
+            https://github.com/IsaiahDuarte/TriggerTroubleshooter</Description>
+        <Version></Version>
+        <DateCreated>2025-02-01T08:43:48.7461675-05:00</DateCreated>
+        <DateModified>2025-02-09T08:15:20.0906379-05:00</DateModified>
+        <DatePublished>0001-01-01T00:00:00</DatePublished>
+        <LastEditorName>Isaiah Duarte</LastEditorName>
+        <CreatorName>Isaiah Duarte</CreatorName>
+        <Status>2</Status>
+        <CheckSum>=</CheckSum>
+        <DenyCommunityShare>false</DenyCommunityShare>
+        <ExecutionDescriptor>
+            <AllowedEntitiesEx>256</AllowedEntitiesEx>
+            <AtomicEntityEx>256</AtomicEntityEx>
+            <AllowedEntities>0</AllowedEntities>
+            <AtomicEntity>0</AtomicEntity>
+            <ScriptData>
+            </ScriptData>
+            <IsCompressed>true</IsCompressed>
+            <Interactive>false</Interactive>
+            <AltCredentialsType>0</AltCredentialsType>
+            <Timeout>180</Timeout>
+            <ScriptType>3</ScriptType>
+            <TimeoutPolicy>1</TimeoutPolicy>
+            <ConcurrencyMode>2</ConcurrencyMode>
+            <ExecutionContext>3</ExecutionContext>
+            <Arguments>
+                <inner>
+                    <sxSerializedDictionaryOfStringSBAArgumentDescriptor>
+                        <item>
+                            <key>
+                                <string>f05989ed-8ce6-4149-afb5-377b8eb852f9</string>
+                            </key>
+                            <value>
+                                <SBAArgumentDescriptor>
+                                    <ArgumentId>f05989ed-8ce6-4149-afb5-377b8eb852f9</ArgumentId>
+                                    <ArgumentType>1</ArgumentType>
+                                    <Name>Trigger Name</Name>
+                                    <DefaultValue />
+                                    <ArgumentNumber>0</ArgumentNumber>
+                                    <ArgumentName>TriggerName</ArgumentName>
+                                    <EmptyBehavior>0</EmptyBehavior>
+                                    <ValidationString />
+                                    <ValidationError />
+                                    <MaskTypedCharacters>false</MaskTypedCharacters>
+                                    <EntityType>0</EntityType>
+                                </SBAArgumentDescriptor>
+                            </value>
+                        </item>
+                        <item>
+                            <key>
+                                <string>994af12d-2353-491c-97ca-e85f4bb6a379</string>
+                            </key>
+                            <value>
+                                <SBAArgumentDescriptor>
+                                    <ArgumentId>994af12d-2353-491c-97ca-e85f4bb6a379</ArgumentId>
+                                    <ArgumentType>1</ArgumentType>
+                                    <Name>Process all records</Name>
+                                    <DefaultValue>False</DefaultValue>
+                                    <ArgumentNumber>2</ArgumentNumber>
+                                    <ArgumentName>UseExport</ArgumentName>
+                                    <EmptyBehavior>0</EmptyBehavior>
+                                    <ValidationString>True|true|False|false|f|t|F|T</ValidationString>
+                                    <ValidationError>Please enter True or False</ValidationError>
+                                    <MaskTypedCharacters>false</MaskTypedCharacters>
+                                    <EntityType>0</EntityType>
+                                </SBAArgumentDescriptor>
+                            </value>
+                        </item>
+                        <item>
+                            <key>
+                                <string>b67e1118-e18d-49ae-9ca1-3f2ff304f8c7</string>
+                            </key>
+                            <value>
+                                <SBAArgumentDescriptor>
+                                    <ArgumentId>b67e1118-e18d-49ae-9ca1-3f2ff304f8c7</ArgumentId>
+                                    <ArgumentType>1</ArgumentType>
+                                    <Name>Collect Support ZIP</Name>
+                                    <DefaultValue>False</DefaultValue>
+                                    <ArgumentNumber>3</ArgumentNumber>
+                                    <ArgumentName>CollectSupportZip</ArgumentName>
+                                    <EmptyBehavior>0</EmptyBehavior>
+                                    <ValidationString>True|true|False|false|f|t|F|T</ValidationString>
+                                    <ValidationError>Please enter "True" or "False"</ValidationError>
+                                    <MaskTypedCharacters>false</MaskTypedCharacters>
+                                    <EntityType>0</EntityType>
+                                </SBAArgumentDescriptor>
+                            </value>
+                        </item>
+                        <item>
+                            <key>
+                                <string>fb3ab739-941e-48cf-a165-aabacd833e04</string>
+                            </key>
+                            <value>
+                                <SBAArgumentDescriptor>
+                                    <ArgumentId>fb3ab739-941e-48cf-a165-aabacd833e04</ArgumentId>
+                                    <ArgumentType>1</ArgumentType>
+                                    <Name>Records Per Folder</Name>
+                                    <DefaultValue>1</DefaultValue>
+                                    <ArgumentNumber>1</ArgumentNumber>
+                                    <ArgumentName>RecordsPerFolder</ArgumentName>
+                                    <EmptyBehavior>0</EmptyBehavior>
+                                    <ValidationString>\d</ValidationString>
+                                    <ValidationError />
+                                    <MaskTypedCharacters>false</MaskTypedCharacters>
+                                    <EntityType>0</EntityType>
+                                </SBAArgumentDescriptor>
+                            </value>
+                        </item>
+                        <item>
+                            <key>
+                                <string>da96c836-96a6-40a5-8801-6d5f0824080e</string>
+                            </key>
+                            <value>
+                                <SBAArgumentDescriptor>
+                                    <ArgumentId>da96c836-96a6-40a5-8801-6d5f0824080e</ArgumentId>
+                                    <ArgumentType>1</ArgumentType>
+                                    <Name>Path to Save Results</Name>
+                                    <DefaultValue>N/A</DefaultValue>
+                                    <ArgumentNumber>4</ArgumentNumber>
+                                    <ArgumentName>SaveResultsPath</ArgumentName>
+                                    <EmptyBehavior>0</EmptyBehavior>
+                                    <ValidationString />
+                                    <ValidationError />
+                                    <MaskTypedCharacters>false</MaskTypedCharacters>
+                                    <EntityType>0</EntityType>
+                                </SBAArgumentDescriptor>
+                            </value>
+                        </item>
+                    </sxSerializedDictionaryOfStringSBAArgumentDescriptor>
+                </inner>
+            </Arguments>
+            <InstructionsExecutionOnComputer />
+            <SupressOutputDialog>false</SupressOutputDialog>
+            <UseSdk>false</UseSdk>
+            <DefaultSharedCredGuid />
+        </ExecutionDescriptor>
+        <MissingCred>false</MissingCred>
+        <ImportValidationString></ImportValidationString>
+        <IsVersionAudited>false</IsVersionAudited>
+    </SBADescriptor>
+</ArrayOfSBADescriptor>

@@ -1,4 +1,4 @@
-# Trigger Troubleshooter
+# Trigger Troubleshooter - The Test Button That Wasn't Implemented
 
 Trigger Troubleshooter takes a trigger name, retrieves its filter, scope, and schedule, then performs a test on live data. It gathers data within the trigger’s scope, validates it against the defined filter/schedule, checks if the fields are being observed by the monitor, and displays the results.  
 
@@ -6,12 +6,7 @@ Disclaimer: The results from this script does not guarantee the trigger will fir
 
 ## Script Action
 
-• Provide a trigger name to test against live data.  
-• The script will:  
-  – Download the latest TriggerTroubleshooter module from GitHub (unless an offline path is provided).  
-  – Import the module.  
-  – Run the Test-Trigger function.  
-  – Optionally collect a Support Trigger Dump.
+Provide a trigger name to test against live data.  
 
 Notes:
 - Only objects within the trigger’s scope are processed. To limit output, narrow the trigger’s scope.

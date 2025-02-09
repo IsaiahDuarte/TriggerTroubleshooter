@@ -27,11 +27,11 @@ function Get-SupportTriggerDump {
         [string] $OutputDirectory = $env:TEMP
     )
 
-    Write-Debug "Starting Get-SupportTriggerDump for TriggerName: '$Name'"
-    Write-Debug "OutputDirectory set to: '$OutputDirectory'"
+    Write-Verbose "Starting Get-SupportTriggerDump for TriggerName: '$Name'"
+    Write-Verbose "OutputDirectory set to: '$OutputDirectory'"
 
     try {
-        Write-Debug "Retrieving trigger details..."
+        Write-Verbose "Retrieving trigger details..."
         $trigger = Get-CUTriggers | Where-Object { $_.TriggerName -eq $Name }
 
         # Check if the retrieved trigger exists
@@ -40,31 +40,31 @@ function Get-SupportTriggerDump {
             return
         }
 
-        Write-Debug "Trigger found. TriggerID: $($trigger.TriggerID)"
+        Write-Verbose "Trigger found. TriggerID: $($trigger.TriggerID)"
 
         # Create a unique temporary directory for storing dump files
-        Write-Debug "Creating temporary directory for dump files..."
+        Write-Verbose "Creating temporary directory for dump files..."
         $tempRoot = [System.IO.Path]::GetTempPath()
         $tempDirectory = Join-Path -Path $tempRoot -ChildPath ([Guid]::NewGuid())
         New-Item -ItemType Directory -Path $tempDirectory | Out-Null
-        Write-Debug "Created temporary directory: $tempDirectory"
+        Write-Verbose "Created temporary directory: $tempDirectory"
 
         # Export Trigger Details into JSON format
         $triggerDetails = Get-CUTriggerDetails -TriggerId $trigger.TriggerID
         $triggerDetailsPath = Join-Path -Path $tempDirectory -ChildPath "TriggerDetails.json"
-        Write-Debug "Exporting Trigger Details to '$triggerDetailsPath'"
+        Write-Verbose "Exporting Trigger Details to '$triggerDetailsPath'"
         $triggerDetails | ConvertTo-Json -Depth 20 -Compress | Out-File -FilePath $triggerDetailsPath -Encoding UTF8
-        Write-Debug "Trigger Details exported successfully."
+        Write-Verbose "Trigger Details exported successfully."
 
         # Export Observable Trigger Details into JSON format
         $observableDetails = Get-CUObservableTriggerDetails -Trigger $Name
         $observableDetailsPath = Join-Path -Path $tempDirectory -ChildPath "ObservableTriggerDetails.json"
-        Write-Debug "Exporting Observable Trigger Details to '$observableDetailsPath'"
+        Write-Verbose "Exporting Observable Trigger Details to '$observableDetailsPath'"
         $observableDetails | ConvertTo-Json -Depth 20 -Compress | Out-File -FilePath $observableDetailsPath -Encoding UTF8
-        Write-Debug "Observable Trigger Details exported successfully."
+        Write-Verbose "Observable Trigger Details exported successfully."
 
         # Determine the table name based on observable details and trigger type
-        Write-Debug "Determining table to query..."
+        Write-Verbose "Determining table to query..."
         $table = Get-TableName -TableName $observableDetails.Table -TriggerType $triggerDetails.TriggerType
 
         # Prepare parameters for exporting scoped data 
@@ -79,21 +79,21 @@ function Get-SupportTriggerDump {
 
         # Export Scoped Trigger Dump into JSON format
         $scopedDumpPath = Join-Path -Path $tempDirectory -ChildPath "ScopedTriggerDump.json"
-        Write-Debug "Exporting Scoped Trigger Dump to '$scopedDumpPath'"
+        Write-Verbose "Exporting Scoped Trigger Dump to '$scopedDumpPath'"
         Get-ScopedTriggerDump @scopedDumpParams | ConvertTo-Json -Compress -Depth 20 | Out-File -FilePath $scopedDumpPath -Encoding UTF8
-        Write-Debug "Scoped Trigger Dump exported successfully."
+        Write-Verbose "Scoped Trigger Dump exported successfully."
 
         # Prepare the ZIP file for the output
         $zipFileName = "$Name.zip"
         $zipFilePath = Join-Path -Path $OutputDirectory -ChildPath $zipFileName
-        Write-Debug "Compressing dump files into archive '$zipFilePath'"
+        Write-Verbose "Compressing dump files into archive '$zipFilePath'"
         Compress-Archive -Path $tempDirectory -DestinationPath $zipFilePath -Force
-        Write-Debug "Compression completed successfully."
+        Write-Verbose "Compression completed successfully."
 
          # Clean up the temporary directory
-        Write-Debug "Removing temporary directory '$tempDirectory'"
+        Write-Verbose "Removing temporary directory '$tempDirectory'"
         Remove-Item -Path $tempDirectory -Recurse -Force
-        Write-Debug "Temporary directory removed successfully."
+        Write-Verbose "Temporary directory removed successfully."
 
         Write-Output "Trigger dump saved to '$zipFilePath'"
     }

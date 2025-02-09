@@ -44,7 +44,7 @@ function Get-CUQueryData {
         [int] $Take = 100
     )
 
-    Write-Debug "Starting Get-CUQueryData function."
+    Write-Verbose "Starting Get-CUQueryData function."
 
     $splat = @{
         Table  = $Table
@@ -54,23 +54,23 @@ function Get-CUQueryData {
 
     try {
         if ($PSCmdlet.ParameterSetName -eq "UseExport" -and $UseExport) {
-            Write-Debug "UseExport is set to TRUE. Proceeding with export method."
+            Write-Verbose "UseExport is set to TRUE. Proceeding with export method."
 
-            Write-Debug "Generating temporary file and directory."
+            Write-Verbose "Generating temporary file and directory."
             $tempFile = "$(([guid]::NewGuid().ToString("N"))).json"
             $dir = $env:TEMP
             $fullPath = Join-Path -Path $dir -ChildPath $tempFile
-            Write-Debug "Full path for export: $fullPath"
+            Write-Verbose "Full path for export: $fullPath"
 
             $splat.OutputFolder = $dir
             $splat.FileName = $tempFile
             $splat.FileFormat = "Json"
 
-            Write-Debug "Executing Export-CUQuery with provided parameters."
+            Write-Verbose "Executing Export-CUQuery with provided parameters."
             Export-CUQuery @splat | Out-Null
-            Write-Debug "Export-CUQuery executed successfully. Reading exported data from $fullPath."
+            Write-Verbose "Export-CUQuery executed successfully. Reading exported data from $fullPath."
 
-            Write-Debug "Converting exported JSON data to PowerShell objects."
+            Write-Verbose "Converting exported JSON data to PowerShell objects."
             $json = Get-Content $fullPath -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
 
             $results = $json | ForEach-Object {
@@ -97,22 +97,22 @@ function Get-CUQueryData {
                 [PSCustomObject] $obj
             }
 
-            Write-Debug "Successfully converted JSON data. Processing records."
+            Write-Verbose "Successfully converted JSON data. Processing records."
 
-            Write-Debug "Removing temporary file at $fullPath."
+            Write-Verbose "Removing temporary file at $fullPath."
             Remove-Item -Path $fullPath -Force -ErrorAction Stop
-            Write-Debug "Temporary file removed successfully."
+            Write-Verbose "Temporary file removed successfully."
 
-            Write-Debug "Returning the processed export results."
+            Write-Verbose "Returning the processed export results."
             return $results
         }
         elseif ($PSCmdlet.ParameterSetName -eq "Take") {
             $splat.Take = $Take
-            Write-Debug "Executing Invoke-CUQuery with provided parameters."
+            Write-Verbose "Executing Invoke-CUQuery with provided parameters."
             $invokeResult = Invoke-CUQuery @splat
-            Write-Debug "Invoke-CUQuery executed successfully. Processing returned data."
+            Write-Verbose "Invoke-CUQuery executed successfully. Processing returned data."
 
-            Write-Debug "Returning the retrieved data."
+            Write-Verbose "Returning the retrieved data."
             return $invokeResult.Data
         }
     }

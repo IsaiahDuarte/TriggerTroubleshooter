@@ -28,7 +28,7 @@ function Test-ObserverdProperties {
         [string[]] $Properties
     )
 
-    Write-Debug "Starting Test-ObserverdProperties function."
+    Write-Verbose "Starting Test-ObserverdProperties function."
 
     $splat = @{
         Table  = 'Observables'
@@ -38,28 +38,28 @@ function Test-ObserverdProperties {
     }
 
     try {
-        Write-Debug "Executing Invoke-CUQuery with provided parameters."
+        Write-Verbose "Executing Invoke-CUQuery with provided parameters."
         $result = Invoke-CUQuery @splat
-        Write-Debug "Invoke-CUQuery executed successfully."
+        Write-Verbose "Invoke-CUQuery executed successfully."
 
         if ($result.Total -eq 0) {
-            Write-Debug "No data returned from query."
+            Write-Verbose "No data returned from query."
             Write-Warning "Properties are not being observed by monitor."
             return $false
         }
 
-        Write-Debug "Converting the 'ObserverdProps' JSON string to a PowerShell object."
+        Write-Verbose "Converting the 'ObserverdProps' JSON string to a PowerShell object."
         $ObserverdProps = $result.Data.ObserverdProps | ConvertFrom-Json -ErrorAction Stop
 
         foreach ($property in $Properties) {
-            Write-Debug "Checking if property '$property' is present in ObserverdProps."
+            Write-Verbose "Checking if property '$property' is present in ObserverdProps."
             if ($property -notin $ObserverdProps) {
-                Write-Debug "Property '$property' is missing. Returning \$false."
+                Write-Verbose "Property '$property' is missing. Returning \$false."
                 return $false
             }
         }
 
-        Write-Debug "All specified properties were found. Returning \$true."
+        Write-Verbose "All specified properties were found. Returning \$true."
         return $true
     }
     catch {

@@ -59,10 +59,10 @@ function Get-ScopedTriggerDump {
     )
 
     try {
-        Write-Debug "Starting the Get-ScopedTriggerDump process for trigger: $Name"
+        Write-Verbose "Starting the Get-ScopedTriggerDump process for trigger: $Name"
 
         $tables = (Invoke-CUQuery -Scheme Information -Fields SchemaName, TableName -Table Tables -take 500).data.TableName | Sort-Object
-        Write-Debug "Retrieved table names: $tables"
+        Write-Verbose "Retrieved table names: $tables"
 
         if ([string]::IsNullOrEmpty($Table)) {
             Write-Warning "Observable Details didn't return a table for $Name"
@@ -70,16 +70,16 @@ function Get-ScopedTriggerDump {
         }
 
         if ($Table -notin $tables) {
-            Write-Debug "$Table not found in the list of tables."
+            Write-Verbose "$Table not found in the list of tables."
             throw "Table was not found: $Table. If it is a built-in trigger or old one, export it, rename it, and import it."
         }
 
-        Write-Debug "$Table found. Proceeding to fetch data."
+        Write-Verbose "$Table found. Proceeding to fetch data."
 
         $dump = @{}
 
         foreach ($folder in $TriggerObservableDetails.Folders) {
-            Write-Debug "Processing folder: $folder"
+            Write-Verbose "Processing folder: $folder"
 
             $splat = @{
                 Table  = $Table
@@ -97,7 +97,7 @@ function Get-ScopedTriggerDump {
 
             $NoTableTypes = @("UserLoggedOff", "UserLoggedOn", "WindowsEvent", "ProcessStarted", "ProcessEnded", "MachineDown", "SessionStateChanged")
             if ($TriggerType -in $NoTableTypes) {
-                Write-Debug "Trigger is one of the following that doesn't return data: $NoTableTypes. overriding fields with: $Fields"
+                Write-Verbose "Trigger is one of the following that doesn't return data from TriggerObservableDetails: $NoTableTypes. overriding fields with: $Fields"
                 $splat.Fields = $Fields
             }
 
@@ -109,12 +109,12 @@ function Get-ScopedTriggerDump {
             }
 
             foreach ($item in $results) {
-                Write-Debug "Adding item with key: $($item.key) to the dump."
+                Write-Verbose "Adding item with key: $($item.key) to the dump."
                 $dump[$item.key] = $item
             }
         }
 
-        Write-Debug "Data collection complete. Returning dump."
+        Write-Verbose "Data collection complete. Returning dump."
         return $dump
     }
     catch {

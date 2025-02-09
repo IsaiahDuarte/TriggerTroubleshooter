@@ -1,21 +1,20 @@
 <#
     .SYNOPSIS
-        Downloads, imports, and uses the TriggerTroubleshooter module to test a trigger against live data.
+       Uses the TriggerTroubleshooter module to test a trigger against live data.
 
     .DESCRIPTION
         This script will take a trigger name and tests it against live data and displays
-        the results. It downloads the latest version of the TriggerTroubleshooter module
-        from GitHub (unless an offline path is provided), imports the module, and runs
-        the Test-Trigger. Optionally, it collects a Support Trigger Dump.
+        the results.It Uses the Test-Trigger function to do this.Optionally, it collects
+        a Support Trigger Dump.
 
     .PARAMETER TriggerName
         Specifies the name of the trigger to test.
 
-    .PARAMETER UseExport
+    .PARAMETER UseExportParameter
         Specifies whether export-cuquery will be used to get all the records in scope.
         Please be mindful when using this on triggers that are scoped to all folders.
 
-    .PARAMETER CollectSupportZip
+    .PARAMETER CollectSupportZipParameter
         Indicates whether a Support Dump should be collected after trigger testing.
         This is done by calling Get-SupportTriggerDump which will also dump ALL
         records/fields specified in the trigger. This can be a large zip.
@@ -25,20 +24,14 @@
         This parameter is only used if UseExport is "False". The default is 1.
         The reason we are processing per folder is to get the correct data in scope of
         the trigger.
-
-    .PARAMETER ModuleOfflinePath
-        Specifies a local path to the TriggerTroubleshooter module to be imported offline.
-        If provided, the module will be imported from this location rather than downloading
-        from GitHub. You can download the module here:
-        https://github.com/IsaiahDuarte/TriggerTroubleshooter/releases
     
     .PARAMETER SaveResultsPath
         If provided, it will output the test results to the specified path.
 
     .EXAMPLE
-        .\TestTriggerScript.ps1 -TriggerName "MyTrigger" -UseExport "True"
+        .\TestTriggerScript.ps1 -TriggerName "MyTrigger" -UseExportParameter "True"
 
-        Downloads or imports the TriggerTroubleshooter module, tests the trigger "MyTrigger" using export-cuquery
+        Tests the trigger "MyTrigger" and gets the live data using export-cuquery
 
     .NOTES 
         Version:           1.0.5
@@ -52,7 +45,6 @@
         https://support.controlup.com/docs/monitor-cluster-powershell-api-cmdlets
         https://support.controlup.com/docs/monitor-cluster-powershell-fields-by-table
         https://support.controlup.com/docs/powershell-cmdlets-for-triggers
-
 #>
 
 param (
@@ -70,55 +62,18 @@ param (
     [Parameter(Mandatory=$false)]
     [int] $RecordsPerFolder = 1,
 
-    [Parameter(Mandatory=$false)]
-    [string] $ModuleOfflinePath,
-
     [Parameter(Mandatory = $false)]
     [string] $SaveResultsPath
 )
 
-<#
-    .SYNOPSIS
-        A helper function that will download the TriggerTroubleshooter module from Github
-#>
-function Get-TriggerTroubleshooter {
-    param(
-        [Parameter(Mandatory=$true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $GitPath,
+###ImportModule###
 
-        [Parameter(Mandatory=$true)]
-        [ValidateScript({ Test-Path -Path $_ -PathType Container })]
-        [string] $DestinationPath
-    )
-
-    try {
-        $zipPath = Join-Path $DestinationPath "TriggerTroubleshooter.zip"
-        $folderPath = Join-Path -Path $DestinationPath -ChildPath "TriggerTroubleshooter"
-        Invoke-WebRequest -Uri $GitPath -OutFile $zipPath -UseBasicParsing
-        Unblock-File $zipPath
-
-        Expand-Archive -Path $zipPath -DestinationPath $folderPath -Force
-        Remove-Item -Path $zipPath -Force
-
-        $modulePath = Get-ChildItem -Path $folderPath -Filter "TriggerTroubleshooter.psd1" -Recurse | Select-Object -First 1 -ExpandProperty FullName
-        return $modulePath
-    }
-    catch {
-        Write-Error "Failed to download or extract TriggerTroubleshooter: $_"
-        exit 1
-    }
-}
-
-Set-StrictMode -Version Latest
-
-# Ensure that TLS 1.2 is used for secure web requests.
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 
+#region SB base start
 
 # Set preferences for error handling, verbosity, and debugging.
 $ErrorActionPreference = 'Stop' 
 $VerbosePreference     = 'SilentlyContinue' 
-$DebugPreference       = 'Continue' 
+$DebugPreference       = 'SilentlyContinue' 
 $ProgressPreference    = 'SilentlyContinue' 
 $PSBoundParameters.GetEnumerator() | Foreach-Object { 
     Switch ($_.Key) { 
@@ -127,6 +82,7 @@ $PSBoundParameters.GetEnumerator() | Foreach-Object {
         'erroraction' { $ErrorActionPreference = $_.Value } 
     } 
 }
+
 
 # Convert the string parameters for UseExport and CollectSupportZip to Boolean values.
 $UseExport = [System.Convert]::ToBoolean($UseExportParameter)
@@ -138,18 +94,11 @@ switch("N/A") {
     $SaveResultsPath { $SaveResultsPath = $null }
 }
 
-# Define the GitHub API URL to fetch the latest release details.
-$githubURL = 'https://api.github.com/repos/IsaiahDuarte/TriggerTroubleshooter/releases/latest'
-
 try {   
     Write-Output "Importing latest module from monitor"
 
     # This is required to import and use the TriggerTroubleshooter module.
     $programFiles = [Environment]::GetEnvironmentVariable("ProgramW6432")
-
-    # Location where TriggerTroubleshooter will be downloaded if offline path
-    # is not specified
-    $tempDir = [system.IO.Path]::GetTempPath()
     
     # Get the latest version of the ControlUp.PowerShell.User.dll using LastWriteTime.
     $userModulePath = Join-Path -Path $programFiles -ChildPath "\Smart-X\ControlUpMonitor\*\ControlUp.PowerShell.User.dll"
@@ -162,28 +111,14 @@ try {
         Write-Warning "The 'RecordsPerFolder' value will be ignored because 'UseExport' is set to True."
     }
 
-     # If a local offline path was specified for the module, import it from that path.
-    if ($ModuleOfflinePath -and $ModuleOfflinePath) {
-        Write-Output "Importing TriggerTroubleshooter from offline path: $ModuleOfflinePath"
-        Import-Module $ModuleOfflinePath
-    } else {
-        Write-Debug "Downloading TriggerTroubleshooter from Github"
-        $LatestVersion = Invoke-WebRequest -Uri $githubURL -UseBasicParsing | Select-Object -ExpandProperty Content | ConvertFrom-Json
-        $downloadUrl = ($LatestVersion.Assets | Where-Object { $_.Name -eq 'TriggerTroubleshooter.zip' }).browser_download_url
-        $path = Get-TriggerTroubleshooter -GitPath $downloadUrl -DestinationPath $tempDir
-        
-        Write-Output "Importing TriggerTroubleshooter module"
-        Import-Module $path
-    }
-
     # Use different testing logic based on whether UseExport is true.
     Write-Output "`nTesting trigger: $TriggerName"
     if ($UseExport) {
-        Write-Debug "Using Export logic."
-        $result = Test-Trigger -Name $TriggerName -UseExport $true -Debug
+        Write-Verbose "Using Export logic."
+        $result = Test-Trigger -Name $TriggerName -UseExport
     } else {
-        Write-Debug "Using Query logic with RecordsPerFolder = $RecordsPerFolder."
-        $result = Test-Trigger -Name $TriggerName -RecordsPerFolder $RecordsPerFolder -Debug
+        Write-Verbose "Using Query logic with RecordsPerFolder = $RecordsPerFolder."
+        $result = Test-Trigger -Name $TriggerName -RecordsPerFolder $RecordsPerFolder
     }
 
     # If results were returned, display the count and formatted output.
@@ -207,3 +142,4 @@ try {
     Write-Error $_.Exception.Message
     throw
 }
+#endregion
