@@ -37,6 +37,15 @@ if (-not (Test-Path -Path $releaseFolder)) {
 
 #endregion
 
+#region Pester
+$testResult = Invoke-Pester -PassThru ".\Tests\Unit\Test-Trigger.Tests.ps1"
+if($testResult.TotalCount -eq $testResult.PassedCount) {
+    Write-Host "Test-Trigger tests passed"
+} else {
+    exit 1
+}
+#endregion
+
 #region Build Script
 
 Write-Output "Collecting module functions from $moduleFolder"
