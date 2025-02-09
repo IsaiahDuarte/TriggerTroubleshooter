@@ -37,7 +37,13 @@ function Test-Schedule {
         $schedule = switch ($PSCmdlet.ParameterSetName) {
             'ByName' {
                 Write-Verbose "Retrieving schedule by name: $ScheduleName"
-                $schedules = Get-CUTriggerSchedules | Where-Object { $_.Name -eq $ScheduleName }
+                $schedules = Get-CUTriggerSchedules
+
+                if($null -eq $schedules) {
+                    throw "Get-CUTriggerSchedules returned nothing"
+                }
+
+                $schedules = $schedules | Where-Object { $_.Name -eq $ScheduleName }
                 if ($schedules.Count -eq 0) {
                     throw "Schedule '$ScheduleName' not found."
                 }

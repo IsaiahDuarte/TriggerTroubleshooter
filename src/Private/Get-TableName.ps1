@@ -45,7 +45,7 @@ function Get-TableName {
             "WindowsEvent" {
                 Write-Verbose "UserLoggedOn detected. Returning Events table."
                 return "Events"
-            }
+            }   
 
             "ProcessStarted" {
                 Write-Verbose "UserLoggedOn detected. Returning Processes table."

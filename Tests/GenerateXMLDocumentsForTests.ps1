@@ -41,6 +41,9 @@ $triggerFilterResultsPath = Join-Path -Path $PSScriptRoot -ChildPath "Unit\Test-
 $modulePath = Join-Path -Path $basePath -ChildPath "TriggerTroubleshooter\TriggerTroubleshooter.psd1"
 Import-Module $modulePath -Force -ErrorAction Stop
 
+# Create a trigger
+
+
 # Retrieve the trigger using Get-CUTriggers.
 $trigger = Get-CUTriggers | Where-Object { $_.TriggerName -eq $TriggerName }
 if (-not $trigger) {

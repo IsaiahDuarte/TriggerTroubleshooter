@@ -6,7 +6,7 @@ if (!$path) {
 
 Import-Module $path
 $rootPath = Split-Path -Path $PSScriptRoot
-Import-Module "$rootPath\TriggerTroubleshooter\TriggerTroubleshooter.psd1" -Force
+Import-Module "$rootPath\src\TriggerTroubleshooter.psd1" -Force
 
 Get-CUTriggers -IsEnabled $true | Foreach-Object {
     if ($_.TriggerName -eq 'ValidTrigger' ) { 

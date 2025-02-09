@@ -21,12 +21,12 @@
 # Define paths relative to the current script location.
 $releaseFolder = Join-Path -Path $PSScriptRoot -ChildPath "Release"
 $sbBase = Join-Path -Path $PSScriptRoot -ChildPath "sb_base.ps1"
-$moduleFolder = Join-Path -Path $PSScriptRoot -ChildPath "TriggerTroubleshooter"
+$moduleFolder = Join-Path -Path $PSScriptRoot -ChildPath "src"
 $moduleZip = Join-Path -Path $PSScriptRoot -ChildPath "Release\TriggerTroubleshooter.zip"
 $targetScript = Join-Path -Path $PSScriptRoot -ChildPath "Release\ScriptAction.ps1"
 $sbBasexml = Join-Path -Path $PSScriptRoot -ChildPath "sb_base.xml"
 $sbTargetXML = Join-Path -Path $PSScriptRoot -ChildPath "Release\Trigger Troubleshooter.xml"
-$moduleManifest = Join-Path -Path $PSScriptRoot -ChildPath "TriggerTroubleshooter\TriggerTroubleshooter.psd1"
+$moduleManifest = Join-Path -Path $PSScriptRoot -ChildPath "src\TriggerTroubleshooter.psd1"
 $marker = "###ImportModule###"
 
 # Ensure the release folder exists.
