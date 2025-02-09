@@ -51,6 +51,15 @@ foreach ($file in $functions) {
     $footer = "`n#endregion`n`n"
     $codeBlock = Get-Content -Path $file.FullName -Raw
 
+    # Remove the Serialization from TriggerDataResult and TriggerFilterResult as they
+    # are only needed with Pester 
+    $codeBlock = $codeBlock -Split "`n" | Where-Object {
+        ($_ -notmatch "\[DataMember\(\)\]") -and
+        ($_ -notmatch "\[DataContract\(\)\]") -and
+        ($_ -notmatch "^using namespace System\.Runtime\.Serialization") -and
+        ($_ -notmatch "\[KnownType\(")
+    }
+
     $functionsCode.Add($header)
     $functionsCode.Add($codeBlock)
     $functionsCode.Add($footer)
