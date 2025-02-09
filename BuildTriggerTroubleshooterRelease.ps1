@@ -38,7 +38,7 @@ if (-not (Test-Path -Path $releaseFolder)) {
 #endregion
 
 #region Pester
-$testResult = Invoke-Pester -PassThru ".\Tests\Unit\Test-Trigger.Tests.ps1"
+$testResult = Invoke-Pester -PassThru 
 if($testResult.TotalCount -eq $testResult.PassedCount) {
     Write-Host "Test-Trigger tests passed"
 } else {

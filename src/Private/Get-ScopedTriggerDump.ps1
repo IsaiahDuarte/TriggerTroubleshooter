@@ -119,6 +119,6 @@ function Get-ScopedTriggerDump {
     }
     catch {
         Write-Error "Error in Get-ScopedTriggerDump: $($_.Exception.Message)"
-        throw
+        throw $_.Exception.Message
     }
 } 

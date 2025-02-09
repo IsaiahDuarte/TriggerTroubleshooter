@@ -73,7 +73,7 @@ function Get-CUQueryData {
             Write-Verbose "Converting exported JSON data to PowerShell objects."
             $json = Get-Content $fullPath -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
 
-            $results = $json | ForEach-Object {
+            [Object[]] $results = $json | ForEach-Object {
                 $obj = @{ Key = $_.RecordId }
 
                 foreach ($property in $_.Properties) {
@@ -104,7 +104,7 @@ function Get-CUQueryData {
             Write-Verbose "Temporary file removed successfully."
 
             Write-Verbose "Returning the processed export results."
-            return $results
+            return ,$results
         }
         elseif ($PSCmdlet.ParameterSetName -eq "Take") {
             $splat.Take = $Take
@@ -113,7 +113,7 @@ function Get-CUQueryData {
             Write-Verbose "Invoke-CUQuery executed successfully. Processing returned data."
 
             Write-Verbose "Returning the retrieved data."
-            return $invokeResult.Data
+            return ,$invokeResult.Data
         }
     }
     catch {

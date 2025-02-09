@@ -1,6 +1,7 @@
 BeforeAll {
     . $PSCommandPath.Replace('.Tests.ps1','.ps1').Replace('tests','src')
-    # Don't need to import the DLL
+    
+    # Stub out commands from other modules.
     function Get-CUTriggerSchedules { }
 }
 
@@ -36,7 +37,6 @@ Describe "Test-Schedule" {
         It "returns false when the current hour is not active" {
             $now         = Get-Date
             $currentDay  = [int]$now.DayOfWeek
-            $currentHour = $now.Hour
             # No active hour.
             $weekdayEntry = [PSCustomObject]@{
                 Day           = $currentDay
@@ -108,7 +108,6 @@ Describe "Test-Schedule" {
         It "returns false when the current hour is not active" {
             $now         = Get-Date
             $currentDay  = [int]$now.DayOfWeek
-            $currentHour = $now.Hour
 
             $weekdayEntry = [PSCustomObject]@{
                 Day           = $currentDay
