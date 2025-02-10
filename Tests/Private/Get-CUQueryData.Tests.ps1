@@ -23,14 +23,15 @@ Describe "Get-CUQueryData" {
 
             # Mock Remove-Item to simulate deletion of the temporary file.
             Mock -CommandName Remove-Item { } -Verifiable
-        }
 
-        It "calls Export-CUQuery, reads JSON, and returns processed results" {
             $expectedResult = [PSCustomObject]@{
                 Key = "9de6c862-62f6-4c2b-ae40-20cb35f327ea"
                 FreeSpacePercentage = 34.0800133
                 DiskName = "C:\"
             }
+        }
+
+        It "calls Export-CUQuery, reads JSON, and returns processed results" {
             $result = Get-CUQueryData -Table "LogicalDisks" -Fields @("FreeSpacePercentage","DiskName") -Where "SomeFilter" -UseExport
 
             # Verify that the JSON processing produces type.
@@ -46,18 +47,17 @@ Describe "Get-CUQueryData" {
 
     Context "When using the Take parameter set (invoke-cuquery method)" {
 
-        # Create dummy return object mimicking Invoke-CUQuery's result.
-        $dummyInvokeResult = [PSCustomObject]@{
-            Data = @(
-                [PSCustomObject]@{
-                    Key = "9de6c862-62f6-4c2b-ae40-20cb35f327ea"
-                    FreeSpacePercentage = 33.43
-                    DiskName = "C:\"
-                }
-            )
+        BeforeEach {
+            $dummyInvokeResult = [PSCustomObject]@{
+                Data = @(
+                    [PSCustomObject]@{
+                        Key = "9de6c862-62f6-4c2b-ae40-20cb35f327ea"
+                        FreeSpacePercentage = 33.43
+                        DiskName = "C:\"
+                    }
+                )
         }
 
-        BeforeEach {
             # Mock Invoke-CUQuery command.
             Mock -CommandName Invoke-CUQuery { return $dummyInvokeResult } -Verifiable
         }
