@@ -90,6 +90,11 @@ function Get-ScopedTriggerDump {
             if ($PSCmdlet.ParameterSetName -eq "Export") {
                 $splat.UseExport = $UseExport
             }
+            
+            # FolderPath is empty on Folder objects. Use Path.
+            if($TriggerObservableDetails.Table -eq "Folders") {
+                $splat.Where = "Path='$folder'"
+            }
 
             if ($PSCmdlet.ParameterSetName -eq "Take") {
                 $splat.Take = $Take

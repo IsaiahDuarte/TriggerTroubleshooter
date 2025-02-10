@@ -9,9 +9,9 @@ $rootPath = Split-Path -Path $PSScriptRoot
 Import-Module "$rootPath\src\TriggerTroubleshooter.psd1" -Force
 
 Get-CUTriggers -IsEnabled $true | Foreach-Object {
-    if ($_.TriggerName -eq 'ValidTrigger' ) { 
+    if ($_.TriggerName -eq 'Folder Trigger - Testing' ) { 
         Write-Output "`n`nProcessing Trigger $($_.TriggerName)"
-        $result = Test-Trigger -Name $_.TriggerName
+        $result = Test-Trigger -Name $_.TriggerName  -Verbose
         
         if ($null -ne $result) {
             $result.DisplayResult()
