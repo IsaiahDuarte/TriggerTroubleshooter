@@ -32,7 +32,7 @@ function Test-Comparison {
         [Parameter(Mandatory = $true)]
         [string] $CompOp,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [object] $RecordValue,
 
         [Parameter(Mandatory = $true)]
@@ -119,6 +119,10 @@ function Test-Comparison {
             }
         }
 
+        if($null -eq $RecordValue) {
+            $comparisonResult = $false
+        }
+        
         return [PSCustomObject]@{
             comparisonResult = $comparisonResult
             comparisonUsed   = $comparisonUsed

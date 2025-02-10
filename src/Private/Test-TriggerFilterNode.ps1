@@ -23,11 +23,12 @@ function Test-TriggerFilterNode {
         [Parameter(Mandatory = $true)]
         [ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode] $Node,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [object] $Record
     )
 
     try {
+
         # Write warnings for any null record properties
         $nullProps = $Record.PSObject.Properties | Where-Object { $null -eq $_.Value }
         if ($nullProps) {
@@ -75,9 +76,10 @@ function Test-TriggerFilterNode {
             Write-Verbose "Processing child nodes..."
             foreach ($child in $Node.ChildNodes) {
                 if (-not $child) { continue }
-
                 $childResult = Test-TriggerFilterNode -Node $child -Record $Record
-                $result.ChildNodes.Add($childResult)
+                if($null -ne $childResult) {
+                    $result.ChildNodes.Add($childResult)
+                }
 
                 # If accumulated result hasn't been set yet, use the child's result
                 if ($null -eq $accumulatedResult) {
