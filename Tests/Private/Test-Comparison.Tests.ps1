@@ -33,8 +33,6 @@ Describe "Test-Comparison" {
 
     Context "Equal with wildcard (adjusted to Like)" {
         It "converts Equal to Like when the value contains a wildcard and IsRegex is false" {
-            # Provide a value that contains a wildcard (note: the function checks for a backtick+* pattern)
-            # You may need to adjust the pattern used here based on your actual implementation.
             $wildcardValue = "a*"
             $result = Test-Comparison -CompOp 'Equal' -RecordValue 'abc' -Value $wildcardValue -IsNegation:$false -IsRegex:$false
             # ComparisonUsed should reflect the -like operator
