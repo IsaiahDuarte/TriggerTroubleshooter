@@ -96,7 +96,7 @@ function Get-ScopedTriggerDump {
         $splat = @{
             Table  = $Table
             Fields = $TriggerObservableDetails.Filters
-            Where  = "FolderPath='$folder'"
+            Where  = $where
         }
 
         if ($PSCmdlet.ParameterSetName -eq "Export") {
@@ -118,7 +118,7 @@ function Get-ScopedTriggerDump {
         if(![string]::IsNullOrEmpty($identityField) -and $identityField -notin $splat.Fields) {
             $splat.Fields += $identityField
         }
-        
+
         $results = Get-CUQueryData @splat
 
         # We need to adjust the data if its a WindowsEvent

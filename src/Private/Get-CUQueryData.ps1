@@ -57,15 +57,14 @@ function Get-CUQueryData {
             $json = Get-Content $fullPath -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
 
             [array] $results = $json | ForEach-Object {
-                # Start with your base object.
                 $obj = @{ Key = $_.RecordId }
                 foreach ($property in $_.Properties) {
-                    $value = Get-CUQueryPropertyValue -Property $property
+                    $value = Get-QueryPropertyValue -Property $property
                     $obj[$property.PropertyName] = $value
                 }
-                # Finally, cast our constructed hashtable to a PSCustomObject.
                 [PSCustomObject]$obj
             }
+
             Write-Verbose "Successfully converted JSON data. Processing records."
             Write-Verbose "Removing temporary file at $fullPath."
             Remove-Item -Path $fullPath -Force -ErrorAction Stop
@@ -88,7 +87,7 @@ function Get-CUQueryData {
     }
 }
 
-function Get-CUQueryPropertyValue {
+function Get-QueryPropertyValue {
     param (
         [Parameter(Mandatory)]
         [psobject] $Property
