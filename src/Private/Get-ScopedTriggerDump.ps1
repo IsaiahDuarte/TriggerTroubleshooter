@@ -113,6 +113,12 @@ function Get-ScopedTriggerDump {
             $splat.Fields = $Fields
         }
 
+        # Gives an identifier for a record like sName based on the table
+        $identityField = Get-IdentityPropertyFromTable -Table $Table
+        if(![string]::IsNullOrEmpty($identityField) -and $identityField -notin $splat.Fields) {
+            $splat.Fields += $identityField
+        }
+        
         $results = Get-CUQueryData @splat
 
         # We need to adjust the data if its a WindowsEvent

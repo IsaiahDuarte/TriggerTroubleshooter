@@ -9,9 +9,9 @@ $rootPath = Split-Path -Path $PSScriptRoot
 Import-Module "$rootPath\src\TriggerTroubleshooter.psd1" -Force
 
 Get-CUTriggers -IsEnabled $true | Foreach-Object {
-    if ($_.TriggerName -eq 'NullTrigger' ) { 
+    if ($_.TriggerName -eq 'Process Advanced Trigger' ) { 
         Write-Output "`n`nProcessing Trigger $($_.TriggerName)"
-        $result = Test-Trigger -Name $_.TriggerName -Verbose
+        $result = Test-Trigger -Name $_.TriggerName -Verbose -Records 50
         
         if ($null -ne $result) {
             $result.DisplayResult()

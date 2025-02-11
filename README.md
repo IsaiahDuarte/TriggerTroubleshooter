@@ -52,6 +52,9 @@ Notes:
 ### Key  
 - An internal table propety for any record
 
+### Identity
+- A mapped field, derived from the trigger, provides a property to identify the tested record.
+
 ### In Schedule
 - Every trigger has a [schedule](https://support.controlup.com/docs/schedule-settings?highlight=Trigger%20Schedule) associated with it
 - This will test the assocaited schedule against the monitor's time

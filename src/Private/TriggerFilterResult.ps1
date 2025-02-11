@@ -32,6 +32,9 @@ class TriggerFilterResult {
     
     [DataMember()]
     [bool] $ScheduleResult
+
+    [DataMember()]
+    [string] $IdentityField
     
     [DataMember()]
     [bool] $ArePropertiesObserved 
@@ -50,6 +53,7 @@ class TriggerFilterResult {
                 if ($this.ChildNodes.Count -gt 0 -and $this.ChildNodes[0].Details) {
                     $sb.AppendLine(("Key: {0}" -f $this.ChildNodes[0].Details.Key)) | Out-Null
                 }
+                $sb.AppendLine(("Identity: {0}" -f $this.IdentityField)) | Out-Null
                 $sb.AppendLine(("In Schedule: {0}" -f $this.ScheduleResult)) | Out-Null
                 $sb.AppendLine(("Are Properties Observed: {0}" -f $this.ArePropertiesObserved)) | Out-Null
                 $sb.AppendLine(("Will Fire: {0}" -f $this.EvaluationResult)) | Out-Null

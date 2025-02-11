@@ -8,6 +8,8 @@ BeforeAll {
     function Get-CUQueryData { }
     function Set-WindowsEventData { }
 
+    function Get-IdentityPropertyFromTable { }
+
     Add-Type -TypeDefinition @"
 namespace ControlUp.PowerShell.Common.Contract.ObservableTriggerService {
     public class GetObservableTriggerResponse {

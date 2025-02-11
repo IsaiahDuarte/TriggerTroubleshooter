@@ -85,11 +85,13 @@ function Test-Trigger {
         }
 
         $dump = Get-ScopedTriggerDump @dumpSplat
-
         if ($dump.Count -eq 0) {
             Write-Warning "No data was returned by the query."
             return
         }
+
+        $identityField = Get-IdentityPropertyFromTable -Table $table
+        Write-Verbose "Identity Field: $identityField"
 
         Write-Verbose "Data retrieved from Get-ScopedTriggerDump: $($dump.Count) records found."
 
@@ -102,6 +104,7 @@ function Test-Trigger {
 
             $result = Test-TriggerFilterNode -Node $rootNode -Record $record
             $result.ScheduleResult = $scheduleResult
+            $result.IdentityField = $record."$identityField"
             $result.ArePropertiesObserved = $arePropertiesObserved
             [void] $output.Add($result)
         }

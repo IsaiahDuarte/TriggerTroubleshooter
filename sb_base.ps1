@@ -32,12 +32,12 @@
         Tests the trigger "MyTrigger" and gets the live data using export-cuquery
 
     .NOTES 
-        Version:           1.0.8
+        Version:           1.0.9
         Context:           Computer script running on one of the CU Monitors
         Author:            Isaiah Duarte ->  https://github.com/IsaiahDuarte/TriggerTroubleshooter  
         Requires:          The CU Monitor's ControlUp.PowerShell.User.dll
         Creation Date:     1/27/2025    
-        Updated:           2/8/2025
+        Updated:           2/11/2025
     
     .LINK
         https://support.controlup.com/docs/monitor-cluster-powershell-api-cmdlets
