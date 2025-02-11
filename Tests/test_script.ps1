@@ -11,7 +11,7 @@ Import-Module "$rootPath\src\TriggerTroubleshooter.psd1" -Force
 Get-CUTriggers -IsEnabled $true | Foreach-Object {
     if ($_.TriggerName -eq 'NullTrigger' ) { 
         Write-Output "`n`nProcessing Trigger $($_.TriggerName)"
-        $result = Test-Trigger -Name $_.TriggerName
+        $result = Test-Trigger -Name $_.TriggerName -Verbose
         
         if ($null -ne $result) {
             $result.DisplayResult()

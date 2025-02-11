@@ -9,9 +9,9 @@ Disclaimer: The results from this script does not guarantee the trigger will fir
 Provide a trigger name to test against live data.  
 
 Notes:
-- Only objects within the trigger’s scope are processed. To limit output, narrow the trigger’s scope.
+- Only objects within the trigger's scope are processed. To limit output, narrow the trigger’s scope.
 - Using the "Process All Records" option may produce a large volume of output, depending on the trigger and scope.
-- The "Records Per Folder" option takes a specified number of records from each folder. For instance, if you have 10 folders and choose 2 records per folder, up to 20 records will be processed (assuming each folder has at least 2 records).
+- The "Record" option takes a specified number of records that will be processed
 - You can save the results to a file using "Path to Save Results" option.
 
 ## Supported Triggers (Pending Tests)

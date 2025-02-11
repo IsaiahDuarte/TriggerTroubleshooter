@@ -18,8 +18,8 @@ function Test-Trigger {
     .PARAMETER UseExport
         A switch used to get data using export-cuquery.
 
-    .PARAMETER RecordsPerFolder
-        The number of records to retrieve per folder. Defaults to 100
+    .PARAMETER Records
+        The number of records to process
 
     .EXAMPLE
         Test-Trigger -Name "SampleTrigger" -Display
@@ -37,7 +37,7 @@ function Test-Trigger {
         [switch] $UseExport,
 
         [Parameter(Mandatory = $false, ParameterSetName = "UseQuery")]
-        [int] $RecordsPerFolder = 100
+        [int] $Records = 10
     )
 
     try {
@@ -81,7 +81,7 @@ function Test-Trigger {
         }
 
         if ($PSCmdlet.ParameterSetName -eq "UseQuery") {
-            $dumpSplat.Take = $RecordsPerFolder
+            $dumpSplat.Take = $Records
         }
 
         $dump = Get-ScopedTriggerDump @dumpSplat

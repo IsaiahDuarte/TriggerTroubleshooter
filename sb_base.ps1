@@ -19,11 +19,9 @@
         This is done by calling Get-SupportTriggerDump which will also dump ALL
         records/fields specified in the trigger. This can be a large zip.
 
-    .PARAMETER RecordsPerFolder
+    .PARAMETER Records
         Sets the number of records per folder when using invoke-cuquery -Take.
-        This parameter is only used if UseExport is "False". The default is 1.
-        The reason we are processing per folder is to get the correct data in scope of
-        the trigger.
+        This parameter is only used if UseExport is "False".
     
     .PARAMETER SaveResultsPath
         If provided, it will output the test results to the specified path.
@@ -34,7 +32,7 @@
         Tests the trigger "MyTrigger" and gets the live data using export-cuquery
 
     .NOTES 
-        Version:           1.0.7
+        Version:           1.0.8
         Context:           Computer script running on one of the CU Monitors
         Author:            Isaiah Duarte ->  https://github.com/IsaiahDuarte/TriggerTroubleshooter  
         Requires:          The CU Monitor's ControlUp.PowerShell.User.dll
@@ -60,7 +58,7 @@ param (
     [string] $CollectSupportZipParameter = "False",
 
     [Parameter(Mandatory=$false)]
-    [int] $RecordsPerFolder = 1,
+    [int] $Records = 10,
 
     [Parameter(Mandatory = $false)]
     [string] $SaveResultsPath
@@ -102,10 +100,10 @@ try {
     $latestUserModulePath = (Get-ChildItem $userModulePath -Recurse | Sort-Object LastWriteTime -Descending)[0]
     Import-Module $latestUserModulePath
 
-    # Warn the user if RecordsPerFolder is provided along with UseExport = True,
-    # because the RecordsPerFolder parameter won’t be used in this scenario.
-    if ($UseExport -and $PSBoundParameters.ContainsKey("RecordsPerFolder")) {
-        Write-Warning "The 'RecordsPerFolder' value will be ignored because 'UseExport' is set to True."
+    # Warn the user if Records is provided along with UseExport = True,
+    # because the Records parameter won’t be used in this scenario.
+    if ($UseExport -and $PSBoundParameters.ContainsKey("Records")) {
+        Write-Warning "The 'Records' value will be ignored because 'UseExport' is set to True."
     }
 
     # Use different testing logic based on whether UseExport is true.
@@ -114,8 +112,8 @@ try {
         Write-Verbose "Using Export logic."
         $result = Test-Trigger -Name $TriggerName -UseExport
     } else {
-        Write-Verbose "Using Query logic with RecordsPerFolder = $RecordsPerFolder."
-        $result = Test-Trigger -Name $TriggerName -RecordsPerFolder $RecordsPerFolder
+        Write-Verbose "Using Query logic with Records = $Records."
+        $result = Test-Trigger -Name $TriggerName -Records $Records
     }
 
     # If results were returned, display the count and formatted output.

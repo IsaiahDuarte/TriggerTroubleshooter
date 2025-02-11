@@ -103,10 +103,10 @@
                                 <SBAArgumentDescriptor>
                                     <ArgumentId>fb3ab739-941e-48cf-a165-aabacd833e04</ArgumentId>
                                     <ArgumentType>1</ArgumentType>
-                                    <Name>Records Per Folder</Name>
+                                    <Name>Record Count</Name>
                                     <DefaultValue>1</DefaultValue>
                                     <ArgumentNumber>1</ArgumentNumber>
-                                    <ArgumentName>RecordsPerFolder</ArgumentName>
+                                    <ArgumentName>Records</ArgumentName>
                                     <EmptyBehavior>0</EmptyBehavior>
                                     <ValidationString>\d</ValidationString>
                                     <ValidationError />

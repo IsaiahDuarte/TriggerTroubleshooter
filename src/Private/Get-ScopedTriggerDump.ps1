@@ -78,45 +78,51 @@ function Get-ScopedTriggerDump {
 
         $dump = @{}
 
-        foreach ($folder in $TriggerObservableDetails.Folders) {
-            Write-Verbose "Processing folder: $folder"
-
-            $splat = @{
-                Table  = $Table
-                Fields = $TriggerObservableDetails.Filters
-                Where  = "FolderPath='$folder'"
-            }
-
-            if ($PSCmdlet.ParameterSetName -eq "Export") {
-                $splat.UseExport = $UseExport
-            }
-            
+        Write-Verbose "Building Query"
+        $where = ""
+        foreach($folder in $TriggerObservableDetails.Folders) {
             # FolderPath is empty on Folder objects. Use Path.
             if($TriggerObservableDetails.Table -eq "Folders") {
-                $splat.Where = "Path='$folder'"
+                $where = "${where}Path='$folder' OR"
+            } else {
+                $where = "${where}FolderPath='$folder' OR "
             }
+        }
 
-            if ($PSCmdlet.ParameterSetName -eq "Take") {
-                $splat.Take = $Take
-            }
+        $where = $where.TrimEnd(" OR ")
 
-            $NoTableTypes = @("UserLoggedOff", "UserLoggedOn", "WindowsEvent", "ProcessStarted", "ProcessEnded", "MachineDown", "SessionStateChanged")
-            if ($TriggerType -in $NoTableTypes) {
-                Write-Verbose "Trigger is one of the following that doesn't return data from TriggerObservableDetails: $NoTableTypes. overriding fields with: $Fields"
-                $splat.Fields = $Fields
-            }
+        Write-Verbose "Query: $Where"
 
-            $results = Get-CUQueryData @splat
+        $splat = @{
+            Table  = $Table
+            Fields = $TriggerObservableDetails.Filters
+            Where  = "FolderPath='$folder'"
+        }
 
-            # We need to adjust the data if its a WindowsEvent
-            if($TriggerType -eq "WindowsEvent") {
-                $results = Set-WindowsEventData -Data $results
-            }
+        if ($PSCmdlet.ParameterSetName -eq "Export") {
+            $splat.UseExport = $UseExport
+        }
+        
+        if ($PSCmdlet.ParameterSetName -eq "Take") {
+            $splat.Take = $Take
+        }
 
-            foreach ($item in $results) {
-                Write-Verbose "Adding item with key: $($item.key) to the dump."
-                $dump[$item.key] = $item
-            }
+        $NoTableTypes = @("UserLoggedOff", "UserLoggedOn", "WindowsEvent", "ProcessStarted", "ProcessEnded", "MachineDown", "SessionStateChanged")
+        if ($TriggerType -in $NoTableTypes) {
+            Write-Verbose "Trigger is one of the following that doesn't return data from TriggerObservableDetails: $NoTableTypes. overriding fields with: $Fields"
+            $splat.Fields = $Fields
+        }
+
+        $results = Get-CUQueryData @splat
+
+        # We need to adjust the data if its a WindowsEvent
+        if($TriggerType -eq "WindowsEvent") {
+            $results = Set-WindowsEventData -Data $results
+        }
+
+        foreach ($item in $results) {
+            Write-Verbose "Adding item with key: $($item.key) to the dump."
+            $dump[$item.key] = $item
         }
 
         Write-Verbose "Data collection complete. Returning dump."

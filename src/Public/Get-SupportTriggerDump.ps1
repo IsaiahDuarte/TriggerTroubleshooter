@@ -63,26 +63,6 @@ function Get-SupportTriggerDump {
         $observableDetails | ConvertTo-Json -Depth 20 -Compress | Out-File -FilePath $observableDetailsPath -Encoding UTF8
         Write-Verbose "Observable Trigger Details exported successfully."
 
-        # Determine the table name based on observable details and trigger type
-        Write-Verbose "Determining table to query..."
-        $table = Get-TableName -TableName $observableDetails.Table -TriggerType $triggerDetails.TriggerType
-
-        # Prepare parameters for exporting scoped data 
-        $scopedDumpParams = @{
-            Table                    = $table
-            Name                     = $Name
-            UseExport                = $true
-            TriggerObservableDetails = $observableDetails
-            TriggerType              = $triggerDetails.TriggerType
-            Fields                   = $triggerDetails.FilterNodes.ExpressionDescriptor.Column
-        }
-
-        # Export Scoped Trigger Dump into JSON format
-        $scopedDumpPath = Join-Path -Path $tempDirectory -ChildPath "ScopedTriggerDump.json"
-        Write-Verbose "Exporting Scoped Trigger Dump to '$scopedDumpPath'"
-        Get-ScopedTriggerDump @scopedDumpParams | ConvertTo-Json -Compress -Depth 20 | Out-File -FilePath $scopedDumpPath -Encoding UTF8
-        Write-Verbose "Scoped Trigger Dump exported successfully."
-
         # Prepare the ZIP file for the output
         $zipFileName = "$Name.zip"
         $zipFilePath = Join-Path -Path $OutputDirectory -ChildPath $zipFileName

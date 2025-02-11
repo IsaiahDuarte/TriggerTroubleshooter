@@ -76,7 +76,6 @@ Describe "Test-Comparison" {
 
     Context "Regex comparisons" {
         It "forces Regex matching when IsRegex is true" {
-            # Pattern: three digits anywhere in the string.
             $result = Test-Comparison -CompOp 'Equal' -RecordValue 'abc123xyz' -Value '\d{3}' -IsNegation:$false -IsRegex:$true
             $result.comparisonResult | Should -Be $true
             $result.comparisonUsed | Should -Be '[Regex]::Match'
