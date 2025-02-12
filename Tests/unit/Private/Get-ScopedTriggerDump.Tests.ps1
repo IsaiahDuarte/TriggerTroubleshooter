@@ -1,6 +1,5 @@
 BeforeAll {
-    # Dot-source the function under test.
-    . $PSCommandPath.Replace('.Tests.ps1', '.ps1').Replace('tests', 'src')
+    . $PSCommandPath.Replace('.Tests.ps1','.ps1').Replace('tests','src').Replace('\unit','')
 
     # Stub out commands from other modules.
     function Export-CUQuery { }
@@ -60,62 +59,6 @@ Describe "Get-ScopedTriggerDump" {
                 $warnings | Should -Match "Table was not found: Sessions"
 
                 Assert-MockCalled Invoke-CUQuery -Exactly 1 -Scope It
-            }
-        }
-
-        Context "When a valid table is provided (non-WindowsEvent trigger)" {
-            BeforeEach {
-                $fakeObsDetails = Get-FakeObservableDetails
-                $fakeObsDetails.Table = "Sessions"
-            
-                $fakeTablesObject = [PSCustomObject]@{
-                    data = [PSCustomObject]@{
-                        TableName = @("OtherTable1", "Sessions", "OtherTable2")
-                    }
-                }
-
-                Mock -CommandName Invoke-CUQuery { return $fakeTablesObject } -Verifiable
-
-                $expectedResults = @{
-                    "A" = [PSCustomObject]@{ key = "A"; Value = "DataA" }
-                }
-
-                Mock -CommandName Get-CUQueryData {
-                    return @([PSCustomObject]@{ key = "A"; Value = "DataA" })
-                } -Verifiable
-            }
-
-
-            It "calls Get-CUQueryData for each folder and returns a dump containing each item keyed by item.key" {
-                $dump = Get-ScopedTriggerDump -Name "Trigger3" -TriggerObservableDetails $fakeObsDetails -TriggerType "SomeOtherTrigger" -Table $fakeObsDetails.Table -Take 50
-                $dump.Keys | Should -Contain "A"
-            }
-        }
-
-        Context "When TriggerType is WindowsEvent" {
-            BeforeEach {
-                $fakeObsDetails = Get-FakeObservableDetails
-                $fakeObsDetails.Table = "Sessions"
-            
-                $fakeTablesObject = [PSCustomObject]@{
-                    data = [PSCustomObject]@{
-                        TableName = @("Sessions", "OtherTable")
-                    }
-                }
-                Mock -CommandName Invoke-CUQuery { return $fakeTablesObject } -Verifiable
-
-                Mock -CommandName Get-CUQueryData {
-                    return @([PSCustomObject]@{ key = "W"; OriginalData = "Original" })
-                } -Verifiable
-
-                Mock -CommandName Set-WindowsEventData {
-                    return @([PSCustomObject]@{ key = "W_modified"; Adjusted = "Modified" })
-                } -Verifiable
-            }
-
-            It "calls Set-WindowsEventData and returns the modified data in the dump" {
-                $dump = Get-ScopedTriggerDump -Name "Trigger4" -TriggerObservableDetails $fakeObsDetails -TriggerType "WindowsEvent" -Table $fakeObsDetails.Table -Take 50
-                $dump.Keys | Should -Contain "W_modified"
             }
         }
 

@@ -27,6 +27,7 @@ $targetScript = Join-Path -Path $PSScriptRoot -ChildPath "Release\ScriptAction.p
 $sbBasexml = Join-Path -Path $PSScriptRoot -ChildPath "sb_base.xml"
 $sbTargetXML = Join-Path -Path $PSScriptRoot -ChildPath "Release\Trigger Troubleshooter.xml"
 $moduleManifest = Join-Path -Path $PSScriptRoot -ChildPath "src\TriggerTroubleshooter.psd1"
+$integrationTestPath = Join-Path -Path $PSScriptRoot -ChildPath "tests\integration\Public\Test-Trigger.ps1"
 $marker = "###ImportModule###"
 
 # Ensure the release folder exists.
@@ -37,10 +38,20 @@ if (-not (Test-Path -Path $releaseFolder)) {
 
 #endregion
 
-#region Pester
+#region Unit Tests
 $testResult = Invoke-Pester -PassThru 
 if($testResult.TotalCount -eq $testResult.PassedCount) {
-    Write-Host "Test-Trigger tests passed"
+    Write-Host "Unit tests passed"
+} else {
+    exit 1
+}
+#endregion
+
+#region Integration Tests
+$testResult = "Invoke-Pester -Path '$integrationTestPath'" | powershell.exe -NoProfile -NonInteractive -NoLogo -ExecutionPolicy Bypass -Command -
+$testResult
+if([Regex]::Match($testResult[-1],"Failed: 0").Success) {
+    Write-Host "Integration tests passed"
 } else {
     exit 1
 }
@@ -59,15 +70,6 @@ foreach ($file in $functions) {
     $header = "`n`n#region $($file.Name)`n"
     $footer = "`n#endregion`n`n"
     $codeBlock = Get-Content -Path $file.FullName -Raw
-
-    # Remove the Serialization from TriggerDataResult and TriggerFilterResult as they
-    # are only needed with Pester 
-    $codeBlock = $codeBlock -Split "`n" | Where-Object {
-        ($_ -notmatch "\[DataMember\(\)\]") -and
-        ($_ -notmatch "\[DataContract\(\)\]") -and
-        ($_ -notmatch "^using namespace System\.Runtime\.Serialization") -and
-        ($_ -notmatch "\[KnownType\(")
-    }
 
     $functionsCode.Add($header)
     $functionsCode.Add($codeBlock)

@@ -1,7 +1,5 @@
 BeforeAll {
-    . $PSCommandPath.Replace('.Tests.ps1','.ps1').Replace('tests','src')
-    
-    # Stub out commands from other modules.
+    . $PSCommandPath.Replace('.Tests.ps1','.ps1').Replace('tests','src').Replace('\unit','')
     function Get-CUTriggerSchedules { }
 }
 
@@ -10,13 +8,11 @@ Describe "Test-Schedule" {
     Context "Using parameter set 'ByName'" {
 
         It "returns true when the current hour is active" {
-            # Get current date info inside the It block
             $now         = Get-Date
             $currentDay  = [int]$now.DayOfWeek
             $currentHour = $now.Hour
             $currentMask = 1 -shl $currentHour
 
-            # Create a schedule where for the current day the selected hours include the current hour.
             $weekdayEntry = [PSCustomObject]@{
                 Day           = $currentDay
                 SelectedHours = $currentMask
@@ -26,10 +22,8 @@ Describe "Test-Schedule" {
                 Name     = "WorkingHours"
                 WeekDays = @($weekdayEntry)
             }
-            # When retrieving a schedule by name, return one schedule in an array.
             Mock -CommandName Get-CUTriggerSchedules -MockWith { ,@($testSchedule) }
 
-            # Call Test-Schedule with ScheduleName and verify it returns $true.
             $result = Test-Schedule -ScheduleName "WorkingHours"
             $result | Should -BeTrue
         }
@@ -37,7 +31,6 @@ Describe "Test-Schedule" {
         It "returns false when the current hour is not active" {
             $now         = Get-Date
             $currentDay  = [int]$now.DayOfWeek
-            # No active hour.
             $weekdayEntry = [PSCustomObject]@{
                 Day           = $currentDay
                 SelectedHours = 0
@@ -54,10 +47,8 @@ Describe "Test-Schedule" {
         }
 
         It "writes an error if no schedule is found" {
-            # When no schedule is found, mock returns an empty array.
             Mock -CommandName Get-CUTriggerSchedules -MockWith { ,@() }
 
-            # Because Test-Schedule catches the error and writes it, capture the error stream.
             $errors = & { Test-Schedule -ScheduleName "NonExistent" } 2>&1
             $errors.Exception.Message | Should -Be "Error in Test-Schedule: Schedule 'NonExistent' not found."
         }
@@ -73,7 +64,6 @@ Describe "Test-Schedule" {
                 Name     = "DuplicateSchedule"
                 WeekDays = @()
             }
-            # Return two schedules in an array.
             Mock -CommandName Get-CUTriggerSchedules -MockWith { ,@($sched1, $sched2) }
 
             $errors = & { Test-Schedule -ScheduleName "DuplicateSchedule" } 2>&1
@@ -98,7 +88,6 @@ Describe "Test-Schedule" {
                 Name     = "AnyName"
                 WeekDays = @($weekdayEntry)
             }
-            # For ByID, assume Get-CUTriggerSchedules returns the schedule (not wrapped in an array).
             Mock -CommandName Get-CUTriggerSchedules -MockWith { ,@($testSchedule) }
 
             $result = Test-Schedule -ScheduleID "ID-123"
@@ -125,7 +114,6 @@ Describe "Test-Schedule" {
         }
 
         It "writes an error when the schedule ID is not found" {
-            # Simulate not found by returning $null (or an empty array).
             Mock -CommandName Get-CUTriggerSchedules -MockWith { $null }
 
             $errors = & { Test-Schedule -ScheduleID "ID-NotFound" } 2>&1
@@ -152,7 +140,6 @@ Describe "Test-Schedule" {
                 Name     = "ScheduleAllDays-Second"
                 WeekDays = @()  # Not used since the first is selected.
             }
-            # Return multiple schedules so that in the case of "All Days" the function picks the first.
             Mock -CommandName Get-CUTriggerSchedules -MockWith { ,@($sched1, $sched2) }
 
             $result = Test-Schedule -ScheduleID "All Days"

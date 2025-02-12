@@ -27,10 +27,17 @@
             "createTemporaryIntegratedConsole": true,
         },
         {
-            "name": "Run Pester tests",
+            "name": "Run Pester Unit tests",
             "type": "PowerShell",
             "request": "launch",
             "script": "Invoke-Pester",
+            "createTemporaryIntegratedConsole": true,
+        },
+        {
+            "name": "Run Pester Integration tests",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "Invoke-Pester -Path \"${workspaceFolder}/tests/integration/Public/Test-Trigger.ps1\"",
             "createTemporaryIntegratedConsole": true,
         }
     ]

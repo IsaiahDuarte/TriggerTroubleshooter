@@ -16,7 +16,7 @@ function Set-WindowsEventData {
     )
 
     try {
-        $properties = $results | Get-Member -MemberType NoteProperty
+        $properties = $Data | Get-Member -MemberType NoteProperty
 
         if($properties.Name -notcontains "EntryType") {
             Write-Verbose "No need to adjust Windows Event Data, EntryTye is NOT a property"
@@ -32,12 +32,14 @@ function Set-WindowsEventData {
                 1 {
                     $wEvent.EntryType = "Error"
                 }
+
+                default { throw "Invalid EntryType" }
             }
         }
 
         return $Data
     }
     catch {
-        Write-Error "Error in Set-WindowsEventData: $($_.Exception.Message)"
+        throw "Error in Set-WindowsEventData: $($_.Exception.Message)"
     }
 } 
