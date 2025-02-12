@@ -2,8 +2,9 @@
 
 Trigger Troubleshooter takes a trigger name, retrieves its filter, scope, and schedule, then performs a test on live data. It gathers data within the trigger’s scope, validates it against the defined filter/schedule, checks if the fields are being observed by the monitor, and displays the results.  
 
-Disclaimer: The results from this script does not guarantee the trigger will fire due to many factors. But this will be close.
+Disclaimer: The results from this script does not guarantee the trigger will fire due to many factors. But this will be close.  
 
+Requires 9.0.5+
 ## Script Action
 
 Provide a trigger name to test against live data.  

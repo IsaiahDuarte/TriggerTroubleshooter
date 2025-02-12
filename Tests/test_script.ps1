@@ -9,7 +9,7 @@ $rootPath = Split-Path -Path $PSScriptRoot
 Import-Module "$rootPath\src\TriggerTroubleshooter.psd1" -Force
 
 Get-CUTriggers -IsEnabled $true | Foreach-Object {
-    if ($_.TriggerName -eq 'Logical Disk Advanced Trigger2' ) { 
+    if ($_.TriggerName -eq 'AZ Tags for Ameriprise' ) { 
         Write-Output "`n`nProcessing Trigger $($_.TriggerName)"
         $result = Test-Trigger -Name $_.TriggerName -Verbose -Records 50
         

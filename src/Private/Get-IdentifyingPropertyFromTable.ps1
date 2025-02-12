@@ -17,7 +17,7 @@ function Get-IdentityPropertyFromTable {
 
     switch ($Table) {
         "SessionsView" { return "sUserAccount" }
-        "ComputerVIew" { return "sServerName" }
+        "ComputerView" { return "sName" }
         "Folders" { return "Name" }
         "Processes" { return "sName" }
         "Services" { return "ServiceDisplayName" }

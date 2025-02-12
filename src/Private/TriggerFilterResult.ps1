@@ -7,36 +7,24 @@
         It includes properties for child nodes, details, logical operator, and evaluation results. It also
         supports displaying of results.
 #>
-using namespace System.Runtime.Serialization
 
-[KnownType([ControlUp.PowerShell.Common.Contract.Triggers.FilterNodeExpressionDescriptor])]
-[DataContract()]
 class TriggerFilterResult {
-    [DataMember()]
     [System.Collections.Generic.List[TriggerFilterResult]] $ChildNodes
 
-    [DataMember()]
     [TriggerDataResult] $Details
     
-    [DataMember()]
     [string] $LogicalOperator
 
-    [DataMember()]
     [object] $ExpressionDescriptor
     
-    [DataMember()]
     [bool] $EvaluationResult
     
-    [DataMember()]
     [bool] $IsNegation
     
-    [DataMember()]
     [bool] $ScheduleResult
 
-    [DataMember()]
     [string] $IdentityField
     
-    [DataMember()]
     [bool] $ArePropertiesObserved 
     TriggerFilterResult () {
         $this.ChildNodes = [System.Collections.Generic.List[TriggerFilterResult]]::new()

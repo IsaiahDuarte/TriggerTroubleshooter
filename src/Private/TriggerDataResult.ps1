@@ -19,21 +19,14 @@
     .PARAMETER key
         A string identifier to distinguish this record in the context of trigger data results. 
 #>
-using namespace System.Runtime.Serialization
-
-[DataContract()]
 
 class TriggerDataResult {
-    [DataMember()]
     [object] $RecordValue
 
-    [DataMember()]
     [string] $ComparisonUsed
 
-    [DataMember()]
     [bool] $ComparisonResult
     
-    [DataMember()]
     [string] $Key 
     TriggerDataResult ([object] $recordValue, [string] $comparisonUsed, [bool] $comparisonResult, [string] $key) {
         $this.RecordValue = $recordValue

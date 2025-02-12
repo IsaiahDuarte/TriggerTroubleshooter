@@ -1,0 +1,37 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run SBA",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${workspaceFolder}\\Release\\ScriptAction.ps1",
+            "cwd": "${workspaceFolder}",
+            "args": ["-TriggerName \"Logical Disk Advanced Trigger\""]
+        },
+        {
+            "name": "test_script.ps1",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${workspaceFolder}\\tests\\test_script.ps1",
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Build TriggerTroubleshooter",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${workspaceFolder}/BuildTriggerTroubleshooterRelease.ps1",
+            "createTemporaryIntegratedConsole": true,
+        },
+        {
+            "name": "Run Pester tests",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "Invoke-Pester",
+            "createTemporaryIntegratedConsole": true,
+        }
+    ]
+}
