@@ -30,6 +30,7 @@
             "name": "Run Pester Unit tests",
             "type": "PowerShell",
             "request": "launch",
+            "cwd": "${workspaceFolder}/tests/unit",
             "script": "Invoke-Pester",
             "createTemporaryIntegratedConsole": true,
         },
@@ -37,7 +38,8 @@
             "name": "Run Pester Integration tests",
             "type": "PowerShell",
             "request": "launch",
-            "script": "Invoke-Pester -Path \"${workspaceFolder}/tests/integration/Public/Test-Trigger.ps1\"",
+            "cwd": "${workspaceFolder}/tests/integration",
+            "script": "Invoke-Pester -Output Detailed",
             "createTemporaryIntegratedConsole": true,
         }
     ]
