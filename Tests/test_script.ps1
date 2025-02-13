@@ -9,7 +9,7 @@ $rootPath = Split-Path -Path $PSScriptRoot
 Import-Module "$rootPath\src\TriggerTroubleshooter.psd1" -Force
 
 Get-CUTriggers -IsEnabled $true | Foreach-Object {
-    if ($_.TriggerName -eq 'Windows Event matching a custom filter' ) { 
+    if ($_.TriggerName -eq 'WEvent' ) { 
         Write-Output "`n`nProcessing Trigger $($_.TriggerName)"
         $result = Test-Trigger -Name $_.TriggerName -Verbose -Records 50
         

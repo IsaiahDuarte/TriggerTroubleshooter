@@ -38,8 +38,7 @@
             "name": "Run Pester Integration tests",
             "type": "PowerShell",
             "request": "launch",
-            "cwd": "${workspaceFolder}/tests/integration",
-            "script": "Invoke-Pester -Output Detailed",
+            "script": ". \"${workspaceFolder}/tests/integration/Test-Trigger.Generated.ps1\"",
             "createTemporaryIntegratedConsole": true,
         }
     ]

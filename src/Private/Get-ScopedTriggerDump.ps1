@@ -122,7 +122,7 @@ function Get-ScopedTriggerDump {
         $results = Get-CUQueryData @splat
 
         # We need to adjust the data if its a WindowsEvent
-        if($TriggerType -eq "WindowsEvent") {
+        if($TriggerType -eq "WindowsEvent" -and $null -ne $results) {
             $results = Set-WindowsEventData -Data $results
         }
 

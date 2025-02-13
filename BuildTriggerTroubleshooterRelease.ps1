@@ -53,8 +53,7 @@ if($testResult.TotalCount -eq $testResult.PassedCount) {
 #region Integration Tests
 Write-Output "Starting integration tests in $integrationTestPath"
 Set-Location -Path $integrationTestPath
-$testResult = "Invoke-Pester -Path '$integrationTestPath' -EnableRunInParallel" | powershell.exe -NoProfile -NonInteractive -NoLogo -ExecutionPolicy Bypass -Command -
-$testResult
+$testResult = "Invoke-Pester -Path '$integrationTestPath'" | powershell.exe -NoProfile -NonInteractive -NoLogo -ExecutionPolicy Bypass -Command -
 if([Regex]::Match($testResult[-1],"Failed: 0").Success) {
     Write-Output "Integration tests passed"
 } else {

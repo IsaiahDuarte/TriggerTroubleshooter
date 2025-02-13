@@ -38,7 +38,7 @@ function Test-ObserverdProperties {
     }
 
     try {
-        Write-Verbose "Executing Invoke-CUQuery with provided parameters."
+        Write-Verbose "Executing Invoke-CUQuery -Table $($splat.Table) -Scheme $($splat.Runtime) -Fields $($splat.Fields) -Where $($splat.Where)"
         $result = Invoke-CUQuery @splat
         Write-Verbose "Invoke-CUQuery executed successfully."
 
@@ -49,6 +49,7 @@ function Test-ObserverdProperties {
         }
 
         Write-Verbose "Converting the 'ObserverdProps' JSON string to a PowerShell object."
+        Write-Verbose "JSON: $($result.Data.ObserverdProps)"
         $ObserverdProps = $result.Data.ObserverdProps | ConvertFrom-Json -ErrorAction Stop
 
         foreach ($property in $Properties) {
