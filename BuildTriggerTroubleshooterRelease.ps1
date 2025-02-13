@@ -27,7 +27,8 @@ $targetScript = Join-Path -Path $PSScriptRoot -ChildPath "Release\ScriptAction.p
 $sbBasexml = Join-Path -Path $PSScriptRoot -ChildPath "sb_base.xml"
 $sbTargetXML = Join-Path -Path $PSScriptRoot -ChildPath "Release\Trigger Troubleshooter.xml"
 $moduleManifest = Join-Path -Path $PSScriptRoot -ChildPath "src\TriggerTroubleshooter.psd1"
-$integrationTestPath = Join-Path -Path $PSScriptRoot -ChildPath "tests\integration\Public\Test-Trigger.ps1"
+$integrationTestPath = Join-Path -Path $PSScriptRoot -ChildPath "tests\integration\"
+$unitTestPath = Join-Path -Path $PSScriptRoot -ChildPath "tests\unit\"
 $marker = "###ImportModule###"
 
 # Ensure the release folder exists.
@@ -39,19 +40,23 @@ if (-not (Test-Path -Path $releaseFolder)) {
 #endregion
 
 #region Unit Tests
+Write-Output "Starting unit tests in $unitTestPath"
+Set-Location -Path $unitTestPath
 $testResult = Invoke-Pester -PassThru 
 if($testResult.TotalCount -eq $testResult.PassedCount) {
-    Write-Host "Unit tests passed"
+    Write-Output "Unit tests passed"
 } else {
     exit 1
 }
 #endregion
 
 #region Integration Tests
-$testResult = "Invoke-Pester -Path '$integrationTestPath'" | powershell.exe -NoProfile -NonInteractive -NoLogo -ExecutionPolicy Bypass -Command -
+Write-Output "Starting integration tests in $integrationTestPath"
+Set-Location -Path $integrationTestPath
+$testResult = "Invoke-Pester -Path '$integrationTestPath' -EnableRunInParallel" | powershell.exe -NoProfile -NonInteractive -NoLogo -ExecutionPolicy Bypass -Command -
 $testResult
 if([Regex]::Match($testResult[-1],"Failed: 0").Success) {
-    Write-Host "Integration tests passed"
+    Write-Output "Integration tests passed"
 } else {
     exit 1
 }

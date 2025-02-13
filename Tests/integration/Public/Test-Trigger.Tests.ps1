@@ -45,7 +45,7 @@ BeforeAll {
             [Parameter(Mandatory = $true)]
             [string]$TriggerName,
             [int]$TimeoutSeconds = 30,
-            [int]$PollIntervalSeconds = 2,
+            [int]$PollIntervalSeconds = 5,
             [Switch]$ShouldExist
         )
     
