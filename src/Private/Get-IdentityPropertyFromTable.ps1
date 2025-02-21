@@ -40,6 +40,7 @@ function Get-IdentityPropertyFromTable {
         "AvdHostPools" { return "AzResourceGroup" }
         "AvdWorkspaces" { return "AvdWorkspaceFriendlyName" }
         "AvdApplicationGroups" { return "Name" }
+        "Events" { return "MachineName" }
         default { return "" }
     }
 }
