@@ -15,22 +15,6 @@ Notes:
 - The "Record" option takes a specified number of records that will be processed
 - You can save the results to a file using "Path to Save Results" option.
 
-## Supported Triggers (Pending Tests)
-
-- Advanced Logical Disk  
-- Advanced Folder  
-- Advanced Session  
-- Advanced Computer  
-- Service 
-- Events 
-- User Logged Off  
-- User Logged On  
-- Scheduled
-- Machine Down
-- Process Started
-- Process Ended
-- Session State Changed
-
 ## Non-Supported Triggers
 - Stress
 
