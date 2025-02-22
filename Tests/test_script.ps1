@@ -8,10 +8,11 @@ Import-Module $path
 $rootPath = Split-Path -Path $PSScriptRoot
 Import-Module "$rootPath\src\TriggerTroubleshooter.psd1" -Force
 
+# Trace-TriggerData -Name "Logical Disk Advanced Trigger" -Verbose
 Get-CUTriggers -IsEnabled $true | Foreach-Object {
-    if ($_.TriggerName -eq 'WEvent' ) { 
+    if ($_.TriggerName -eq 'Logical Disk Advanced Trigger' ) { 
         Write-Output "`n`nProcessing Trigger $($_.TriggerName)"
-        $result = Test-Trigger -Name $_.TriggerName -Verbose -Records 50
+        $result = Test-Trigger -Name $_.TriggerName -Verbose -AllRecords
         
         if ($null -ne $result) {
             $result.DisplayResult()

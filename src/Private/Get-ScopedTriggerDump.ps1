@@ -11,9 +11,6 @@ function Get-ScopedTriggerDump {
         .PARAMETER Name
             The name of the trigger.
 
-        .PARAMETER UseExport
-            A switch used to get data using export-cuquery.
-
         .PARAMETER TriggerObservableDetails
             The trigger observable details object, type of
             ControlUp.PowerShell.Common.Contract.ObservableTriggerService.GetObservableTriggerResponse.
@@ -27,9 +24,15 @@ function Get-ScopedTriggerDump {
         .PARAMETER Fields
             An array of fields to be retrieved from TriggerDetails.FilterNodes.ExpressionDescriptor.Column but may be
             ignored if they are returned by observable details.
+        
+        .PARAMETER SkipTableValidation
+            When specified it won't verify the table exists.
 
         .PARAMETER Take
             The maximum number of records to retrieve. Defaults to 100.
+    
+        .PARAMETER TakeAll
+            A switch used to get all data
 
         .EXAMPLE
             Get-ScopedTriggerDump -Name "SampleTrigger" -TriggerObservableDetails $obsDetails -TriggerType "UserLoggedOff" -Table "Sessions" -Take 100
@@ -51,27 +54,32 @@ function Get-ScopedTriggerDump {
         [Parameter(Mandatory = $false)]
         [string[]] $Fields,
 
+        [Parameter(Mandatory = $false)]
+        [switch] $SkipTableValidation,
+
         [Parameter(Mandatory = $false, ParameterSetName = "Take")]
         [int] $Take = 100,
 
-        [Parameter(Mandatory = $false, ParameterSetName = "Export")]
-        [switch] $UseExport
+        [Parameter(Mandatory = $false, ParameterSetName = "TakeAll")]
+        [switch] $TakeAll
     )
 
     try {
         Write-Verbose "Starting the Get-ScopedTriggerDump process for trigger: $Name"
 
-        $tables = (Invoke-CUQuery -Scheme Information -Fields SchemaName, TableName -Table Tables -take 500).data.TableName | Sort-Object
-        Write-Verbose "Retrieved table names: $tables"
-
-        if ([string]::IsNullOrEmpty($Table)) {
-            Write-Warning "Observable Details didn't return a table for $Name"
-            return
-        }
-
-        if ($Table -notin $tables) {
-            Write-Verbose "$Table not found in the list of tables."
-            throw "Table was not found: $Table. If it is a built-in trigger or old one, export it, rename it, and import it."
+        if(!$SkipTableValidation) {
+            $tables = (Invoke-CUQuery -Scheme Information -Fields SchemaName, TableName -Table Tables -take 500).data.TableName | Sort-Object
+            Write-Verbose "Retrieved table names: $tables"
+    
+            if ([string]::IsNullOrEmpty($Table)) {
+                Write-Warning "Observable Details didn't return a table for $Name"
+                return
+            }
+    
+            if ($Table -notin $tables) {
+                Write-Verbose "$Table not found in the list of tables."
+                throw "Table was not found: $Table. If it is a built-in trigger or old one, export it, rename it, and import it."
+            }
         }
 
         Write-Verbose "$Table found. Proceeding to fetch data."
@@ -99,8 +107,8 @@ function Get-ScopedTriggerDump {
             Where  = $where
         }
 
-        if ($PSCmdlet.ParameterSetName -eq "Export") {
-            $splat.UseExport = $UseExport
+        if ($PSCmdlet.ParameterSetName -eq "TakeAll") {
+            $splat.TakeAll = $TakeAll
         }
         
         if ($PSCmdlet.ParameterSetName -eq "Take") {

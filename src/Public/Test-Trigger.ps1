@@ -15,8 +15,8 @@ function Test-Trigger {
     .PARAMETER Display
         A switch parameter. If specified, the formatted results will be displayed.
 
-    .PARAMETER UseExport
-        A switch used to get data using export-cuquery.
+    .PARAMETER AllRecords
+        A switch used to get all available data
 
     .PARAMETER Records
         The number of records to process
@@ -25,7 +25,7 @@ function Test-Trigger {
         Test-Trigger -Name "SampleTrigger" -Display
         Retrieves trigger details for "SampleTrigger" and displays the result.
     #>
-    [CmdletBinding(DefaultParameterSetName = "UseQuery")]
+    [CmdletBinding(DefaultParameterSetName = "Records")]
     param(
         [Parameter(Mandatory = $true)]
         [string] $Name,
@@ -33,10 +33,10 @@ function Test-Trigger {
         [Parameter(Mandatory = $false)]
         [switch] $Display,
 
-        [Parameter(Mandatory = $false, ParameterSetName = "UseExport")]
-        [switch] $UseExport,
+        [Parameter(Mandatory = $false, ParameterSetName = "AllRecords")]
+        [switch] $AllRecords,
 
-        [Parameter(Mandatory = $false, ParameterSetName = "UseQuery")]
+        [Parameter(Mandatory = $false, ParameterSetName = "Records")]
         [int] $Records = 10
     )
 
@@ -64,20 +64,23 @@ function Test-Trigger {
         Write-Verbose "Getting the Table"
         $table = Get-TableName -TableName $triggerObservableDetails.Table -TriggerType $triggerDetails.TriggerType
 
+        Write-Verbose "Getting all columns"
+        $columns = Get-TriggerColumns -FilterNodes $triggerDetails.FilterNodes
+
         Write-Verbose "Testing if properties are in the Observables runtime"
-        $arePropertiesObserved = Test-ObserverdProperties -ResourceName $table -Properties $triggerDetails.FilterNodes.ExpressionDescriptor.Column
+        $arePropertiesObserved = Test-ObserverdProperties -ResourceName $table -Properties $columns
 
         Write-Verbose "Getting trigger dump"
         $dumpSplat = @{
             Name                     = $Name
-            Fields                   = $triggerDetails.FilterNodes.ExpressionDescriptor.Column
+            Fields                   = $columns
             Table                    = $table
             TriggerObservableDetails = $triggerObservableDetails
             TriggerType              = $triggerDetails.TriggerType
         }
 
-        if ($PSCmdlet.ParameterSetName -eq "UseExport") {
-            $dumpSplat.UseExport = $UseExport
+        if ($PSCmdlet.ParameterSetName -eq "AllRecords") {
+            $dumpSplat.TakeAll = $AllRecords
         }
 
         if ($PSCmdlet.ParameterSetName -eq "UseQuery") {

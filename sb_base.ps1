@@ -10,24 +10,22 @@
     .PARAMETER TriggerName
         Specifies the name of the trigger to test.
 
-    .PARAMETER UseExportParameter
-        Specifies whether export-cuquery will be used to get all the records in scope.
-        Please be mindful when using this on triggers that are scoped to all folders.
-
-    .PARAMETER CollectSupportZipParameter
-        Indicates whether a Support Dump should be collected after trigger testing.
-        This is done by calling Get-SupportTriggerDump which will also dump ALL
-        records/fields specified in the trigger. This can be a large zip.
+    .PARAMETER AllRecordsParameter
+        Specifies whether it will process all the available records.
 
     .PARAMETER Records
         Sets the number of records per folder when using invoke-cuquery -Take.
-        This parameter is only used if UseExport is "False".
+        This parameter is only used if AllRecordsParameter is "False".
     
     .PARAMETER SaveResultsPath
         If provided, it will output the test results to the specified path.
+    
+    .PARAMETER CollectSupportZipParameter
+        Indicates whether a Support Dump should be collected after trigger testing.
+        This is done by calling Get-SupportTriggerDump.
 
     .EXAMPLE
-        .\TestTriggerScript.ps1 -TriggerName "MyTrigger" -UseExportParameter "True"
+        .\TestTriggerScript.ps1 -TriggerName "MyTrigger" -AllRecordsParameter "True"
 
         Tests the trigger "MyTrigger" and gets the live data using export-cuquery
 
@@ -51,7 +49,7 @@ param (
 
     [Parameter(Mandatory = $false)]
     [ValidateSet("False", "True")]
-    [string] $UseExportParameter = "False",
+    [string] $AllRecordsParameter = "False",
 
     [Parameter(Mandatory = $false)]
     [ValidateSet("False", "True")]
@@ -82,8 +80,8 @@ $PSBoundParameters.GetEnumerator() | Foreach-Object {
 }
 
 
-# Convert the string parameters for UseExport and CollectSupportZip to Boolean values.
-$UseExport = [System.Convert]::ToBoolean($UseExportParameter)
+# Convert the string parameters for AllRecords and CollectSupportZip to Boolean values.
+$AllRecords = [System.Convert]::ToBoolean($AllRecordsParameter)
 $CollectSupportZip = [System.Convert]::ToBoolean($CollectSupportZipParameter)
 
 # Null parameters that are N/A
@@ -100,17 +98,17 @@ try {
     $latestUserModulePath = (Get-ChildItem $userModulePath -Recurse | Sort-Object LastWriteTime -Descending)[0]
     Import-Module $latestUserModulePath
 
-    # Warn the user if Records is provided along with UseExport = True,
+    # Warn the user if Records is provided along with AllRecords = True,
     # because the Records parameter won’t be used in this scenario.
-    if ($UseExport -and $PSBoundParameters.ContainsKey("Records")) {
-        Write-Warning "The 'Records' value will be ignored because 'UseExport' is set to True."
+    if ($AllRecords -and $PSBoundParameters.ContainsKey("Records")) {
+        Write-Warning "The 'Records' value will be ignored because 'AllRecords' is set to True."
     }
 
-    # Use different testing logic based on whether UseExport is true.
+    # Use different testing logic based on whether AllRecords is true.
     Write-Output "`nTesting trigger: $TriggerName"
-    if ($UseExport) {
+    if ($AllRecords) {
         Write-Verbose "Using Export logic."
-        $result = Test-Trigger -Name $TriggerName -UseExport
+        $result = Test-Trigger -Name $TriggerName -AllRecords
     } else {
         Write-Verbose "Using Query logic with Records = $Records."
         $result = Test-Trigger -Name $TriggerName -Records $Records

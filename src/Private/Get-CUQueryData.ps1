@@ -2,20 +2,25 @@ function Get-CUQueryData {
     <#
         .SYNOPSIS
             Retrieves data from a specified table using either export-cuquery or invoke-cuquery.
+
         .DESCRIPTION
-            This function queries a data source by either exporting the results to a JSON file and reading it back
-            (using export-cuquery) or by directly using invoke-cuquery. When using invoke-cuquery, it uses the
-            provided 'Take' parameter to limit the number of records.
+            This function queries a data source by using invoke-cuquery. 
+
         .PARAMETER Table
             The name of the table to query.
+
         .PARAMETER Fields
             An array of field names to retrieve.
+
         .PARAMETER Where
             A filter expression for Invoke-CUQuery.
-        .PARAMETER UseExport
-            A switch used to get data using export-cuquery.
+
+        .PARAMETER TakeAll
+            The maximum number of records to retrieve. Defaults to 100.
+
         .PARAMETER Take
             The maximum number of records to retrieve. Defaults to 100.
+
         .EXAMPLE
             Get-CUQueryData -Table "MyTable" -Fields @("Field1", "Field2") -Where "Field1='value'" -Take 50
     #>
@@ -23,12 +28,16 @@ function Get-CUQueryData {
     param(
         [Parameter(Mandatory = $true)]
         [string] $Table,
+
         [Parameter(Mandatory = $true)]
         [string[]] $Fields,
+
         [Parameter(Mandatory = $true)]
         [string] $Where,
-        [Parameter(Mandatory = $false, ParameterSetName = "UseExport")]
-        [switch] $UseExport,
+
+        [Parameter(Mandatory = $false, ParameterSetName = "TakeAll")]
+        [switch] $TakeAll,
+
         [Parameter(Mandatory = $false, ParameterSetName = "Take")]
         [int] $Take = 100
     )
@@ -40,73 +49,25 @@ function Get-CUQueryData {
         Where  = $Where
     }
     try {
-        if (($PSCmdlet.ParameterSetName -eq "UseExport") -and $UseExport) {
-            Write-Verbose "UseExport is set to TRUE. Proceeding with export method."
-            Write-Verbose "Generating temporary file and directory."
-            $tempFile = "$(([guid]::NewGuid().ToString("N"))).json"
-            $dir = $env:TEMP
-            $fullPath = Join-Path -Path $dir -ChildPath $tempFile
-            Write-Verbose "Full path for export: $fullPath"
-            $splat.OutputFolder = $dir
-            $splat.FileName = $tempFile
-            $splat.FileFormat = "Json"
-            Write-Verbose "Executing Export-CUQuery with provided parameters."
-            Export-CUQuery @splat | Out-Null
-            Write-Verbose "Export-CUQuery executed successfully. Reading exported data from $fullPath."
-            Write-Verbose "Converting exported JSON data to PowerShell objects."
-            $json = Get-Content $fullPath -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+        if ($TakeAll) {
+            Write-Verbose "TakeAll passed, getting record count"
+            $splat.Take = 1
+            $count = (Invoke-CUQuery @splat).Total
 
-            [array] $results = $json | ForEach-Object {
-                $obj = @{ Key = $_.RecordId }
-                foreach ($property in $_.Properties) {
-                    $value = Get-QueryPropertyValue -Property $property
-                    $obj[$property.PropertyName] = $value
-                }
-                [PSCustomObject]$obj
-            }
-
-            Write-Verbose "Successfully converted JSON data. Processing records."
-            Write-Verbose "Removing temporary file at $fullPath."
-            Remove-Item -Path $fullPath -Force -ErrorAction Stop
-            Write-Verbose "Temporary file removed successfully."
-            Write-Verbose "Returning the processed export results."
-            return ,$results
-        }
-        elseif ($PSCmdlet.ParameterSetName -eq "Take") {
+            Write-Verbose "There are $count records"
+            $splat.Take = $count
+        } else {
             $splat.Take = $Take
-            Write-Verbose "Executing Invoke-CUQuery with provided parameters."
-            $invokeResult = Invoke-CUQuery @splat
-            Write-Verbose "Invoke-CUQuery executed successfully. Processing returned data."
-            Write-Verbose "Returning the retrieved data."
-            return ,$invokeResult.Data
         }
+
+        Write-Verbose "Executing Invoke-CUQuery with provided parameters."
+        $invokeResult = Invoke-CUQuery @splat
+        Write-Verbose "Invoke-CUQuery executed successfully. Processing returned data."
+        Write-Verbose "Returning the retrieved data."
+        return ,$invokeResult.Data
     }
     catch {
         Write-Error "An error occurred in Get-CUQueryData: $($_.Exception.Message)"
         throw
     }
-}
-
-function Get-QueryPropertyValue {
-    param (
-        [Parameter(Mandatory)]
-        [psobject] $Property
-    )
-    $value = $null
-
-    if ($Property.PSObject.Properties["Value"] -and ($null -ne $Property.Value)) {
-        if ($Property.Value.PSObject.Properties["InnerValue"] -and ($null -ne $Property.Value.InnerValue)) {
-            $value = $Property.Value.InnerValue
-        }
-    }
-
-    if (($null -eq $value) -and $Property.PSObject.Properties["InnerValue"]) {
-        if ($Property.InnerValue.PSObject.Properties["fAvarageValue"] -and ($null -ne $Property.InnerValue.fAvarageValue)) {
-            $value = $Property.InnerValue.fAvarageValue
-        }
-        elseif ($null -ne $Property.InnerValue) {
-            $value = $Property.InnerValue
-        }
-    }
-    return ,$value
 }
