@@ -12,6 +12,14 @@
 
     .PARAMETER AllRecordsParameter
         Specifies whether it will process all the available records.
+    
+    .PARAMETER SimulateTriggerParameter
+        Specifies wheather it will attempt to simulate the trigger conditions on a computer
+        specified by "SimulateOnComputer"
+    
+    .PARAMETER SimulateOnComputer
+        Specifies which computer simulated tests will run on. This computer needs to be connected
+        to the monitor and requires the "Trigger Troubleshooter - Simulated Tests" Script Action
 
     .PARAMETER Records
         Sets the number of records per folder when using invoke-cuquery -Take.
@@ -30,12 +38,12 @@
         Tests the trigger "MyTrigger" and gets the live data using export-cuquery
 
     .NOTES 
-        Version:           1.1.0
+        Version:           1.2.1
         Context:           Computer script running on one of the CU Monitors
         Author:            Isaiah Duarte ->  https://github.com/IsaiahDuarte/TriggerTroubleshooter  
         Requires:          The CU Monitor's ControlUp.PowerShell.User.dll & 9.0.5+
         Creation Date:     1/27/2025    
-        Updated:           2/12/2025
+        Updated:           2/23/2025
     
     .LINK
         https://support.controlup.com/docs/monitor-cluster-powershell-api-cmdlets
@@ -53,13 +61,21 @@ param (
 
     [Parameter(Mandatory = $false)]
     [ValidateSet("False", "True")]
+    [string] $SimulateTriggerParameter = "False",
+
+    [Parameter(Mandatory = $false)]
+    [string] $SimulateOnComputer,
+
+    [Parameter(Mandatory = $false)]
+    [ValidateSet("False", "True")]
     [string] $CollectSupportZipParameter = "False",
 
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory = $false)]
     [int] $Records = 10,
 
     [Parameter(Mandatory = $false)]
     [string] $SaveResultsPath
+
 )
 
 ###ImportModule###
@@ -68,13 +84,13 @@ param (
 
 # Set preferences for error handling, verbosity, and debugging.
 $ErrorActionPreference = 'Stop' 
-$VerbosePreference     = 'SilentlyContinue' 
-$DebugPreference       = 'SilentlyContinue' 
-$ProgressPreference    = 'SilentlyContinue' 
+$VerbosePreference = 'SilentlyContinue' 
+$DebugPreference = 'SilentlyContinue' 
+$ProgressPreference = 'SilentlyContinue' 
 $PSBoundParameters.GetEnumerator() | Foreach-Object { 
     Switch ($_.Key) { 
-        'verbose'     { $VerbosePreference = $_.Value } 
-        'debug'       { $DebugPreference = $_.Value } 
+        'verbose' { $VerbosePreference = $_.Value } 
+        'debug' { $DebugPreference = $_.Value } 
         'erroraction' { $ErrorActionPreference = $_.Value } 
     } 
 }
@@ -83,10 +99,12 @@ $PSBoundParameters.GetEnumerator() | Foreach-Object {
 # Convert the string parameters for AllRecords and CollectSupportZip to Boolean values.
 $AllRecords = [System.Convert]::ToBoolean($AllRecordsParameter)
 $CollectSupportZip = [System.Convert]::ToBoolean($CollectSupportZipParameter)
+$SimulateTrigger = [System.Convert]::ToBoolean($SimulateTriggerParameter)
 
 # Null parameters that are N/A
-switch("N/A") {
+switch ("N/A") {
     $SaveResultsPath { $SaveResultsPath = $null }
+    $SimulateOnComputer { $SimulateOnComputer = $null }
 }
 
 try {   
@@ -109,7 +127,8 @@ try {
     if ($AllRecords) {
         Write-Verbose "Using Export logic."
         $result = Test-Trigger -Name $TriggerName -AllRecords
-    } else {
+    }
+    else {
         Write-Verbose "Using Query logic with Records = $Records."
         $result = Test-Trigger -Name $TriggerName -Records $Records
     }
@@ -119,7 +138,8 @@ try {
     if ($null -ne $result -and !$SaveResultsPath) {
         Write-Output "`nTested $($result.count) records against trigger conditions"
         $result.DisplayResult()
-    } elseif ($null -ne $result -and $SaveResultsPath) {
+    }
+    elseif ($null -ne $result -and $SaveResultsPath) {
         Write-Output "`nTested $($result.count) records against trigger conditions"
         Write-Output "Saving results to $SaveResultsPath"
         $result.BuildResultString(0, "") | Out-File -FilePath $SaveResultsPath -Force -Append
@@ -130,8 +150,26 @@ try {
         Write-Output "Collecting Support Dump"
         Get-SupportTriggerDump -Name $TriggerName
     }
+
+    # Only specific triggers can be simulated
+    if ($SimulateTrigger) {
+        $trigger = Get-Trigger -Name $TriggerName
+
+        if (!$trigger) {
+            Write-Warning "Unable to find $TriggerName"
+        }
+
+        switch ($trigger.TriggerType) {
+            "Windows Event" { $simulationResult = Invoke-SimulatedWindowsEvent -TriggerName $TriggerName -ComputerName $SimulateOnComputer }
+        }
+
+        if($simulationResult) {
+            Write-Output "Simulation result: $($simulationResult.TriggerFired)"
+        }
+    }
     
-} catch {
+}
+catch {
     Write-Error $_.Exception.Message
     throw
 }

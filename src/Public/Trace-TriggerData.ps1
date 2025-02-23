@@ -4,9 +4,8 @@ function Trace-TriggerData {
         Captures data from a named trigger over a specified duration, writing the data to CSV.
 
     .DESCRIPTION
-        Uses the custom commands (Get-CUTriggers, Get-CUTriggerDetails, etc.) to fetch and
-        store trigger data in a CSV file. Rotates files when size thresholds are reached
-        and cleans up old files beyond the specified limit.
+        Fetch store trigger data in a CSV file. Rotates files when size
+        thresholds are reached and cleans up old files beyond the specified limit.
 
     .PARAMETER Name
         Name of the trigger to capture.
@@ -61,7 +60,7 @@ function Trace-TriggerData {
 
     try {
         Write-Verbose "Getting Trigger"
-        $trigger = Get-CUTriggers | Where-Object { $_.TriggerName -eq $Name }
+        $trigger = Get-Trigger -Name $Name
         if (-not $trigger) {
             Write-Warning "Trigger with name '$Name' not found."
             return

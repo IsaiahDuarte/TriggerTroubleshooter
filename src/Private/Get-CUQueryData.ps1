@@ -1,7 +1,7 @@
 function Get-CUQueryData {
     <#
         .SYNOPSIS
-            Retrieves data from a specified table using either export-cuquery or invoke-cuquery.
+            Retrieves data from a specified table using invoke-cuquery.
 
         .DESCRIPTION
             This function queries a data source by using invoke-cuquery. 
@@ -16,7 +16,7 @@ function Get-CUQueryData {
             A filter expression for Invoke-CUQuery.
 
         .PARAMETER TakeAll
-            The maximum number of records to retrieve. Defaults to 100.
+            Takes all records available
 
         .PARAMETER Take
             The maximum number of records to retrieve. Defaults to 100.
@@ -56,7 +56,8 @@ function Get-CUQueryData {
 
             Write-Verbose "There are $count records"
             $splat.Take = $count
-        } else {
+        }
+        else {
             $splat.Take = $Take
         }
 
@@ -64,7 +65,7 @@ function Get-CUQueryData {
         $invokeResult = Invoke-CUQuery @splat
         Write-Verbose "Invoke-CUQuery executed successfully. Processing returned data."
         Write-Verbose "Returning the retrieved data."
-        return ,$invokeResult.Data
+        return , $invokeResult.Data
     }
     catch {
         Write-Error "An error occurred in Get-CUQueryData: $($_.Exception.Message)"

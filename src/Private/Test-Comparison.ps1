@@ -24,6 +24,9 @@ function Test-Comparison {
         .PARAMETER IsRegex
             A switch indicating whether the comparison should be performed based on regular expression matching.
 
+        .PARAMETER IsDateTime
+            A switch indicating wheater the comparison is DateTime
+
         .EXAMPLE
             $result = Test-Comparison -CompOp 'Equal' -RecordValue 'abc' -Value 'abc' -IsNegation $false -IsRegex $false
     #>
@@ -42,7 +45,10 @@ function Test-Comparison {
         [bool] $IsNegation,
 
         [Parameter(Mandatory = $true)]
-        [bool] $IsRegex
+        [bool] $IsRegex,
+
+        [Parameter(Mandatory = $false)]
+        [switch] $IsDateTime
     )
 
     try {
@@ -59,6 +65,12 @@ function Test-Comparison {
         if ($IsRegex) {
             $CompOp = 'Regex'
         }
+
+        if ($IsDateTime) {
+            $CompOp = 'DateTime'
+        }
+
+        
 
         switch ($CompOp) {
             'Equal' {
@@ -78,7 +90,8 @@ function Test-Comparison {
                 if ($IsNegation) {
                     $comparisonResult = $RecordValue -notlike $Value
                     $comparisonUsed = "-notlike"    
-                } else {
+                }
+                else {
                     $comparisonResult = $RecordValue -like $Value
                     $comparisonUsed = "-like"
                 }
@@ -114,12 +127,19 @@ function Test-Comparison {
                 $comparisonUsed = "[Regex]::Match"
                 break
             }
+
+            'DateTime' {
+                Write-Warning "DateTime Not implemented"
+                $comparisonResult = $false
+                $comparisonUsed = "Not Implemented"
+            }
+            
             default {
                 throw "Unsupported ComparisonOperator: $CompOp"
             }
         }
 
-        if($null -eq $RecordValue) {
+        if ($null -eq $RecordValue) {
             $comparisonResult = $false
         }
         

@@ -45,7 +45,7 @@ function Test-Trigger {
         $output = [System.Collections.Generic.List[TriggerFilterResult]]::New()
 
         Write-Verbose "Getting Trigger"
-        $trigger = Get-CUTriggers | Where-Object { $_.TriggerName -eq $Name }
+        $trigger = Get-Trigger -Name $Name
         if (-not $trigger) {
             Write-Warning "Trigger with name '$Name' not found."
             return
@@ -53,7 +53,7 @@ function Test-Trigger {
         Write-Verbose "Trigger found: $trigger"
 
         Write-Verbose "Getting trigger configuration"
-        $triggerDetails = Get-CUTriggerDetails -TriggerId $trigger.TriggerId
+        $triggerDetails = Get-CUTriggerDetails -TriggerId $trigger.Id
 
         Write-Verbose "Testing the schedule"
         $scheduleResult = Test-Schedule -ScheduleID $triggerDetails.IncidentScheduleId

@@ -55,9 +55,23 @@ function Test-TriggerFilterNode {
             # Retrieve the corresponding property value from the record
             $recordValue = $Record.$column
 
+            $tcParams = @{
+                CompOp      = $compOp
+                RecordValue = $recordValue
+                Value       = $value
+                IsNegation  = $Node.IsNegation
+                IsRegex     = $isRegex
+            }
+
+
+
             Write-Verbose "Evaluating ExpressionDescriptor: Column[$column], Value[$value], ComparisonOperator[$compOp], IsRegex[$isRegex]"
 
-            $comparison = Test-Comparison -compOp $compOp -recordValue $recordValue -value $value -IsNegation $Node.IsNegation -IsRegex $isRegex
+            if ($column -eq 'TimeWritten') {
+                $tcParams.IsDateTime = $true
+            }
+
+            $comparison = Test-Comparison @tcParams
             $exprResult = $comparison.comparisonResult
 
             $result.Details = [TriggerDataResult]::New(
@@ -77,7 +91,7 @@ function Test-TriggerFilterNode {
             foreach ($child in $Node.ChildNodes) {
                 if (-not $child) { continue }
                 $childResult = Test-TriggerFilterNode -Node $child -Record $Record
-                if($null -ne $childResult) {
+                if ($null -ne $childResult) {
                     $result.ChildNodes.Add($childResult)
                 }
 

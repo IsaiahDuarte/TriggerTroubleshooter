@@ -63,7 +63,7 @@
                                 <SBAArgumentDescriptor>
                                     <ArgumentId>994af12d-2353-491c-97ca-e85f4bb6a379</ArgumentId>
                                     <ArgumentType>1</ArgumentType>
-                                    <Name>Process all records</Name>
+                                    <Name>All Records</Name>
                                     <DefaultValue>False</DefaultValue>
                                     <ArgumentNumber>2</ArgumentNumber>
                                     <ArgumentName>AllRecordsParameter</ArgumentName>
@@ -85,7 +85,7 @@
                                     <ArgumentType>1</ArgumentType>
                                     <Name>Collect Support ZIP</Name>
                                     <DefaultValue>False</DefaultValue>
-                                    <ArgumentNumber>3</ArgumentNumber>
+                                    <ArgumentNumber>6</ArgumentNumber>
                                     <ArgumentName>CollectSupportZip</ArgumentName>
                                     <EmptyBehavior>0</EmptyBehavior>
                                     <ValidationString>True|true|False|false|f|t|F|T</ValidationString>
@@ -125,8 +125,48 @@
                                     <ArgumentType>1</ArgumentType>
                                     <Name>Path to Save Results</Name>
                                     <DefaultValue>N/A</DefaultValue>
-                                    <ArgumentNumber>4</ArgumentNumber>
+                                    <ArgumentNumber>3</ArgumentNumber>
                                     <ArgumentName>SaveResultsPath</ArgumentName>
+                                    <EmptyBehavior>0</EmptyBehavior>
+                                    <ValidationString />
+                                    <ValidationError />
+                                    <MaskTypedCharacters>false</MaskTypedCharacters>
+                                    <EntityType>0</EntityType>
+                                </SBAArgumentDescriptor>
+                            </value>
+                        </item>
+                        <item>
+                            <key>
+                                <string>81302e75-d11b-47f7-af57-7465232546d9</string>
+                            </key>
+                            <value>
+                                <SBAArgumentDescriptor>
+                                    <ArgumentId>81302e75-d11b-47f7-af57-7465232546d9</ArgumentId>
+                                    <ArgumentType>1</ArgumentType>
+                                    <Name>Simulate Trigger</Name>
+                                    <DefaultValue>False</DefaultValue>
+                                    <ArgumentNumber>4</ArgumentNumber>
+                                    <ArgumentName>SimulateTriggerParameter</ArgumentName>
+                                    <EmptyBehavior>0</EmptyBehavior>
+                                    <ValidationString>True|true|False|false|f|t|F|T</ValidationString>
+                                    <ValidationError />
+                                    <MaskTypedCharacters>false</MaskTypedCharacters>
+                                    <EntityType>0</EntityType>
+                                </SBAArgumentDescriptor>
+                            </value>
+                        </item>
+                        <item>
+                            <key>
+                                <string>e2ae0cfd-fd1d-4d17-82f8-499122dd030c</string>
+                            </key>
+                            <value>
+                                <SBAArgumentDescriptor>
+                                    <ArgumentId>e2ae0cfd-fd1d-4d17-82f8-499122dd030c</ArgumentId>
+                                    <ArgumentType>1</ArgumentType>
+                                    <Name>Simulate On Computer</Name>
+                                    <DefaultValue>N/A</DefaultValue>
+                                    <ArgumentNumber>5</ArgumentNumber>
+                                    <ArgumentName>SimulateOnComputer</ArgumentName>
                                     <EmptyBehavior>0</EmptyBehavior>
                                     <ValidationString />
                                     <ValidationError />

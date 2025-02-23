@@ -5,9 +5,7 @@ function Get-TableName {
 
         .DESCRIPTION
             This function maps the trigger type and an optional provided name to a specific
-            table. For example, if the trigger type is "UserLoggedOff", it returns the
-            "SessionsView" table. If no specific mapping is found based on the name, it returns the name
-            provided, or a default message if no name is given.
+            table.
 
         .PARAMETER TriggerType
             Specifies the type of trigger (e.g., "UserLoggedOff"). This parameter is mandatory.

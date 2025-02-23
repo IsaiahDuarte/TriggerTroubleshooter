@@ -32,7 +32,7 @@ function Get-SupportTriggerDump {
 
     try {
         Write-Verbose "Retrieving trigger details..."
-        $trigger = Get-CUTriggers | Where-Object { $_.TriggerName -eq $Name }
+        $trigger = Get-Trigger -Name $Name
 
         # Check if the retrieved trigger exists
         if (-not $trigger) {
@@ -40,7 +40,7 @@ function Get-SupportTriggerDump {
             return
         }
 
-        Write-Verbose "Trigger found. TriggerID: $($trigger.TriggerID)"
+        Write-Verbose "Trigger found. Id: $($trigger.Id)"
 
         # Create a unique temporary directory for storing dump files
         Write-Verbose "Creating temporary directory for dump files..."
@@ -50,7 +50,7 @@ function Get-SupportTriggerDump {
         Write-Verbose "Created temporary directory: $tempDirectory"
 
         # Export Trigger Details into JSON format
-        $triggerDetails = Get-CUTriggerDetails -TriggerId $trigger.TriggerID
+        $triggerDetails = Get-CUTriggerDetails -TriggerId $trigger.Id
         $triggerDetailsPath = Join-Path -Path $tempDirectory -ChildPath "TriggerDetails.json"
         Write-Verbose "Exporting Trigger Details to '$triggerDetailsPath'"
         $triggerDetails | ConvertTo-Json -Depth 20 -Compress | Out-File -FilePath $triggerDetailsPath -Encoding UTF8
@@ -70,7 +70,7 @@ function Get-SupportTriggerDump {
         Compress-Archive -Path $tempDirectory -DestinationPath $zipFilePath -Force
         Write-Verbose "Compression completed successfully."
 
-         # Clean up the temporary directory
+        # Clean up the temporary directory
         Write-Verbose "Removing temporary directory '$tempDirectory'"
         Remove-Item -Path $tempDirectory -Recurse -Force
         Write-Verbose "Temporary directory removed successfully."
