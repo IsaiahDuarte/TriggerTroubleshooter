@@ -53,6 +53,7 @@ function Format-SimulationNode {
         return , $Node
     }
     catch {
+        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Format-WindowsEventNode: $($_.Exception.Message)"
         throw
     }

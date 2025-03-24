@@ -67,6 +67,7 @@ function Get-TriggerColumns {
         return $uniqueColumns
     }
     catch {
+        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Get-TriggerColumns: $($_.Exception.Message)"
         throw
     }

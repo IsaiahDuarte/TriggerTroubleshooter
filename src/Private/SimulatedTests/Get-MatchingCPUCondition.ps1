@@ -48,7 +48,10 @@ function Get-MatchingCPUCondition {
                 Where-Object { $_.Column -eq 'CPU' } |
                 ForEach-Object { $_.Value = 75 }
         }
-    
+        
+        Write-TriggerTroubleshooterLog "Removing empty child nodes recursively..."
+        $sanitizedRoot = Remove-EmptyNodes -Node $sanitizedRoot
+        
         Write-TriggerTroubleshooterLog "Returning event object and sanitized node."
         return [PSCustomObject]@{
             Data = $result
@@ -56,6 +59,7 @@ function Get-MatchingCPUCondition {
         }
     }
     catch {
+        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Get-MatchingMemoryCondition: $($_.Exception.Message)"
         throw
     }

@@ -31,6 +31,7 @@ function Get-ComputerStatus {
         return $computer
     }
     catch {
+        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Get-ComputerStatus: $($_.Exception.Message)"
         throw
     }

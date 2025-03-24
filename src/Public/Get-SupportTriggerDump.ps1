@@ -78,6 +78,7 @@ function Get-SupportTriggerDump {
         Write-Output "Trigger dump saved to '$zipFilePath'"
     }
     catch {
+        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
         Write-Error "An error occurred during the trigger dump process: $($_.Exception.Message)"
         throw
     }

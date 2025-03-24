@@ -70,6 +70,9 @@ function Get-MatchingWindowsEvent {
     Where-Object { $_.Column -eq 'Source' } |
     ForEach-Object { $_.Value = $source }
     $result.Source = $source
+            
+    Write-TriggerTroubleshooterLog "Removing empty child nodes recursively..."
+    $sanitizedRoot = Remove-EmptyNodes -Node $sanitizedRoot
     
     Write-TriggerTroubleshooterLog "Returning event object and sanitized node."
     return [PSCustomObject]@{

@@ -74,12 +74,13 @@ param (
     [int] $Records = 10,
 
     [Parameter(Mandatory = $false)]
-    [string] $SaveResultsPath
+    [string] $SaveResultsPath,
+
+    [Parameter(Mandatory = $false)]
+    [ValidateSet("False", "True")]
+    [string] $DebugParameter = "False"
 
 )
-
-$ENV:TRIGGER_TROUBLESHOOTER_LOG_TO_FILE = $true
-$ENV:TRIGGER_TROUBLESHOOTER_LOG_TO_HOST = $true
 
 ###ImportModule###
 
@@ -89,6 +90,12 @@ $ENV:TRIGGER_TROUBLESHOOTER_LOG_TO_HOST = $true
 $AllRecords = [System.Convert]::ToBoolean($AllRecordsParameter)
 $CollectSupportZip = [System.Convert]::ToBoolean($CollectSupportZipParameter)
 $SimulateTrigger = [System.Convert]::ToBoolean($SimulateTriggerParameter)
+$Debug = [System.Convert]::ToBoolean($DebugParameter)
+
+if($Debug) {
+    $ENV:TRIGGER_TROUBLESHOOTER_LOG_TO_FILE = $true
+    $ENV:TRIGGER_TROUBLESHOOTER_LOG_TO_HOST = $true
+}
 
 # Null parameters that are N/A
 switch ("N/A") {
@@ -142,14 +149,52 @@ try {
 
     # Only specific triggers can be simulated
     if ($SimulateTrigger) {
+        Write-TriggerTroubleshooterLog "SimulatedTrigger is set to true"
+        Write-TriggerTroubleshooterLog "SimulateOnComputer: $($SimulateOnComputer)"
+
         $trigger = Get-Trigger -Name $TriggerName
 
         if (!$trigger) {
             Write-Warning "Unable to find $TriggerName"
+            Write-TriggerTroubleshooterLog "Unable to find $TriggerName"
+            return
+        }
+
+        Write-TriggerTroubleshooterLog "Trigger Type: $($trigger.TriggerType)"
+
+        $triggerDetails = Get-CUTriggerDetails -TriggerId $trigger.Id
+
+        $splat = @{
+            TriggerName = $TriggerName
+            ComputerName = $SimulateOnComputer
         }
 
         switch ($trigger.TriggerType) {
-            "Windows Event" { $simulationResult = Invoke-SimulatedTrigger -TriggerName $TriggerName -ComputerName $SimulateOnComputer -ConditionType "WindowsEvent" -Verbose }
+            "Windows Event" { 
+                $splat.ConditionType = "WindowsEvent"
+                $simulationResult = Invoke-SimulatedTrigger @splat
+            }
+
+            "Machine Stress" {
+                $columns = Get-TriggerColumns -FilterNodes $triggerDetails.FilterNodes
+                
+                if($columns -contains "CPU") {
+                    $splat.ConditionType = "CPU"
+                    $simulationResult = Invoke-SimulatedTrigger @splat
+                } elseif ($columns -contains "MemoryInUse") {
+                    $splat.ConditionType = "Memory"
+                    $simulationResult = Invoke-SimulatedTrigger @splat
+                }
+            }
+
+            "Logical Disk Stress" {
+                $splat.ConditionType = "LogicalDisk"
+                $simulationResult = Invoke-SimulatedTrigger @splat
+            }
+
+            default {
+                Write-Warning "Trigger Type $($trigger.TriggerType) cannot be simulated"
+            }
         }
 
         if($simulationResult) {

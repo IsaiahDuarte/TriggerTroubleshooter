@@ -40,6 +40,7 @@ function Set-WindowsEventData {
         return $Data
     }
     catch {
+        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
         throw "Error in Set-WindowsEventData: $($_.Exception.Message)"
     }
 } 

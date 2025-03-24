@@ -68,6 +68,7 @@ function Get-CUQueryData {
         return , $invokeResult.Data
     }
     catch {
+        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
         Write-Error "An error occurred in Get-CUQueryData: $($_.Exception.Message)"
         throw
     }

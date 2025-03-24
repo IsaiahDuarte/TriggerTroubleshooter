@@ -175,6 +175,26 @@
                                 </SBAArgumentDescriptor>
                             </value>
                         </item>
+                        <item>
+                            <key>
+                                <string>01ef58b5-e6fe-4019-bcc1-e9f14ba16b2b</string>
+                            </key>
+                            <value>
+                                <SBAArgumentDescriptor>
+                                    <ArgumentId>01ef58b5-e6fe-4019-bcc1-e9f14ba16b2b</ArgumentId>
+                                    <ArgumentType>1</ArgumentType>
+                                    <Name>Enable Debug</Name>
+                                    <DefaultValue>False</DefaultValue>
+                                    <ArgumentNumber>7</ArgumentNumber>
+                                    <ArgumentName>DebugParameter</ArgumentName>
+                                    <EmptyBehavior>0</EmptyBehavior>
+                                    <ValidationString>True|true|False|false|f|t|F|T</ValidationString>
+                                    <ValidationError />
+                                    <MaskTypedCharacters>false</MaskTypedCharacters>
+                                    <EntityType>0</EntityType>
+                                </SBAArgumentDescriptor>
+                            </value>
+                        </item>
                     </sxSerializedDictionaryOfStringSBAArgumentDescriptor>
                 </inner>
             </Arguments>

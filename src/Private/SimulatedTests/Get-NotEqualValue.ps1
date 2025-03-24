@@ -43,6 +43,7 @@ function Get-NotEqualValue {
         return $result
     }
     catch {
+        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Get-NotEqualValue: $($_.Exception.Message)"
         throw
     }

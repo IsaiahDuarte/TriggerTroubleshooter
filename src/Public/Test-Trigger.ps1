@@ -127,6 +127,7 @@ function Test-Trigger {
         , $output.ToArray()
     }
     catch {
+        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
         Write-Error -Message "Error in Test-Trigger: $($_.Exception.Message)" -ErrorAction Stop
     }
 } 

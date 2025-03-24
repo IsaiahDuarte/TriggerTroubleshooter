@@ -147,7 +147,7 @@
                                     <ArgumentNumber>0</ArgumentNumber>
                                     <ArgumentName>TestType</ArgumentName>
                                     <EmptyBehavior>0</EmptyBehavior>
-                                    <ValidationString>Memory|CPU|WindowsEvent</ValidationString>
+                                    <ValidationString />
                                     <ValidationError />
                                     <MaskTypedCharacters>false</MaskTypedCharacters>
                                     <EntityType>0</EntityType>
@@ -166,6 +166,26 @@
                                     <DefaultValue />
                                     <ArgumentNumber>6</ArgumentNumber>
                                     <ArgumentName>Duration</ArgumentName>
+                                    <EmptyBehavior>0</EmptyBehavior>
+                                    <ValidationString />
+                                    <ValidationError />
+                                    <MaskTypedCharacters>false</MaskTypedCharacters>
+                                    <EntityType>0</EntityType>
+                                </SBAArgumentDescriptor>
+                            </value>
+                        </item>
+                        <item>
+                            <key>
+                                <string>66586818-8fe3-4ee5-8541-116e52ee0418</string>
+                            </key>
+                            <value>
+                                <SBAArgumentDescriptor>
+                                    <ArgumentId>66586818-8fe3-4ee5-8541-116e52ee0418</ArgumentId>
+                                    <ArgumentType>1</ArgumentType>
+                                    <Name>DiskSpacePercentage</Name>
+                                    <DefaultValue />
+                                    <ArgumentNumber>7</ArgumentNumber>
+                                    <ArgumentName>DiskSpacePercentage</ArgumentName>
                                     <EmptyBehavior>0</EmptyBehavior>
                                     <ValidationString />
                                     <ValidationError />

@@ -39,6 +39,7 @@ function Get-Trigger {
         return $result.Data
     }
     catch {
+        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Get-Trigger: $($_.Exception.Message)"
         throw
     }

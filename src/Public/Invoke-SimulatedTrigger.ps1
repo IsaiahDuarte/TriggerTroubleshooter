@@ -18,7 +18,7 @@ function Invoke-SimulatedTrigger {
         [string] $TriggerName,
 
         [Parameter(Mandatory = $true)]
-        [ValidateSet("CPU", "Memory", "WindowsEvent")]
+        [ValidateSet("CPU", "Memory", "WindowsEvent", "LogicalDisk")]
         [string] $ConditionType
     )
 
@@ -66,6 +66,7 @@ function Invoke-SimulatedTrigger {
             "CPU" { $node = Get-MatchingCPUCondition -RootNode $rootNode; $newTriggerName = "TT-Simulated-CPUUsage-" + [guid]::NewGuid() }
             "Memory" { $node = Get-MatchingMemoryCondition -RootNode $rootNode; $newTriggerName = "TT-Simulated-MemoryUsage-" + [guid]::NewGuid() }
             "WindowsEvent" { $node = Get-MatchingWindowsEvent -RootNode $rootNode; $newTriggerName = "TT-Simulated-WindowsEvent-" + [guid]::NewGuid() }
+            "LogicalDisk" { $node = Get-MatchingLogicalDiskCondition -RootNode $rootNode; $newTriggerName = "TT-Simulated-LogicalDisk" + [guid]::NewGuid() }
         }
 
         Write-TriggerTroubleshooterLog "Preparing new trigger info."
@@ -84,14 +85,21 @@ function Invoke-SimulatedTrigger {
             $newTriggerSplat.TriggerType = "Advanced"
             $newTriggerSplat.AdvancedTriggerSettings = @{ TriggerStressRecordType = "Machine" }
         }
-        else {
+        elseif($ConditionType -eq "WindowsEvent") {
             $newTriggerSplat.TriggerType = "WindowsEvent"
+            
+            # There is an issue with 9.0.5
             if ((Get-Module -Name ControlUp.PowerShell.User).Version.Minor -eq 0) {
                 $newTriggerSplat.ComputerDownProperties = @{}
             }
+        } elseif($ConditionType -eq "LogicalDisk") {
+            $newTriggerSplat.TriggerType = "Advanced"
+            $newTriggerSplat.AdvancedTriggerSettings = @{ TriggerStressRecordType = "LogicalDisk" }
         }
 
         Write-TriggerTroubleshooterLog "Creating new trigger '$newTriggerName'."
+        Write-TriggerTroubleshooterLog "$($newTriggerSplat | ConvertTo-Json -Depth 20)"
+
         $newTrigger = Add-CUTrigger @newTriggerSplat
         Wait-ForTrigger -TriggerName $newTriggerName -ShouldExist | Out-Null
 
@@ -129,6 +137,10 @@ function Invoke-SimulatedTrigger {
                 } | ConvertTo-Json
                 $timeout = 30
             }
+            "LogicalDisk" {
+                $Params = @{ arg_0 = "LogicalDisk"; arg_6 = 10; arg_7 = $node.Data.FreeSpacePercentage } | ConvertTo-Json
+                $timeout = 1
+            }
         }
 
         Write-TriggerTroubleshooterLog "Invoking action '$($action.Title)'."
@@ -149,6 +161,7 @@ function Invoke-SimulatedTrigger {
         }
     }
     catch {
+        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Invoke-SimulatedTrigger: $($_.Exception.Message)"
         throw
     }

@@ -90,6 +90,7 @@ function Get-TableName {
         return $table
     }
     catch {
+        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Get-TableName: $($_.Exception.Message)"
         throw
     }

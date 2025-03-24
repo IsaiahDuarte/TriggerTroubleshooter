@@ -127,6 +127,7 @@ function Test-TriggerFilterNode {
         return $result
     }
     catch {
+        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Test-TriggerFilterNode: $($_.Exception.Message)"
     }
 }

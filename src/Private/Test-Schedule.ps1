@@ -92,6 +92,7 @@ function Test-Schedule {
         return $isHourSelected
     }
     catch {
+        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Test-Schedule: $($_.Exception.Message)"
     }
 } 

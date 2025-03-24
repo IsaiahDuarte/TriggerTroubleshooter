@@ -64,6 +64,7 @@ function Test-ObserverdProperties {
         return $true
     }
     catch {
+        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
         Write-Error "An error occurred in Test-ObserverdProperties: $($_.Exception.Message)"
         throw
     }

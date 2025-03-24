@@ -74,6 +74,7 @@ function Wait-ForTrigger {
         }
     }
     catch {
+        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Wait-ForTrigger: $($_.Exception.Message)"
         throw
     }

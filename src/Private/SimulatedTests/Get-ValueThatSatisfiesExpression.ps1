@@ -106,6 +106,7 @@ function Get-ValueThatSatisfiesExpression {
         }
     }
     catch {
+        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Get-ValueThatSatisfiesExpression: $($_.Exception.Message)"
         throw
     }
