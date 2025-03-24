@@ -1,23 +1,25 @@
-function Format-WindowsEventNode {
+function Format-SimulationNode {
     <#
         .SYNOPSIS
-            Cleans a Windows Event Filter node by removing any nodes that use Regex.
+            Sanitizes a TriggerFilterNode to specific columns.
 
         .DESCRIPTION
-            This function inspects a TriggerFilterNode object and removes it if its
-            ExpressionDescriptor uses Regex or if its column is not in the allowed list.
-            It recurses through child nodes to perform the same clean-up.
+            Sanitizes a TriggerFilterNode to specific columns by removing columns that cannot
+            be simulated.
 
         .PARAMETER Node
             A TriggerFilterNode object to be processed. This parameter is mandatory.
 
         .EXAMPLE
-            Format-WindowsEventNode -Node $filterNode
+            Format-SimulationNode -Node $node -Columns @('Category', 'EntryType', 'EventID', 'Log', 'Message', 'Source')
     #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        [ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode] $Node
+        [ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode] $Node,
+
+        [Parameter(Mandatory = $true)]
+        [string[]] $Columns
     )
 
     try {
@@ -30,8 +32,7 @@ function Format-WindowsEventNode {
 
         # Check if ExpressionDescriptor exists and if it's invalid
         if ($Node.ExpressionDescriptor) {
-            $allowedColumns = @('Category', 'EntryType', 'EventID', 'Log', 'Message', 'Source')
-            if ($Node.ExpressionDescriptor.IsRegex -or -not ($allowedColumns -contains $Node.ExpressionDescriptor.Column)) {
+            if ($Node.ExpressionDescriptor.IsRegex -or -not ($Columns -contains $Node.ExpressionDescriptor.Column)) {
                 Write-Verbose "ExpressionDescriptor is either Regex or not in allowed columns. Removing node."
                 return $null
             }
@@ -41,7 +42,7 @@ function Format-WindowsEventNode {
         $cleanChildren = [System.Collections.Generic.List[ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode]]::New()
         foreach ($child in $Node.ChildNodes) {
             Write-Verbose "Processing a child node."
-            $processedChild = Format-WindowsEventNode -Node $child
+            $processedChild = Format-SimulationNode -Node $child -Columns $Columns
             if ($processedChild) {
                 $cleanChildren.Add($processedChild)
             }

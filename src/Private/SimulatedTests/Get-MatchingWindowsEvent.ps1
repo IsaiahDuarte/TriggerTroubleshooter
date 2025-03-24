@@ -21,7 +21,7 @@ function Get-MatchingWindowsEvent {
     )
     
     Write-Verbose "Sanitizing trigger node..."
-    $sanitizedRoot = Format-WindowsEventNode -Node $RootNode
+    $sanitizedRoot = Format-SimulationNode -Node $RootNode -Columns @('Category', 'EntryType', 'EventID', 'Log', 'Message', 'Source')
     if (-not $sanitizedRoot) {
         Write-Warning "After removing regex nodes, no triggers remain. Returning null."
         return $null
@@ -65,6 +65,7 @@ function Get-MatchingWindowsEvent {
     
     $source = "TriggerTroubleshooter-" + $result.Log
     Write-Verbose "Setting forced Source to '$source'..."
+
     $sanitizedRoot.ChildNodes.ExpressionDescriptor |
     Where-Object { $_.Column -eq 'Source' } |
     ForEach-Object { $_.Value = $source }
@@ -72,7 +73,7 @@ function Get-MatchingWindowsEvent {
     
     Write-Verbose "Returning event object and sanitized node."
     return [PSCustomObject]@{
-        Event = $result
+        Data = $result
         Node  = $sanitizedRoot
     }
 }

@@ -16,16 +16,25 @@ function Get-Trigger {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        [string] $Name
+        [string] $Name,
+
+        [Parameter(Mandatory = $false)]
+        [string[]] $Fields = @('Name', 'Id', 'TriggerType')
     )
 
     try {
         Write-Verbose "Querying triggers configuration for: $Name"
-        $result = Invoke-CUQuery -Table TriggersConfiguration -Scheme Config -Fields @('Name', 'Id', 'TriggerType') -Where "Name='$Name'"
+        $result = Invoke-CUQuery -Table TriggersConfiguration -Scheme Config -Fields $Fields -Where "Name='$Name'"
         if ($null -eq $result.Data) {
             Write-Warning "No data returned for trigger with name '$Name'."
             return $null
         }
+        
+        if($result.data.count -gt 1) {
+            Write-Warning "Multiple triggers found with name $Name... exiting"
+            throw "Multiple triggers found: $($Trigger.TriggerID -join ",")"
+        }
+        
         Write-Verbose "Successfully retrieved trigger data."
         return $result.Data
     }

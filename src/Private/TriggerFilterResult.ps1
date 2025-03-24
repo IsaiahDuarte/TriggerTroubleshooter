@@ -26,6 +26,9 @@ class TriggerFilterResult {
     [string] $IdentityField
     
     [bool] $ArePropertiesObserved 
+
+    [datetime] $LastInspectionTime
+    
     TriggerFilterResult () {
         $this.ChildNodes = [System.Collections.Generic.List[TriggerFilterResult]]::new()
     }
@@ -44,6 +47,7 @@ class TriggerFilterResult {
                 $sb.AppendLine(("Identity: {0}" -f $this.IdentityField)) | Out-Null
                 $sb.AppendLine(("In Schedule: {0}" -f $this.ScheduleResult)) | Out-Null
                 $sb.AppendLine(("Are Properties Observed: {0}" -f $this.ArePropertiesObserved)) | Out-Null
+                $sb.AppendLine(("Last Inspection Time: {0}" -f $this.LastInspectionTime))
                 $sb.AppendLine(("Will Fire: {0}" -f $this.EvaluationResult)) | Out-Null
                 $sb.AppendLine($separator) | Out-Null
             }

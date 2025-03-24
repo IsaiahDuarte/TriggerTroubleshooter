@@ -46,7 +46,7 @@ function Wait-ForTriggerToFire {
             throw "Missing data for trigger '$TriggerName'."
         }
     
-        $initialTotalIncidents = $initialResult.Data.TotalIncidents
+        $initialTotalIncidents = 0
         Write-Verbose "Initial TotalIncidents for '$TriggerName': $initialTotalIncidents"
     
         $endTime = (Get-Date).AddSeconds($Timeout)

@@ -11,28 +11,169 @@
         Author:            Isaiah Duarte ->  https://github.com/IsaiahDuarte/TriggerTroubleshooter  
         Requires:          The CU Monitor's ControlUp.PowerShell.User.dll & 9.0.5+
         Creation Date:     2/23/2025    
+        Links: https://www.powershellgallery.com/packages/CPUStressTest/1.0.0
         Updated:           
 #>
 
 param (
-    [Parameter(Mandatory = $true, ParameterSetName="WindowsEvent")]
+    [Parameter(Mandatory = $true)]
+    [ValidateSet("Memory","Event","CPU", IgnoreCase=$true)]
+    [string] $TestType,
+
+    [Parameter(Mandatory = $false)]
     [string] $LogName,
 
-    [Parameter(Mandatory = $true, ParameterSetName="WindowsEvent")]
+    [Parameter(Mandatory = $false)]
     [string] $Source,
 
-    [Parameter(Mandatory = $true, ParameterSetName="WindowsEvent")]
+    [Parameter(Mandatory = $false)]
     [string] $EventID,
 
-    [Parameter(Mandatory = $true, ParameterSetName="WindowsEvent")]
+    [Parameter(Mandatory = $false)]
     [string] $EntryType,
     
-    [Parameter(Mandatory = $true, ParameterSetName="WindowsEvent")]
-    [string] $Message
+    [Parameter(Mandatory = $false)]
+    [string] $Message,
+    
+    [Parameter(Mandatory = $false)]
+    [string] $Duration
 )
 
-switch($PsCmdlet.ParameterSetName) {
-    "WindowsEvent" { 
+$code = @'
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
+
+
+public class CpuTester
+{
+    private volatile bool _running = false;
+    private List<Thread> _threads = new List<Thread>();
+
+    /// Start generating CPU load. 
+    /// cpuUsage: an integer between 0 and 100 representing the percentage of CPU load per thread.
+    /// durationMilliseconds: how long (in milliseconds) to generate load.
+    public void Start(int cpuUsage, int durationMilliseconds)
+    {
+        if (cpuUsage < 0 || cpuUsage > 100)
+            throw new ArgumentOutOfRangeException("cpuUsage", "Please specify a percentage between 0 and 100.");
+
+        if (_running)
+            throw new InvalidOperationException("CPU load is already running.");
+
+        _running = true;
+
+        // Launch one thread per processor.
+        for (int i = 0; i < Environment.ProcessorCount; i++)
+        {
+            Thread t = new Thread(new ParameterizedThreadStart(GenerateLoad));
+            t.IsBackground = true;
+            t.Start(cpuUsage);
+            _threads.Add(t);
+        }
+        Thread.Sleep(durationMilliseconds);
+        Stop();
+    }
+
+    /// Signals all running threads to stop and waits for them to terminate.
+    public void Stop()
+    {
+        _running = false;
+        foreach (var t in _threads)
+        {
+            if (t.IsAlive)
+                t.Join();
+        }
+        _threads.Clear();
+    }
+
+    private void GenerateLoad(object cpuUsageObject)
+    {
+        int cpuUsage = (int)cpuUsageObject;
+
+        // Emulate a target CPU load percentage.
+        Stopwatch watch = new Stopwatch();
+
+        while (_running)
+        {
+            watch.Restart();
+            while (watch.ElapsedMilliseconds < cpuUsage)
+            {
+                if (!_running)
+                    break;
+            }
+
+            if (!_running)
+                break;
+
+            int sleepTime = 100 - cpuUsage;
+            if (sleepTime > 0)
+                Thread.Sleep(sleepTime);
+        }
+    }
+}
+'@
+
+Add-Type $code
+
+function Invoke-MemoryUsage {
+    <#
+        .SYNOPSIS
+            Simulates memory usage using Testlimit.exe.
+        .DESCRIPTION
+            Downloads the Sysinternals Testlimit.exe, executes it for a given duration, and cleans up the temporary file.
+        .PARAMETER Duration
+            The duration in seconds to run the simulation.
+        .EXAMPLE
+            Invoke-MemoryUsage -Duration 60
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$Duration
+    )
+
+    Write-Verbose "Simulating memory usage: Target = $TargetPercentage% for Duration = $Duration seconds."
+
+    $tempDir    = [System.IO.Path]::GetTempPath()
+    $tempExe    = Join-Path -Path $tempDir -ChildPath "Testlimit.exe"
+    $downloadUrl= "https://live.sysinternals.com/Testlimit64.exe"
+    $arguments  = "-d /accepteula"
+
+    Write-Verbose "Downloading Testlimit.exe to '$tempExe' from Sysinternals."
+
+    try {
+        Invoke-WebRequest -Uri $downloadUrl -OutFile $tempExe -UseBasicParsing
+        Write-Verbose "Download completed successfully."
+
+        Write-Verbose "Starting Testlimit.exe with arguments: $arguments."
+        $proc = Start-Process -FilePath $tempExe -ArgumentList $arguments -NoNewWindow -PassThru
+
+        Write-Verbose "Process started. Sleeping for duration plus buffer ($($Duration + 5) seconds)."
+        Start-Sleep -Seconds ($Duration + 5)
+
+        Write-Verbose "Stopping Testlimit.exe process."
+        $proc | Stop-Process -Force
+    }
+    catch {
+        Write-Error "Error in Invoke-MemoryUsage: $($_.Exception.Message)"
+        return
+    }
+    finally {
+        if (Test-Path $tempExe) {
+            Remove-Item $tempExe -Force
+            Write-Verbose "Cleaned up temporary Testlimit.exe."
+        }
+    }
+
+    Write-Output "Memory usage simulation complete."
+}
+
+Write-Output "$TestType"
+switch($TestType) {
+    "Event" { 
         if (-not [System.Diagnostics.EventLog]::SourceExists($Source)) {
             New-EventLog -LogName $LogName -Source ($Source)
         }
@@ -44,7 +185,17 @@ switch($PsCmdlet.ParameterSetName) {
             EntryType = $EntryType
             Message = $Message
         }
-        Write-Host $params
+        Write-Output $params
         Write-EventLog @params
+    }
+
+    "Memory" {
+        Invoke-MemoryUsage -Duration $Duration
+    }
+
+    "CPU" {
+        [int]$Duration
+        $tester = [CpuTester]::new()
+        $tester.Start(90,([int]$Duration * 1000))
     }
 }

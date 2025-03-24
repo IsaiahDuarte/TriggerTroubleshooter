@@ -96,6 +96,8 @@ function Test-Trigger {
         $identityField = Get-IdentityPropertyFromTable -Table $table
         Write-Verbose "Identity Field: $identityField"
 
+        $lastInspectionTime = [datetime](Invoke-CUQuery -Scheme Runtime -Table TriggersRuntime -Fields LastInspection -Where "Id='$($trigger.ID)'").data.LastInspection
+
         Write-Verbose "Data retrieved from Get-ScopedTriggerDump: $($dump.Count) records found."
 
         Write-Verbose "Testing each entry from dump"
@@ -109,6 +111,7 @@ function Test-Trigger {
             $result.ScheduleResult = $scheduleResult
             $result.IdentityField = $record."$identityField"
             $result.ArePropertiesObserved = $arePropertiesObserved
+            $result.LastInspectionTime = $lastInspectionTime
             [void] $output.Add($result)
         }
 

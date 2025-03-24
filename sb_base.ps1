@@ -165,6 +165,7 @@ try {
 
         if($simulationResult) {
             Write-Output "Simulation result: $($simulationResult.TriggerFired)"
+            ($simulationResult.Result | Where-Object {$_.IdentityField -eq $SimulateOnComputer}).DisplayResult()
         }
     }
     
