@@ -17,22 +17,22 @@ function Get-MatchingCPUCondition {
     )
     
     try {
-        Write-Verbose "Sanitizing trigger node..."
+        Write-TriggerTroubleshooterLog "Sanitizing trigger node..."
         $sanitizedRoot = Format-SimulationNode -Node $RootNode -Columns @('CPU')
         if (-not $sanitizedRoot) {
             Write-Warning "No triggers remain after sanitization."
             return $null
         }
     
-        Write-Verbose "Building constraints from sanitized node..."
+        Write-TriggerTroubleshooterLog "Building constraints from sanitized node..."
         $constraints = Get-ConstraintsForNode -Node $sanitizedRoot
         
         # Create a result object with default CPU.
         $result = [PSCustomObject]@{ CPU = 0 }
     
-        Write-Verbose "Applying constraints..."
+        Write-TriggerTroubleshooterLog "Applying constraints..."
         foreach ($key in $constraints.Keys) {
-            Write-Verbose "Adding constraint for '$key'"
+            Write-TriggerTroubleshooterLog "Adding constraint for '$key'"
             $result | Add-Member -NotePropertyName $key -NotePropertyValue $constraints[$key] -Force
         }
         
@@ -42,14 +42,14 @@ function Get-MatchingCPUCondition {
 
         # We cap to 75 just in case
         if ($result.CPU -gt 75) {
-            Write-Verbose "CPU value ($($result.CPU)) exceeds 75. Capping to 75."
+            Write-TriggerTroubleshooterLog "CPU value ($($result.CPU)) exceeds 75. Capping to 75."
             $result.CPU = 75
             $sanitizedRoot.ChildNodes.ExpressionDescriptor |
                 Where-Object { $_.Column -eq 'CPU' } |
                 ForEach-Object { $_.Value = 75 }
         }
     
-        Write-Verbose "Returning event object and sanitized node."
+        Write-TriggerTroubleshooterLog "Returning event object and sanitized node."
         return [PSCustomObject]@{
             Data = $result
             Node = $sanitizedRoot

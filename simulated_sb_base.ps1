@@ -17,7 +17,7 @@
 
 param (
     [Parameter(Mandatory = $true)]
-    [ValidateSet("Memory","Event","CPU", IgnoreCase=$true)]
+    [ValidateSet("Memory","WindowsEvent","CPU", IgnoreCase=$true)]
     [string] $TestType,
 
     [Parameter(Mandatory = $false)]
@@ -173,7 +173,7 @@ function Invoke-MemoryUsage {
 
 Write-Output "$TestType"
 switch($TestType) {
-    "Event" { 
+    "WindowsEvent" { 
         if (-not [System.Diagnostics.EventLog]::SourceExists($Source)) {
             New-EventLog -LogName $LogName -Source ($Source)
         }
@@ -197,5 +197,9 @@ switch($TestType) {
         [int]$Duration
         $tester = [CpuTester]::new()
         $tester.Start(90,([int]$Duration * 1000))
+    }
+
+    default {
+        throw "Invalid TestType: $TestType"
     }
 }

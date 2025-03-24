@@ -41,36 +41,36 @@ function Test-Trigger {
     )
 
     try {
-        Write-Verbose "Starting Test-Trigger for trigger name: $Name"
+        Write-TriggerTroubleshooterLog "Starting Test-Trigger for trigger name: $Name"
         $output = [System.Collections.Generic.List[TriggerFilterResult]]::New()
 
-        Write-Verbose "Getting Trigger"
+        Write-TriggerTroubleshooterLog "Getting Trigger"
         $trigger = Get-Trigger -Name $Name
         if (-not $trigger) {
             Write-Warning "Trigger with name '$Name' not found."
             return
         }
-        Write-Verbose "Trigger found: $trigger"
+        Write-TriggerTroubleshooterLog "Trigger found: $trigger"
 
-        Write-Verbose "Getting trigger configuration"
+        Write-TriggerTroubleshooterLog "Getting trigger configuration"
         $triggerDetails = Get-CUTriggerDetails -TriggerId $trigger.Id
 
-        Write-Verbose "Testing the schedule"
+        Write-TriggerTroubleshooterLog "Testing the schedule"
         $scheduleResult = Test-Schedule -ScheduleID $triggerDetails.IncidentScheduleId
 
-        Write-Verbose "Getting Trigger Observable Details"
+        Write-TriggerTroubleshooterLog "Getting Trigger Observable Details"
         $triggerObservableDetails = Get-CUObservableTriggerDetails -Trigger $Name
 
-        Write-Verbose "Getting the Table"
+        Write-TriggerTroubleshooterLog "Getting the Table"
         $table = Get-TableName -TableName $triggerObservableDetails.Table -TriggerType $triggerDetails.TriggerType
 
-        Write-Verbose "Getting all columns"
+        Write-TriggerTroubleshooterLog "Getting all columns"
         $columns = Get-TriggerColumns -FilterNodes $triggerDetails.FilterNodes
 
-        Write-Verbose "Testing if properties are in the Observables runtime"
+        Write-TriggerTroubleshooterLog "Testing if properties are in the Observables runtime"
         $arePropertiesObserved = Test-ObserverdProperties -ResourceName $table -Properties $columns
 
-        Write-Verbose "Getting trigger dump"
+        Write-TriggerTroubleshooterLog "Getting trigger dump"
         $dumpSplat = @{
             Name                     = $Name
             Fields                   = $columns
@@ -80,10 +80,12 @@ function Test-Trigger {
         }
 
         if ($PSCmdlet.ParameterSetName -eq "AllRecords") {
+            Write-TriggerTroubleshooterLog "AllRecords found"
             $dumpSplat.TakeAll = $AllRecords
         }
 
-        if ($PSCmdlet.ParameterSetName -eq "UseQuery") {
+        if ($PSCmdlet.ParameterSetName -eq "Records") {
+            Write-TriggerTroubleshooterLog "Records found"
             $dumpSplat.Take = $Records
         }
 
@@ -94,15 +96,15 @@ function Test-Trigger {
         }
 
         $identityField = Get-IdentityPropertyFromTable -Table $table
-        Write-Verbose "Identity Field: $identityField"
+        Write-TriggerTroubleshooterLog "Identity Field: $identityField"
 
         $lastInspectionTime = [datetime](Invoke-CUQuery -Scheme Runtime -Table TriggersRuntime -Fields LastInspection -Where "Id='$($trigger.ID)'").data.LastInspection
 
-        Write-Verbose "Data retrieved from Get-ScopedTriggerDump: $($dump.Count) records found."
+        Write-TriggerTroubleshooterLog "Data retrieved from Get-ScopedTriggerDump: $($dump.Count) records found."
 
-        Write-Verbose "Testing each entry from dump"
+        Write-TriggerTroubleshooterLog "Testing each entry from dump"
         foreach ($key in $dump.Keys) {
-            Write-Verbose "Testing $key"
+            Write-TriggerTroubleshooterLog "Testing $key"
             $record = $dump[$key]
             $rootNode = [ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode]::New()
             $rootNode.ChildNodes = $triggerDetails.FilterNodes
@@ -115,7 +117,7 @@ function Test-Trigger {
             [void] $output.Add($result)
         }
 
-        Write-Verbose "Returning output with $($output.Count) records."
+        Write-TriggerTroubleshooterLog "Returning output with $($output.Count) records."
 
         if ($Display) {
             $output.DisplayResult()

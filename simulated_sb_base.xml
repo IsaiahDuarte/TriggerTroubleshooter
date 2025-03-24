@@ -44,7 +44,7 @@
                                     <ArgumentType>1</ArgumentType>
                                     <Name>Log Name</Name>
                                     <DefaultValue />
-                                    <ArgumentNumber>0</ArgumentNumber>
+                                    <ArgumentNumber>1</ArgumentNumber>
                                     <ArgumentName>LogName</ArgumentName>
                                     <EmptyBehavior>0</EmptyBehavior>
                                     <ValidationString />
@@ -64,7 +64,7 @@
                                     <ArgumentType>1</ArgumentType>
                                     <Name>Source</Name>
                                     <DefaultValue />
-                                    <ArgumentNumber>1</ArgumentNumber>
+                                    <ArgumentNumber>2</ArgumentNumber>
                                     <ArgumentName>Source</ArgumentName>
                                     <EmptyBehavior>0</EmptyBehavior>
                                     <ValidationString />
@@ -84,7 +84,7 @@
                                     <ArgumentType>1</ArgumentType>
                                     <Name>Event ID</Name>
                                     <DefaultValue />
-                                    <ArgumentNumber>2</ArgumentNumber>
+                                    <ArgumentNumber>3</ArgumentNumber>
                                     <ArgumentName>EventID</ArgumentName>
                                     <EmptyBehavior>0</EmptyBehavior>
                                     <ValidationString />
@@ -104,7 +104,7 @@
                                     <ArgumentType>1</ArgumentType>
                                     <Name>Entry Type</Name>
                                     <DefaultValue />
-                                    <ArgumentNumber>3</ArgumentNumber>
+                                    <ArgumentNumber>4</ArgumentNumber>
                                     <ArgumentName>EntryType</ArgumentName>
                                     <EmptyBehavior>0</EmptyBehavior>
                                     <ValidationString />
@@ -124,8 +124,48 @@
                                     <ArgumentType>1</ArgumentType>
                                     <Name>Message</Name>
                                     <DefaultValue />
-                                    <ArgumentNumber>4</ArgumentNumber>
+                                    <ArgumentNumber>5</ArgumentNumber>
                                     <ArgumentName>Message</ArgumentName>
+                                    <EmptyBehavior>0</EmptyBehavior>
+                                    <ValidationString />
+                                    <ValidationError />
+                                    <MaskTypedCharacters>false</MaskTypedCharacters>
+                                    <EntityType>0</EntityType>
+                                </SBAArgumentDescriptor>
+                            </value>
+                        </item>
+                        <item>
+                            <key>
+                                <string>010bc4eb-f281-4062-8085-62613c6e3dd3</string>
+                            </key>
+                            <value>
+                                <SBAArgumentDescriptor>
+                                    <ArgumentId>010bc4eb-f281-4062-8085-62613c6e3dd3</ArgumentId>
+                                    <ArgumentType>1</ArgumentType>
+                                    <Name>TestType</Name>
+                                    <DefaultValue />
+                                    <ArgumentNumber>0</ArgumentNumber>
+                                    <ArgumentName>TestType</ArgumentName>
+                                    <EmptyBehavior>0</EmptyBehavior>
+                                    <ValidationString>Memory|CPU|WindowsEvent</ValidationString>
+                                    <ValidationError />
+                                    <MaskTypedCharacters>false</MaskTypedCharacters>
+                                    <EntityType>0</EntityType>
+                                </SBAArgumentDescriptor>
+                            </value>
+                        </item>
+                        <item>
+                            <key>
+                                <string>5a492bc6-4ab3-4ba5-9150-19acd820bef1</string>
+                            </key>
+                            <value>
+                                <SBAArgumentDescriptor>
+                                    <ArgumentId>5a492bc6-4ab3-4ba5-9150-19acd820bef1</ArgumentId>
+                                    <ArgumentType>1</ArgumentType>
+                                    <Name>Duration</Name>
+                                    <DefaultValue />
+                                    <ArgumentNumber>6</ArgumentNumber>
+                                    <ArgumentName>Duration</ArgumentName>
                                     <EmptyBehavior>0</EmptyBehavior>
                                     <ValidationString />
                                     <ValidationError />

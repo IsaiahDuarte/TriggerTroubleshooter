@@ -28,15 +28,15 @@ function Test-Schedule {
     )
 
     try {
-        Write-Verbose "Starting Test-Schedule. ParameterSetName: $($PSCmdlet.ParameterSetName)"
+        Write-TriggerTroubleshooterLog "Starting Test-Schedule. ParameterSetName: $($PSCmdlet.ParameterSetName)"
         $now = [datetime]::Now
         $currentDay = [int]$now.DayOfWeek
         $currentHour = $now.Hour
-        Write-Verbose "Current Day: $currentDay, Current Hour: $currentHour"
+        Write-TriggerTroubleshooterLog "Current Day: $currentDay, Current Hour: $currentHour"
 
         $schedule = switch ($PSCmdlet.ParameterSetName) {
             'ByName' {
-                Write-Verbose "Retrieving schedule by name: $ScheduleName"
+                Write-TriggerTroubleshooterLog "Retrieving schedule by name: $ScheduleName"
                 $schedules = Get-CUTriggerSchedules
 
                 if($null -eq $schedules) {
@@ -51,12 +51,12 @@ function Test-Schedule {
                     throw "Multiple schedules found with name '$ScheduleName'. Please specify by ScheduleID."
                 }
                 else {
-                    Write-Verbose "Found schedule: $($schedules[0])"
+                    Write-TriggerTroubleshooterLog "Found schedule: $($schedules[0])"
                     $schedules[0]
                 }
             }
             'ByID' {
-                Write-Verbose "Retrieving schedule by ID: $ScheduleID"
+                Write-TriggerTroubleshooterLog "Retrieving schedule by ID: $ScheduleID"
                 $schedule = Get-CUTriggerSchedules | Where-Object { $_.Id -eq $ScheduleID }
                 if (-not $schedule) {
                     throw "Schedule with ID '$ScheduleID' not found."
@@ -64,30 +64,30 @@ function Test-Schedule {
 
                 # For some reason this returns two; if ScheduleID is 'All Days' then pick the first
                 if ($ScheduleID -eq "All Days") {
-                    Write-Verbose "ScheduleID is 'All Days'; using first entry."
+                    Write-TriggerTroubleshooterLog "ScheduleID is 'All Days'; using first entry."
                     $schedule = $schedule[0]
                 }
-                Write-Verbose "Found schedule: $schedule"
+                Write-TriggerTroubleshooterLog "Found schedule: $schedule"
                 $schedule
             }
         }
 
         $selectedHoursEntry = $schedule.Weekdays | Where-Object { $_.Day -eq $currentDay }
-        Write-Verbose "Selected hours entry for current day ($currentDay): $selectedHoursEntry"
+        Write-TriggerTroubleshooterLog "Selected hours entry for current day ($currentDay): $selectedHoursEntry"
 
         if (-not $selectedHoursEntry) {
-            Write-Verbose "No entry found for current day; returning false."
+            Write-TriggerTroubleshooterLog "No entry found for current day; returning false."
             return $false
         }
 
         $selectedHours = $selectedHoursEntry.SelectedHours
-        Write-Verbose "Selected hours for current day: $selectedHours"
+        Write-TriggerTroubleshooterLog "Selected hours for current day: $selectedHours"
 
         $hourMask = 1 -shl $currentHour
-        Write-Verbose "Hour mask for current hour ($currentHour): $hourMask"
+        Write-TriggerTroubleshooterLog "Hour mask for current hour ($currentHour): $hourMask"
 
         $isHourSelected = ($selectedHours -band $hourMask) -ne 0
-        Write-Verbose "Is current hour selected: $isHourSelected"
+        Write-TriggerTroubleshooterLog "Is current hour selected: $isHourSelected"
 
         return $isHourSelected
     }

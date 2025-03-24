@@ -4,6 +4,8 @@ BeforeAll {
     # Stub out commands from other modules.
     function Export-CUQuery { }
     function Invoke-CUQuery { }
+
+    function Write-TriggerTroubleshooterLog { }
 }
 
 Describe "Get-CUQueryData" {

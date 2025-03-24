@@ -28,18 +28,18 @@ function Get-NotEqualValue {
     )
     
     try {
-        Write-Verbose "Determining distinct value for compareValue: $compareValue"
+        Write-TriggerTroubleshooterLog "Determining distinct value for compareValue: $compareValue"
     
         # Check if compareValue can be treated as a number
         if ($compareValue -as [double]) {
             $result = ([double]$compareValue + 1)
-            Write-Verbose "Numeric value detected. Returning $compareValue + 1 = $result"
+            Write-TriggerTroubleshooterLog "Numeric value detected. Returning $compareValue + 1 = $result"
             return $result
         }
     
         # Otherwise assume it's a string
         $result = "$compareValue" + "_NOT"
-        Write-Verbose "Non-numeric value detected. Returning '$result'"
+        Write-TriggerTroubleshooterLog "Non-numeric value detected. Returning '$result'"
         return $result
     }
     catch {

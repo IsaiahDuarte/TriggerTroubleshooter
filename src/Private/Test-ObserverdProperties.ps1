@@ -28,7 +28,7 @@ function Test-ObserverdProperties {
         [string[]] $Properties
     )
 
-    Write-Verbose "Starting Test-ObserverdProperties function."
+    Write-TriggerTroubleshooterLog "Starting Test-ObserverdProperties function."
 
     $splat = @{
         Table  = 'Observables'
@@ -38,29 +38,29 @@ function Test-ObserverdProperties {
     }
 
     try {
-        Write-Verbose "Executing Invoke-CUQuery -Table $($splat.Table) -Scheme $($splat.Runtime) -Fields $($splat.Fields) -Where $($splat.Where)"
+        Write-TriggerTroubleshooterLog "Executing Invoke-CUQuery -Table $($splat.Table) -Scheme $($splat.Runtime) -Fields $($splat.Fields) -Where $($splat.Where)"
         $result = Invoke-CUQuery @splat
-        Write-Verbose "Invoke-CUQuery executed successfully."
+        Write-TriggerTroubleshooterLog "Invoke-CUQuery executed successfully."
 
         if ($result.Total -eq 0) {
-            Write-Verbose "No data returned from query."
+            Write-TriggerTroubleshooterLog "No data returned from query."
             Write-Warning "Properties are not being observed by monitor."
             return $false
         }
 
-        Write-Verbose "Converting the 'ObserverdProps' JSON string to a PowerShell object."
-        Write-Verbose "JSON: $($result.Data.ObserverdProps)"
+        Write-TriggerTroubleshooterLog "Converting the 'ObserverdProps' JSON string to a PowerShell object."
+        Write-TriggerTroubleshooterLog "JSON: $($result.Data.ObserverdProps)"
         $ObserverdProps = $result.Data.ObserverdProps | ConvertFrom-Json -ErrorAction Stop
 
         foreach ($property in $Properties) {
-            Write-Verbose "Checking if property '$property' is present in ObserverdProps."
+            Write-TriggerTroubleshooterLog "Checking if property '$property' is present in ObserverdProps."
             if ($property -notin $ObserverdProps) {
-                Write-Verbose "Property '$property' is missing. Returning \$false."
+                Write-TriggerTroubleshooterLog "Property '$property' is missing. Returning \$false."
                 return $false
             }
         }
 
-        Write-Verbose "All specified properties were found. Returning \$true."
+        Write-TriggerTroubleshooterLog "All specified properties were found. Returning \$true."
         return $true
     }
     catch {

@@ -42,21 +42,21 @@ function Wait-ForTrigger {
     $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
     
     try {
-        Write-Verbose "Polling for trigger '$TriggerName' with Timeout: $TimeoutSeconds seconds and Poll Interval: $PollIntervalSeconds seconds. ShouldExist: $ShouldExist"
+        Write-TriggerTroubleshooterLog "Polling for trigger '$TriggerName' with Timeout: $TimeoutSeconds seconds and Poll Interval: $PollIntervalSeconds seconds. ShouldExist: $ShouldExist"
             
         do {
-            Write-Verbose "Invoking query for trigger '$TriggerName'. Elapsed time: $($stopwatch.Elapsed.TotalSeconds) seconds."
+            Write-TriggerTroubleshooterLog "Invoking query for trigger '$TriggerName'. Elapsed time: $($stopwatch.Elapsed.TotalSeconds) seconds."
             $queryResult = Invoke-CUQuery -Scheme 'Config' -Table 'TriggersConfiguration' -Fields @("Name", "Id") -Where "Name='$TriggerName'"
     
             $triggerExists = ($queryResult.Total -gt 0)
-            Write-Verbose "Trigger existence check: $triggerExists"
+            Write-TriggerTroubleshooterLog "Trigger existence check: $triggerExists"
     
             if ($ShouldExist.IsPresent -and $triggerExists) {
-                Write-Verbose "Trigger '$TriggerName' found. Returning associated data."
+                Write-TriggerTroubleshooterLog "Trigger '$TriggerName' found. Returning associated data."
                 return $queryResult.Data
             }
             elseif (-not $ShouldExist.IsPresent -and -not $triggerExists) {
-                Write-Verbose "Trigger '$TriggerName' not found. Returning true."
+                Write-TriggerTroubleshooterLog "Trigger '$TriggerName' not found. Returning true."
                 return $true
             }
     

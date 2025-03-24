@@ -23,17 +23,17 @@ function Format-SimulationNode {
     )
 
     try {
-        Write-Verbose "Starting node formatting."
+        Write-TriggerTroubleshooterLog "Starting node formatting."
         
         if (-not $Node) {
-            Write-Verbose "Node is null or empty. Exiting function."
+            Write-TriggerTroubleshooterLog "Node is null or empty. Exiting function."
             return $null
         }
 
         # Check if ExpressionDescriptor exists and if it's invalid
         if ($Node.ExpressionDescriptor) {
             if ($Node.ExpressionDescriptor.IsRegex -or -not ($Columns -contains $Node.ExpressionDescriptor.Column)) {
-                Write-Verbose "ExpressionDescriptor is either Regex or not in allowed columns. Removing node."
+                Write-TriggerTroubleshooterLog "ExpressionDescriptor is either Regex or not in allowed columns. Removing node."
                 return $null
             }
         }
@@ -41,7 +41,7 @@ function Format-SimulationNode {
         # Recurse through child nodes and build a new list without invalid nodes.
         $cleanChildren = [System.Collections.Generic.List[ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode]]::New()
         foreach ($child in $Node.ChildNodes) {
-            Write-Verbose "Processing a child node."
+            Write-TriggerTroubleshooterLog "Processing a child node."
             $processedChild = Format-SimulationNode -Node $child -Columns $Columns
             if ($processedChild) {
                 $cleanChildren.Add($processedChild)
@@ -49,7 +49,7 @@ function Format-SimulationNode {
         }
         $Node.ChildNodes = $cleanChildren
 
-        Write-Verbose "Finished processing node."
+        Write-TriggerTroubleshooterLog "Finished processing node."
         return , $Node
     }
     catch {

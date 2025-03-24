@@ -1,6 +1,7 @@
 BeforeAll {
     . $PSCommandPath.Replace('.Tests.ps1', '.ps1').Replace('tests', 'src').Replace('\unit', '')
     . $PSCommandPath.Replace('.Tests.ps1', '.ps1').Replace('tests', 'src').Replace('\unit', '').Replace('Test-TriggerFilterNode', 'Test-Comparison')
+    function Write-TriggerTroubleshooterLog { }
 
     Add-Type -Language CSharp -TypeDefinition @"
 using System;

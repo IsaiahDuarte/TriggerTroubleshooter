@@ -22,22 +22,22 @@ function Get-MatchingMemoryCondition {
     )
     
     try {
-        Write-Verbose "Sanitizing trigger node..."
+        Write-TriggerTroubleshooterLog "Sanitizing trigger node..."
         $sanitizedRoot = Format-SimulationNode -Node $RootNode -Columns @('MemoryInUse')
         if (-not $sanitizedRoot) {
             Write-Warning "No triggers remain after sanitization."
             return $null
         }
     
-        Write-Verbose "Building constraints from sanitized node..."
+        Write-TriggerTroubleshooterLog "Building constraints from sanitized node..."
         $constraints = Get-ConstraintsForNode -Node $sanitizedRoot
         
         # Create a result object with default MemoryInUse.
         $result = [PSCustomObject]@{ MemoryInUse = 0 }
     
-        Write-Verbose "Applying constraints..."
+        Write-TriggerTroubleshooterLog "Applying constraints..."
         foreach ($key in $constraints.Keys) {
-            Write-Verbose "Adding constraint for '$key'"
+            Write-TriggerTroubleshooterLog "Adding constraint for '$key'"
             $result | Add-Member -NotePropertyName $key -NotePropertyValue $constraints[$key] -Force
         }
     
@@ -47,14 +47,14 @@ function Get-MatchingMemoryCondition {
         
         # We cap to 90 in case TestLimit cant reach 90. Tested with 2GB VM
         if ($result.MemoryInUse -gt 90) {
-            Write-Verbose "MemoryInUse value ($($result.MemoryInUse)) exceeds 90. Capping to 90."
+            Write-TriggerTroubleshooterLog "MemoryInUse value ($($result.MemoryInUse)) exceeds 90. Capping to 90."
             $result.MemoryInUse = 90
             $sanitizedRoot.ChildNodes.ExpressionDescriptor |
                 Where-Object { $_.Column -eq 'MemoryInUse' } |
                 ForEach-Object { $_.Value = 90 }
         }
     
-        Write-Verbose "Returning event object and sanitized node."
+        Write-TriggerTroubleshooterLog "Returning event object and sanitized node."
         return [PSCustomObject]@{
             Data = $result
             Node = $sanitizedRoot

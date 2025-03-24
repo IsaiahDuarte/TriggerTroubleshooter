@@ -10,7 +10,7 @@
             "request": "launch",
             "script": "${workspaceFolder}\\Release\\ScriptAction.ps1",
             "cwd": "${workspaceFolder}",
-            "args": ["-TriggerName \"Logical Disk Advanced Trigger\""]
+            "args": ["-TriggerName \"WEvent\"", "-Records \"1\"", "-SimulateTriggerParameter \"True\"", "-SimulateOnComputer \"oliver-rt\""]
         },
         {
             "name": "test_script.ps1",

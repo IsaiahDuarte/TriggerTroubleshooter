@@ -71,28 +71,28 @@ function Trace-TriggerData {
         }
     
         try {
-            Write-Verbose "Getting Trigger"
+            Write-TriggerTroubleshooterLog "Getting Trigger"
             $trigger = Get-Trigger -Name $Name
             if (-not $trigger) {
                 Write-Warning "Trigger '$Name' not found"
                 return
             }
 
-            Write-Verbose "Getting trigger configuration"
+            Write-TriggerTroubleshooterLog "Getting trigger configuration"
             $triggerDetails = Get-CUTriggerDetails -TriggerId $trigger.Id
 
-            Write-Verbose "Getting Trigger Observable Details"
+            Write-TriggerTroubleshooterLog "Getting Trigger Observable Details"
             $triggerObservableDetails = Get-CUObservableTriggerDetails -Trigger $Name
 
-            Write-Verbose "Getting the Table"
+            Write-TriggerTroubleshooterLog "Getting the Table"
             $table = Get-TableName -TableName $triggerObservableDetails.Table -TriggerType $triggerDetails.TriggerType
 
-            Write-Verbose "Getting columns"
+            Write-TriggerTroubleshooterLog "Getting columns"
             $columns = Get-TriggerColumns -FilterNodes $triggerDetails.FilterNodes
             
             $start_time = Get-Date
 
-            Write-Verbose "Opening CSVWriter"
+            Write-TriggerTroubleshooterLog "Opening CSVWriter"
             $csvWriter = [CSVWriter]::new($CsvPath, $true)
             $allHeaders = [System.Collections.Generic.List[Object]]::new()
             $fileList = [System.Collections.Generic.List[string]]::new()
@@ -101,7 +101,7 @@ function Trace-TriggerData {
     
             do {
                 try {
-                    Write-Verbose "Getting dump"
+                    Write-TriggerTroubleshooterLog "Getting dump"
                     $dumpSplat = @{
                         Name                     = $Name
                         Fields                   = $columns
@@ -125,7 +125,7 @@ function Trace-TriggerData {
 
                     # Check if we need to rotate the file
                     if ($csvWriter.GetFileSize() -ge $FileSizeThreshold) {
-                        Write-Verbose "Rotating file"
+                        Write-TriggerTroubleshooterLog "Rotating file"
                         $csvWriter.Close()
                         $fileCounter++
                         $newFile = "{0}_{1}.csv" -f ($CsvPath -replace '\.csv$', ''), $fileCounter
@@ -164,7 +164,7 @@ function Trace-TriggerData {
                         $csvWriter.Stream.Flush()
                     }
     
-                    Write-Verbose "Sleeping for $CollectionInterval seconds"
+                    Write-TriggerTroubleshooterLog "Sleeping for $CollectionInterval seconds"
                     Start-Sleep -Seconds $CollectionInterval
                 }
                 catch {
@@ -174,14 +174,14 @@ function Trace-TriggerData {
                 $current_time = Get-Date
             } while ($current_time -lt ($start_time + $Duration))
     
-            Write-Verbose "Done"
+            Write-TriggerTroubleshooterLog "Done"
         }
         catch {
             Write-Error "Error in Trace-TriggerData: $($_.Exception.Message)"
         }
         finally {
             if ($csvWriter) {
-                Write-Verbose "Closing writer"
+                Write-TriggerTroubleshooterLog "Closing writer"
                 $csvWriter.Close()
             }
         }

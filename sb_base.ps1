@@ -78,23 +78,12 @@ param (
 
 )
 
+$ENV:TRIGGER_TROUBLESHOOTER_LOG_TO_FILE = $true
+$ENV:TRIGGER_TROUBLESHOOTER_LOG_TO_HOST = $true
+
 ###ImportModule###
 
 #region SB base start
-
-# Set preferences for error handling, verbosity, and debugging.
-$ErrorActionPreference = 'Stop' 
-$VerbosePreference = 'SilentlyContinue' 
-$DebugPreference = 'SilentlyContinue' 
-$ProgressPreference = 'SilentlyContinue' 
-$PSBoundParameters.GetEnumerator() | Foreach-Object { 
-    Switch ($_.Key) { 
-        'verbose' { $VerbosePreference = $_.Value } 
-        'debug' { $DebugPreference = $_.Value } 
-        'erroraction' { $ErrorActionPreference = $_.Value } 
-    } 
-}
-
 
 # Convert the string parameters for AllRecords and CollectSupportZip to Boolean values.
 $AllRecords = [System.Convert]::ToBoolean($AllRecordsParameter)
@@ -118,18 +107,18 @@ try {
 
     # Warn the user if Records is provided along with AllRecords = True,
     # because the Records parameter won’t be used in this scenario.
-    if ($AllRecords -and $PSBoundParameters.ContainsKey("Records")) {
+    if ($AllRecords -eq $true -and $PSBoundParameters.ContainsKey("Records")) {
         Write-Warning "The 'Records' value will be ignored because 'AllRecords' is set to True."
     }
 
     # Use different testing logic based on whether AllRecords is true.
     Write-Output "`nTesting trigger: $TriggerName"
-    if ($AllRecords) {
-        Write-Verbose "Using Export logic."
+    if ($AllRecords -eq $true) {
+        Write-TriggerTroubleshooterLog "Using Export logic."
         $result = Test-Trigger -Name $TriggerName -AllRecords
     }
     else {
-        Write-Verbose "Using Query logic with Records = $Records."
+        Write-TriggerTroubleshooterLog "Using Query logic with Records = $Records."
         $result = Test-Trigger -Name $TriggerName -Records $Records
     }
 
@@ -160,12 +149,14 @@ try {
         }
 
         switch ($trigger.TriggerType) {
-            "Windows Event" { $simulationResult = Invoke-SimulatedWindowsEvent -TriggerName $TriggerName -ComputerName $SimulateOnComputer }
+            "Windows Event" { $simulationResult = Invoke-SimulatedTrigger -TriggerName $TriggerName -ComputerName $SimulateOnComputer -ConditionType "WindowsEvent" -Verbose }
         }
 
         if($simulationResult) {
+            $separator = '=' * 60
+            Write-Output $separator
             Write-Output "Simulation result: $($simulationResult.TriggerFired)"
-            ($simulationResult.Result | Where-Object {$_.IdentityField -eq $SimulateOnComputer}).DisplayResult()
+            Write-Output $separator
         }
     }
     

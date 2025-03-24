@@ -1,6 +1,8 @@
 BeforeAll {
     . $PSCommandPath.Replace('.Tests.ps1','.ps1').Replace('tests','src').Replace('\unit','')
     function Get-CUTriggerSchedules { }
+
+    function Write-TriggerTroubleshooterLog { }
 }
 
 Describe "Test-Schedule" {

@@ -32,7 +32,7 @@ function Wait-ForTriggerToFire {
     )
   
     try {
-        Write-Verbose "Starting monitoring for trigger '$TriggerName'."
+        Write-TriggerTroubleshooterLog "Starting monitoring for trigger '$TriggerName'."
         $splat = @{
             Table  = "TriggersRuntime"
             Scheme = "Runtime"
@@ -47,7 +47,7 @@ function Wait-ForTriggerToFire {
         }
     
         $initialTotalIncidents = 0
-        Write-Verbose "Initial TotalIncidents for '$TriggerName': $initialTotalIncidents"
+        Write-TriggerTroubleshooterLog "Initial TotalIncidents for '$TriggerName': $initialTotalIncidents"
     
         $endTime = (Get-Date).AddSeconds($Timeout)
     
@@ -55,15 +55,15 @@ function Wait-ForTriggerToFire {
             Start-Sleep -Seconds $Interval
             $currentResult = Invoke-CUQuery @splat
             if (-not $currentResult.Data) {
-                Write-Verbose "No data returned during polling for '$TriggerName'; skipping iteration."
+                Write-TriggerTroubleshooterLog "No data returned during polling for '$TriggerName'; skipping iteration."
                 continue
             }
     
             $currentTotalIncidents = $currentResult.Data.TotalIncidents
-            Write-Verbose "Current TotalIncidents: $currentTotalIncidents, LastInspection: $($currentResult.Data.LastInspection)"
+            Write-TriggerTroubleshooterLog "Current TotalIncidents: $currentTotalIncidents, LastInspection: $($currentResult.Data.LastInspection)"
     
             if ($currentTotalIncidents -gt $initialTotalIncidents) {
-                Write-Verbose "Trigger '$TriggerName' fired: TotalIncidents increased from $initialTotalIncidents to $currentTotalIncidents."
+                Write-TriggerTroubleshooterLog "Trigger '$TriggerName' fired: TotalIncidents increased from $initialTotalIncidents to $currentTotalIncidents."
                 return $true
             }
         }
