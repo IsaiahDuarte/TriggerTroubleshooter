@@ -81,9 +81,7 @@ param (
     [string] $DebugParameter = "False"
 
 )
-
 ###ImportModule###
-
 #region SB base start
 
 # Convert the string parameters for AllRecords and CollectSupportZip to Boolean values.

@@ -20,6 +20,72 @@ param(
     [bool]$RunIntegrationTests = $false
 )
 
+function Update-ReleaseScript {
+    [CmdletBinding()]
+    param(
+        # An array of file paths containing the function scripts.
+        [Parameter(Mandatory = $true)]
+        [string[]]$Files,
+
+        # The base script file that contains the marker.
+        [Parameter(Mandatory = $true)]
+        [string]$sbBase,
+
+        # The marker string to search for in the base script.
+        [Parameter(Mandatory = $true)]
+        [string]$marker,
+
+        # The path for the updated target release script.
+        [Parameter(Mandatory = $true)]
+        [string]$targetScript
+    )
+
+    # Create a list to hold the functions code block.
+    $functionsCode = New-Object 'System.Collections.Generic.List[string]'
+
+    foreach ($file in $Files) {
+        if (-not (Test-Path -Path $file)) {
+            Write-Warning "File not found: $file. Skipping."
+            continue
+        }
+
+        $header = "`n`n#region $([System.IO.Path]::GetFileName($file))`n"
+        $footer = "`n#endregion`n`n"
+        $codeBlock = Get-Content -Path $file -Raw
+        $functionsCode.Add($header)
+        $functionsCode.Add($codeBlock)
+        $functionsCode.Add($footer)
+    }
+    $functionsCodeblock = [string]::Join("", $functionsCode)
+
+    # Read the base script content.
+    if (-not (Test-Path -Path $sbBase)) {
+        Write-Error "Base script not found at $sbBase"
+        return
+    }
+    $sbBaseContent = Get-Content -Path $sbBase -Raw
+
+    # Verify that the marker exists in the base script.
+    if (-not $sbBaseContent.Contains($marker)) {
+        Write-Error "The marker '$marker' was not found in $sbBase"
+        return
+    }
+
+    # Split the base script content on the marker.
+    $parts = $sbBaseContent -split [regex]::Escape($marker)
+    if ($parts.Count -ne 2) {
+        Write-Error "Unable to split $sbBase using the marker."
+        return
+    }
+
+    # Build the updated script content by inserting the functions block.
+    $updatedContent = $parts[0] + $marker + "`n" + $functionsCodeblock + "`n" + $parts[1]
+
+    # Write the updated content to the target release script.
+    Write-Output "Building the release script at $targetScript"
+    Set-Content -Path $targetScript -Value $updatedContent -Encoding UTF8
+}
+
 #region Initialization
 
 # Define paths relative to the current script location.
@@ -32,10 +98,13 @@ $sbBase = Join-Path -Path $PSScriptRoot -ChildPath "sb_base.ps1"
 $simulatedSBBase = Join-Path -Path $PSScriptRoot -ChildPath "simulated_sb_base.ps1"
 
 $moduleFolder = Join-Path -Path $PSScriptRoot -ChildPath "src"
+$publicFolder = Join-Path -Path $moduleFolder -ChildPath "Public"
+$privateFolder = Join-Path -Path $moduleFolder -ChildPath "Private"
+$privateSimulatedFolder = Join-Path -Path $moduleFolder -ChildPath "Private-Simulated"
 $moduleZip = Join-Path -Path $PSScriptRoot -ChildPath "Release\TriggerTroubleshooter.zip"
 
 $targetScript = Join-Path -Path $PSScriptRoot -ChildPath "Release\ScriptAction.ps1"
-
+$targetSimulatedScript = Join-Path -Path $PSScriptRoot -ChildPath "Release\ScriptAction-Simulated.ps1"
 # Base XML descriptor file (used as a template).
 $sbBasexml = Join-Path -Path $PSScriptRoot -ChildPath "sb_base.xml"
 $sbSimBasexml = Join-Path -Path $PSScriptRoot -ChildPath "simulated_sb_base.xml"
@@ -88,53 +157,13 @@ if ($RunIntegrationTests) {
 
 #region Build Script
 
-Write-Output "Collecting module functions from $moduleFolder"
+Write-Output "Collecting module functions from $publicFolder $privateFolder"
 
-# Get all .ps1 files from the module folder.
-$functions = Get-ChildItem -Path $moduleFolder -Filter *.ps1 -Recurse
-
-# Build the code block to be injected into the base script.
-$functionsCode = New-Object 'System.Collections.Generic.List[string]'
-foreach ($file in $functions) {
-    $header = "`n`n#region $($file.Name)`n"
-    $footer = "`n#endregion`n`n"
-    $codeBlock = Get-Content -Path $file.FullName -Raw
-
-    $functionsCode.Add($header)
-    $functionsCode.Add($codeBlock)
-    $functionsCode.Add($footer)
-}
-
-$functionsCodeblock = [string]::Join("", $functionsCode)
-
-# Read the base script content.
-if (-not (Test-Path -Path $sbBase)) {
-    Write-Error "Base script not found at $sbBase"
-    exit
-}
-
-$sbBaseContent = Get-Content -Path $sbBase -Raw
-
-# Verify that the marker exists in the base script.
-if (-not $sbBaseContent.Contains($marker)) {
-    Write-Error "The marker '$marker' was not found in $sbBase"
-    exit
-}
-
-# Split the sb_base content on the marker.
-$parts = $sbBaseContent -split [regex]::Escape($marker)
-if ($parts.Count -ne 2) {
-    Write-Error "Unable to split $sbBase using the marker."
-    exit
-}
-
-# Build the updated script content by inserting the functions block.
-$updatedContent = $parts[0] + $marker + "`n" + $functionsCodeblock + "`n" + $parts[1]
-
-# Write the updated content to the target release script.
-Write-Output "Building the release script at $targetScript"
-Set-Content -Path $targetScript -Value $updatedContent -Encoding UTF8
-
+# Get all .ps1 files from the module folder
+$functions = Get-ChildItem -Path $publicFolder, $privateFolder -Filter *.ps1 -Recurse
+$simulatedFunctions = Get-ChildItem -Path $privateSimulatedFolder -Filter *.ps1 -Recurse
+Update-ReleaseScript -Files $functions.FullName -sbBase $sbBase -marker $marker -targetScript $targetScript
+Update-ReleaseScript -Files $simulatedFunctions.FullName -sbBase $simulatedSBBase -marker $marker -targetScript $targetSimulatedScript
 #endregion
 
 #region Build XML Descriptor
@@ -208,7 +237,7 @@ if (-not (Test-Path -Path $simulatedSBBase)) {
     exit
 }
 
-$simBaseContent = Get-Content -Path $simulatedSBBase -Raw
+$simBaseContent = Get-Content -Path $targetSimulatedScript -Raw
 
 # Compress and encode the simulated updated content.
 $simScriptBytes = [System.Text.Encoding]::Unicode.GetBytes($simBaseContent)
