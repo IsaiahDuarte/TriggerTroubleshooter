@@ -27,11 +27,11 @@ function Get-SupportTriggerDump {
         [string] $OutputDirectory = $env:TEMP
     )
 
-    Write-TriggerTroubleshooterLog "Starting Get-SupportTriggerDump for TriggerName: '$Name'"
-    Write-TriggerTroubleshooterLog "OutputDirectory set to: '$OutputDirectory'"
+    Write-TTLog "Starting Get-SupportTriggerDump for TriggerName: '$Name'"
+    Write-TTLog "OutputDirectory set to: '$OutputDirectory'"
 
     try {
-        Write-TriggerTroubleshooterLog "Retrieving trigger details..."
+        Write-TTLog "Retrieving trigger details..."
         $trigger = Get-Trigger -Name $Name
 
         # Check if the retrieved trigger exists
@@ -40,45 +40,45 @@ function Get-SupportTriggerDump {
             return
         }
 
-        Write-TriggerTroubleshooterLog "Trigger found. Id: $($trigger.Id)"
+        Write-TTLog "Trigger found. Id: $($trigger.Id)"
 
         # Create a unique temporary directory for storing dump files
-        Write-TriggerTroubleshooterLog "Creating temporary directory for dump files..."
+        Write-TTLog "Creating temporary directory for dump files..."
         $tempRoot = [System.IO.Path]::GetTempPath()
         $tempDirectory = Join-Path -Path $tempRoot -ChildPath ([Guid]::NewGuid())
         New-Item -ItemType Directory -Path $tempDirectory | Out-Null
-        Write-TriggerTroubleshooterLog "Created temporary directory: $tempDirectory"
+        Write-TTLog "Created temporary directory: $tempDirectory"
 
         # Export Trigger Details into JSON format
         $triggerDetails = Get-CUTriggerDetails -TriggerId $trigger.Id
         $triggerDetailsPath = Join-Path -Path $tempDirectory -ChildPath "TriggerDetails.json"
-        Write-TriggerTroubleshooterLog "Exporting Trigger Details to '$triggerDetailsPath'"
+        Write-TTLog "Exporting Trigger Details to '$triggerDetailsPath'"
         $triggerDetails | ConvertTo-Json -Depth 20 -Compress | Out-File -FilePath $triggerDetailsPath -Encoding UTF8
-        Write-TriggerTroubleshooterLog "Trigger Details exported successfully."
+        Write-TTLog "Trigger Details exported successfully."
 
         # Export Observable Trigger Details into JSON format
         $observableDetails = Get-CUObservableTriggerDetails -Trigger $Name
         $observableDetailsPath = Join-Path -Path $tempDirectory -ChildPath "ObservableTriggerDetails.json"
-        Write-TriggerTroubleshooterLog "Exporting Observable Trigger Details to '$observableDetailsPath'"
+        Write-TTLog "Exporting Observable Trigger Details to '$observableDetailsPath'"
         $observableDetails | ConvertTo-Json -Depth 20 -Compress | Out-File -FilePath $observableDetailsPath -Encoding UTF8
-        Write-TriggerTroubleshooterLog "Observable Trigger Details exported successfully."
+        Write-TTLog "Observable Trigger Details exported successfully."
 
         # Prepare the ZIP file for the output
         $zipFileName = "$Name.zip"
         $zipFilePath = Join-Path -Path $OutputDirectory -ChildPath $zipFileName
-        Write-TriggerTroubleshooterLog "Compressing dump files into archive '$zipFilePath'"
+        Write-TTLog "Compressing dump files into archive '$zipFilePath'"
         Compress-Archive -Path $tempDirectory -DestinationPath $zipFilePath -Force
-        Write-TriggerTroubleshooterLog "Compression completed successfully."
+        Write-TTLog "Compression completed successfully."
 
         # Clean up the temporary directory
-        Write-TriggerTroubleshooterLog "Removing temporary directory '$tempDirectory'"
+        Write-TTLog "Removing temporary directory '$tempDirectory'"
         Remove-Item -Path $tempDirectory -Recurse -Force
-        Write-TriggerTroubleshooterLog "Temporary directory removed successfully."
+        Write-TTLog "Temporary directory removed successfully."
 
         Write-Output "Trigger dump saved to '$zipFilePath'"
     }
     catch {
-        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
+        Write-TTLog "ERROR: $($_.Exception.Message)"
         Write-Error "An error occurred during the trigger dump process: $($_.Exception.Message)"
         throw
     }

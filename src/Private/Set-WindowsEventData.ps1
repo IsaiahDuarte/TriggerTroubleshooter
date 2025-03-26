@@ -19,7 +19,7 @@ function Set-WindowsEventData {
         $properties = $Data | Get-Member -MemberType NoteProperty
 
         if($properties.Name -notcontains "EntryType") {
-            Write-TriggerTroubleshooterLog "No need to adjust Windows Event Data, EntryTye is NOT a property"
+            Write-TTLog "No need to adjust Windows Event Data, EntryTye is NOT a property"
             return $Data
         }
 
@@ -40,7 +40,7 @@ function Set-WindowsEventData {
         return $Data
     }
     catch {
-        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
+        Write-TTLog "ERROR: $($_.Exception.Message)"
         throw "Error in Set-WindowsEventData: $($_.Exception.Message)"
     }
 } 

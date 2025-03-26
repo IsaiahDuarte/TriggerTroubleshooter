@@ -42,21 +42,21 @@ function Wait-ForTrigger {
     $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
     
     try {
-        Write-TriggerTroubleshooterLog "Polling for trigger '$TriggerName' with Timeout: $TimeoutSeconds seconds and Poll Interval: $PollIntervalSeconds seconds. ShouldExist: $ShouldExist"
+        Write-TTLog "Polling for trigger '$TriggerName' with Timeout: $TimeoutSeconds seconds and Poll Interval: $PollIntervalSeconds seconds. ShouldExist: $ShouldExist"
             
         do {
-            Write-TriggerTroubleshooterLog "Invoking query for trigger '$TriggerName'. Elapsed time: $($stopwatch.Elapsed.TotalSeconds) seconds."
+            Write-TTLog "Invoking query for trigger '$TriggerName'. Elapsed time: $($stopwatch.Elapsed.TotalSeconds) seconds."
             $queryResult = Invoke-CUQuery -Scheme 'Config' -Table 'TriggersConfiguration' -Fields @("Name", "Id") -Where "Name='$TriggerName'"
     
             $triggerExists = ($queryResult.Total -gt 0)
-            Write-TriggerTroubleshooterLog "Trigger existence check: $triggerExists"
+            Write-TTLog "Trigger existence check: $triggerExists"
     
             if ($ShouldExist.IsPresent -and $triggerExists) {
-                Write-TriggerTroubleshooterLog "Trigger '$TriggerName' found. Returning associated data."
+                Write-TTLog "Trigger '$TriggerName' found. Returning associated data."
                 return $queryResult.Data
             }
             elseif (-not $ShouldExist.IsPresent -and -not $triggerExists) {
-                Write-TriggerTroubleshooterLog "Trigger '$TriggerName' not found. Returning true."
+                Write-TTLog "Trigger '$TriggerName' not found. Returning true."
                 return $true
             }
     
@@ -74,7 +74,7 @@ function Wait-ForTrigger {
         }
     }
     catch {
-        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
+        Write-TTLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Wait-ForTrigger: $($_.Exception.Message)"
         throw
     }

@@ -28,15 +28,15 @@ function Test-Schedule {
     )
 
     try {
-        Write-TriggerTroubleshooterLog "Starting Test-Schedule. ParameterSetName: $($PSCmdlet.ParameterSetName)"
+        Write-TTLog "Starting Test-Schedule. ParameterSetName: $($PSCmdlet.ParameterSetName)"
         $now = [datetime]::Now
         $currentDay = [int]$now.DayOfWeek
         $currentHour = $now.Hour
-        Write-TriggerTroubleshooterLog "Current Day: $currentDay, Current Hour: $currentHour"
+        Write-TTLog "Current Day: $currentDay, Current Hour: $currentHour"
 
         $schedule = switch ($PSCmdlet.ParameterSetName) {
             'ByName' {
-                Write-TriggerTroubleshooterLog "Retrieving schedule by name: $ScheduleName"
+                Write-TTLog "Retrieving schedule by name: $ScheduleName"
                 $schedules = Get-CUTriggerSchedules
 
                 if($null -eq $schedules) {
@@ -51,12 +51,12 @@ function Test-Schedule {
                     throw "Multiple schedules found with name '$ScheduleName'. Please specify by ScheduleID."
                 }
                 else {
-                    Write-TriggerTroubleshooterLog "Found schedule: $($schedules[0])"
+                    Write-TTLog "Found schedule: $($schedules[0])"
                     $schedules[0]
                 }
             }
             'ByID' {
-                Write-TriggerTroubleshooterLog "Retrieving schedule by ID: $ScheduleID"
+                Write-TTLog "Retrieving schedule by ID: $ScheduleID"
                 $schedule = Get-CUTriggerSchedules | Where-Object { $_.Id -eq $ScheduleID }
                 if (-not $schedule) {
                     throw "Schedule with ID '$ScheduleID' not found."
@@ -64,35 +64,35 @@ function Test-Schedule {
 
                 # For some reason this returns two; if ScheduleID is 'All Days' then pick the first
                 if ($ScheduleID -eq "All Days") {
-                    Write-TriggerTroubleshooterLog "ScheduleID is 'All Days'; using first entry."
+                    Write-TTLog "ScheduleID is 'All Days'; using first entry."
                     $schedule = $schedule[0]
                 }
-                Write-TriggerTroubleshooterLog "Found schedule: $schedule"
+                Write-TTLog "Found schedule: $schedule"
                 $schedule
             }
         }
 
         $selectedHoursEntry = $schedule.Weekdays | Where-Object { $_.Day -eq $currentDay }
-        Write-TriggerTroubleshooterLog "Selected hours entry for current day ($currentDay): $selectedHoursEntry"
+        Write-TTLog "Selected hours entry for current day ($currentDay): $selectedHoursEntry"
 
         if (-not $selectedHoursEntry) {
-            Write-TriggerTroubleshooterLog "No entry found for current day; returning false."
+            Write-TTLog "No entry found for current day; returning false."
             return $false
         }
 
         $selectedHours = $selectedHoursEntry.SelectedHours
-        Write-TriggerTroubleshooterLog "Selected hours for current day: $selectedHours"
+        Write-TTLog "Selected hours for current day: $selectedHours"
 
         $hourMask = 1 -shl $currentHour
-        Write-TriggerTroubleshooterLog "Hour mask for current hour ($currentHour): $hourMask"
+        Write-TTLog "Hour mask for current hour ($currentHour): $hourMask"
 
         $isHourSelected = ($selectedHours -band $hourMask) -ne 0
-        Write-TriggerTroubleshooterLog "Is current hour selected: $isHourSelected"
+        Write-TTLog "Is current hour selected: $isHourSelected"
 
         return $isHourSelected
     }
     catch {
-        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
+        Write-TTLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Test-Schedule: $($_.Exception.Message)"
     }
 } 

@@ -20,18 +20,18 @@ function Get-ComputerStatus {
     )
 
     try {
-        Write-TriggerTroubleshooterLog "Querying computer '$ComputerName' details."
+        Write-TTLog "Querying computer '$ComputerName' details."
     
         $computerQuery = Invoke-CUQuery -Table Computers -Where "sName='$($ComputerName.ToUpper())'" -Fields sName,Status,FolderPath
         $computer = $computerQuery.Data
 
         if (-not $computer) { throw "Unable to find computer '$ComputerName'." }
 
-        Write-TriggerTroubleshooterLog "Computer '$ComputerName' details retrieved successfully."
+        Write-TTLog "Computer '$ComputerName' details retrieved successfully."
         return $computer
     }
     catch {
-        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
+        Write-TTLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Get-ComputerStatus: $($_.Exception.Message)"
         throw
     }

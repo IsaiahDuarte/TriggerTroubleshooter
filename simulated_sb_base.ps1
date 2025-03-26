@@ -67,7 +67,7 @@ switch ($TestType) {
         Invoke-CpuLoad -CPUUsage 90 -DurationInMilliseconds 1000
     }
     
-    "LogicalDisk" {
+    "DiskUsage" {
         Write-Host $DiskSpacePercentage
         Write-Host $Duration
         Write-Host $ENV:SystemDrive

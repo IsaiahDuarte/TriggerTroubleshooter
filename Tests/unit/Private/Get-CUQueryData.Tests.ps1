@@ -5,7 +5,7 @@ BeforeAll {
     function Export-CUQuery { }
     function Invoke-CUQuery { }
 
-    function Write-TriggerTroubleshooterLog { }
+    function Write-TTLog { }
 }
 
 Describe "Get-CUQueryData" {

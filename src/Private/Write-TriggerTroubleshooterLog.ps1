@@ -1,4 +1,4 @@
-function Write-TriggerTroubleshooterLog {
+function Write-TTLog {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)]

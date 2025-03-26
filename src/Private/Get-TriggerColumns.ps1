@@ -22,52 +22,52 @@ function Get-TriggerColumns {
     )
 
     try {
-        Write-TriggerTroubleshooterLog "Starting Get-TriggerColumns with $($FilterNodes.Count) filter node(s)."
+        Write-TTLog "Starting Get-TriggerColumns with $($FilterNodes.Count) filter node(s)."
         $columns = [System.Collections.Generic.List[string]]::New()
 
         foreach ($node in $FilterNodes) {
-            Write-TriggerTroubleshooterLog "Processing a node..."
+            Write-TTLog "Processing a node..."
 
             if ($null -eq $node.ExpressionDescriptor) {
-                Write-TriggerTroubleshooterLog "Skipping node with null ExpressionDescriptor."
+                Write-TTLog "Skipping node with null ExpressionDescriptor."
                 continue
             }
 
             if (-not $node.ExpressionDescriptor.PSObject.Properties['Column']) {
-                Write-TriggerTroubleshooterLog "Skipping node without 'Column' property."
+                Write-TTLog "Skipping node without 'Column' property."
                 continue
             }
 
             $columnValue = $node.ExpressionDescriptor.Column
             if ($columnValue -is [string]) {
-                Write-TriggerTroubleshooterLog "Adding column: '$columnValue'."
+                Write-TTLog "Adding column: '$columnValue'."
                 [void] $columns.Add($columnValue)
             }
             elseif ($columnValue -is [string[]]) {
-                Write-TriggerTroubleshooterLog ("Adding array of columns: {0}." -f ($columnValue -join ', '))
+                Write-TTLog ("Adding array of columns: {0}." -f ($columnValue -join ', '))
                 [void] $columns.AddRange($columnValue)
             }
             else {
-                Write-TriggerTroubleshooterLog ("Unhandled column property type: {0}. Skipping column." -f $columnValue.GetType().Name)
+                Write-TTLog ("Unhandled column property type: {0}. Skipping column." -f $columnValue.GetType().Name)
             }
 
             # Process child nodes recursively if any exist
             if ($node.ChildNodes -and $node.ChildNodes.Count -gt 0) {
-                Write-TriggerTroubleshooterLog "Processing $($node.ChildNodes.Count) child node(s)."
+                Write-TTLog "Processing $($node.ChildNodes.Count) child node(s)."
                 $childColumns = Get-TriggerColumns -FilterNodes $node.ChildNodes
                 if ($childColumns) {
-                    Write-TriggerTroubleshooterLog ("Adding child columns: {0}." -f ($childColumns -join ', '))
+                    Write-TTLog ("Adding child columns: {0}." -f ($childColumns -join ', '))
                     [void] $columns.AddRange($childColumns)
                 }
             }
         }
 
         $uniqueColumns = $columns.ToArray() | Sort-Object -Unique | Where-Object { $_ -ne "" }
-        Write-TriggerTroubleshooterLog ("Returning unique columns: {0}." -f ($uniqueColumns -join ', '))
+        Write-TTLog ("Returning unique columns: {0}." -f ($uniqueColumns -join ', '))
         return $uniqueColumns
     }
     catch {
-        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
+        Write-TTLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Get-TriggerColumns: $($_.Exception.Message)"
         throw
     }

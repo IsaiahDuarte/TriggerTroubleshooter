@@ -32,7 +32,7 @@ function Wait-ForTriggerToFire {
     )
   
     try {
-        Write-TriggerTroubleshooterLog "Starting monitoring for trigger '$TriggerName'."
+        Write-TTLog "Starting monitoring for trigger '$TriggerName'."
         $splat = @{
             Table  = "TriggersRuntime"
             Scheme = "Runtime"
@@ -47,7 +47,7 @@ function Wait-ForTriggerToFire {
         }
     
         $initialTotalIncidents = 0
-        Write-TriggerTroubleshooterLog "Initial TotalIncidents for '$TriggerName': $initialTotalIncidents"
+        Write-TTLog "Initial TotalIncidents for '$TriggerName': $initialTotalIncidents"
     
         $endTime = (Get-Date).AddSeconds($Timeout)
     
@@ -55,15 +55,15 @@ function Wait-ForTriggerToFire {
             Start-Sleep -Seconds $Interval
             $currentResult = Invoke-CUQuery @splat
             if (-not $currentResult.Data) {
-                Write-TriggerTroubleshooterLog "No data returned during polling for '$TriggerName'; skipping iteration."
+                Write-TTLog "No data returned during polling for '$TriggerName'; skipping iteration."
                 continue
             }
     
             $currentTotalIncidents = $currentResult.Data.TotalIncidents
-            Write-TriggerTroubleshooterLog "Current TotalIncidents: $currentTotalIncidents, LastInspection: $($currentResult.Data.LastInspection)"
+            Write-TTLog "Current TotalIncidents: $currentTotalIncidents, LastInspection: $($currentResult.Data.LastInspection)"
     
             if ($currentTotalIncidents -gt $initialTotalIncidents) {
-                Write-TriggerTroubleshooterLog "Trigger '$TriggerName' fired: TotalIncidents increased from $initialTotalIncidents to $currentTotalIncidents."
+                Write-TTLog "Trigger '$TriggerName' fired: TotalIncidents increased from $initialTotalIncidents to $currentTotalIncidents."
                 return $true
             }
         }
@@ -72,7 +72,7 @@ function Wait-ForTriggerToFire {
         return $false
     }
     catch {
-        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
+        Write-TTLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Wait-ForTriggerToFire: $($_.Exception.Message)"
         throw
     }

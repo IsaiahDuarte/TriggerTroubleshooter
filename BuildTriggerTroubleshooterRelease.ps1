@@ -123,7 +123,7 @@ $marker = "###ImportModule###"
 
 # Ensure the release folder exists.
 if (-not (Test-Path -Path $releaseFolder)) {
-    Write-TriggerTroubleshooterLog "Release folder not found. Creating folder at $releaseFolder"
+    Write-TTLog "Release folder not found. Creating folder at $releaseFolder"
     New-Item -ItemType Directory -Path $releaseFolder | Out-Null
 }
 

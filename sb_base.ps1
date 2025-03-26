@@ -119,11 +119,11 @@ try {
     # Use different testing logic based on whether AllRecords is true.
     Write-Output "`nTesting trigger: $TriggerName"
     if ($AllRecords -eq $true) {
-        Write-TriggerTroubleshooterLog "Using Export logic."
+        Write-TTLog "Using Export logic."
         $result = Test-Trigger -Name $TriggerName -AllRecords
     }
     else {
-        Write-TriggerTroubleshooterLog "Using Query logic with Records = $Records."
+        Write-TTLog "Using Query logic with Records = $Records."
         $result = Test-Trigger -Name $TriggerName -Records $Records
     }
 
@@ -147,18 +147,18 @@ try {
 
     # Only specific triggers can be simulated
     if ($SimulateTrigger) {
-        Write-TriggerTroubleshooterLog "SimulatedTrigger is set to true"
-        Write-TriggerTroubleshooterLog "SimulateOnComputer: $($SimulateOnComputer)"
+        Write-TTLog "SimulatedTrigger is set to true"
+        Write-TTLog "SimulateOnComputer: $($SimulateOnComputer)"
 
         $trigger = Get-Trigger -Name $TriggerName
 
         if (!$trigger) {
             Write-Warning "Unable to find $TriggerName"
-            Write-TriggerTroubleshooterLog "Unable to find $TriggerName"
+            Write-TTLog "Unable to find $TriggerName"
             return
         }
 
-        Write-TriggerTroubleshooterLog "Trigger Type: $($trigger.TriggerType)"
+        Write-TTLog "Trigger Type: $($trigger.TriggerType)"
 
         $triggerDetails = Get-CUTriggerDetails -TriggerId $trigger.Id
 
@@ -186,7 +186,7 @@ try {
             }
 
             "Logical Disk Stress" {
-                $splat.ConditionType = "LogicalDisk"
+                $splat.ConditionType = "DiskUsage"
                 $simulationResult = Invoke-SimulatedTrigger @splat
             }
 

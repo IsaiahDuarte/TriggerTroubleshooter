@@ -26,14 +26,14 @@ function Get-ValueThatSatisfiesExpression {
     )
     
     try {
-        Write-TriggerTroubleshooterLog "Processing expression for column '$($expr.Column)' with operator '$($expr.ComparisonOperator)' and value '$($expr.Value)'."
+        Write-TTLog "Processing expression for column '$($expr.Column)' with operator '$($expr.ComparisonOperator)' and value '$($expr.Value)'."
             
         $column = $expr.Column
         $op = $expr.ComparisonOperator.ToString()
         $value = $expr.Value
     
         if ($column -eq 'EntryType') {
-            Write-TriggerTroubleshooterLog "Mapping EntryType from string to numeric code."
+            Write-TTLog "Mapping EntryType from string to numeric code."
             $value = switch ($value) {
                 "Error" { 1 }
                 "Information" { 2 }
@@ -44,7 +44,7 @@ function Get-ValueThatSatisfiesExpression {
     
         switch ($op) {
             'Equal' {
-                Write-TriggerTroubleshooterLog "Operator Equal detected."
+                Write-TTLog "Operator Equal detected."
                 if (-not $isNegation) {
                     return $value
                 }
@@ -53,7 +53,7 @@ function Get-ValueThatSatisfiesExpression {
                 }
             }
             'Like' {
-                Write-TriggerTroubleshooterLog "Operator Like detected."
+                Write-TTLog "Operator Like detected."
                 if (-not $isNegation) {
                     if ($value -is [string]) {
                         return $value -replace '\*', 'Something'
@@ -65,7 +65,7 @@ function Get-ValueThatSatisfiesExpression {
                 }
             }
             'LessThan' {
-                Write-TriggerTroubleshooterLog "Operator LessThan detected."
+                Write-TTLog "Operator LessThan detected."
                 if (-not $isNegation) {
                     return ([double]$value - 1)
                 }
@@ -74,7 +74,7 @@ function Get-ValueThatSatisfiesExpression {
                 }
             }
             'LessThanOrEqual' {
-                Write-TriggerTroubleshooterLog "Operator LessThanOrEqual detected."
+                Write-TTLog "Operator LessThanOrEqual detected."
                 if (-not $isNegation) {
                     return ([double]$value)
                 }
@@ -83,7 +83,7 @@ function Get-ValueThatSatisfiesExpression {
                 }
             }
             'GreaterThan' {
-                Write-TriggerTroubleshooterLog "Operator GreaterThan detected."
+                Write-TTLog "Operator GreaterThan detected."
                 if (-not $isNegation) {
                     return ([double]$value + 1)
                 }
@@ -92,7 +92,7 @@ function Get-ValueThatSatisfiesExpression {
                 }
             }
             'GreaterThanOrEqual' {
-                Write-TriggerTroubleshooterLog "Operator GreaterThanOrEqual detected."
+                Write-TTLog "Operator GreaterThanOrEqual detected."
                 if (-not $isNegation) {
                     return ([double]$value)
                 }
@@ -106,7 +106,7 @@ function Get-ValueThatSatisfiesExpression {
         }
     }
     catch {
-        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
+        Write-TTLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Get-ValueThatSatisfiesExpression: $($_.Exception.Message)"
         throw
     }

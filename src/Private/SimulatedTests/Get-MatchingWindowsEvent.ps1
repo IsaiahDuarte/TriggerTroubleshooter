@@ -20,14 +20,14 @@ function Get-MatchingWindowsEvent {
         [ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode] $RootNode
     )
     
-    Write-TriggerTroubleshooterLog "Sanitizing trigger node..."
+    Write-TTLog "Sanitizing trigger node..."
     $sanitizedRoot = Format-SimulationNode -Node $RootNode -Columns @('Category', 'EntryType', 'EventID', 'Log', 'Message', 'Source')
     if (-not $sanitizedRoot) {
         Write-Warning "After removing regex nodes, no triggers remain. Returning null."
         return $null
     }
     
-    Write-TriggerTroubleshooterLog "Building constraints from sanitized node..."
+    Write-TTLog "Building constraints from sanitized node..."
     try {
         $constraints = Get-ConstraintsForNode -Node $sanitizedRoot
     }
@@ -36,7 +36,7 @@ function Get-MatchingWindowsEvent {
         return $null
     }
     
-    Write-TriggerTroubleshooterLog "Creating basic Windows Event object..."
+    Write-TTLog "Creating basic Windows Event object..."
     $result = [PSCustomObject]@{
         Category  = ''
         EntryType = ''
@@ -46,7 +46,7 @@ function Get-MatchingWindowsEvent {
         Source    = ''
     }
     
-    Write-TriggerTroubleshooterLog "Applying constraints..."
+    Write-TTLog "Applying constraints..."
     foreach ($key in $constraints.Keys) {
         if ($result.PSObject.Properties.Name -contains $key) {
             # Use -Force to update an existing property if needed
@@ -57,24 +57,24 @@ function Get-MatchingWindowsEvent {
         }
     }
     
-    Write-TriggerTroubleshooterLog "Setting default values for missing columns..."
+    Write-TTLog "Setting default values for missing columns..."
     if (-not $result.Log) { $result.Log = 'Application' }
     if (-not $result.Message) { $result.Message = 'Auto-generated test event' }
     if (-not $result.EntryType) { $result.EntryType = 'Information' }
     if (-not $result.Category) { $result.Category = 'None' }
     
     $source = "TriggerTroubleshooter-" + $result.Log
-    Write-TriggerTroubleshooterLog "Setting forced Source to '$source'..."
+    Write-TTLog "Setting forced Source to '$source'..."
 
     $sanitizedRoot.ChildNodes.ExpressionDescriptor |
     Where-Object { $_.Column -eq 'Source' } |
     ForEach-Object { $_.Value = $source }
     $result.Source = $source
             
-    Write-TriggerTroubleshooterLog "Removing empty child nodes recursively..."
+    Write-TTLog "Removing empty child nodes recursively..."
     $sanitizedRoot = Remove-EmptyNodes -Node $sanitizedRoot
     
-    Write-TriggerTroubleshooterLog "Returning event object and sanitized node."
+    Write-TTLog "Returning event object and sanitized node."
     return [PSCustomObject]@{
         Data = $result
         Node  = $sanitizedRoot

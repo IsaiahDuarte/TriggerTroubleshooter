@@ -149,7 +149,7 @@ function Test-Comparison {
         }
     }
     catch {
-        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
+        Write-TTLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Test-Comparison: $($_.Exception.Message)"
         throw
     }

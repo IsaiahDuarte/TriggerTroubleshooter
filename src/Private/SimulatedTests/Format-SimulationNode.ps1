@@ -23,17 +23,17 @@ function Format-SimulationNode {
     )
 
     try {
-        Write-TriggerTroubleshooterLog "Starting node formatting."
+        Write-TTLog "Starting node formatting."
         
         if (-not $Node) {
-            Write-TriggerTroubleshooterLog "Node is null or empty. Exiting function."
+            Write-TTLog "Node is null or empty. Exiting function."
             return $null
         }
 
         # Check if ExpressionDescriptor exists and if it's invalid
         if ($Node.ExpressionDescriptor) {
             if ($Node.ExpressionDescriptor.IsRegex -or -not ($Columns -contains $Node.ExpressionDescriptor.Column)) {
-                Write-TriggerTroubleshooterLog "ExpressionDescriptor is either Regex or not in allowed columns. Removing node."
+                Write-TTLog "ExpressionDescriptor is either Regex or not in allowed columns. Removing node."
                 return $null
             }
         }
@@ -41,7 +41,7 @@ function Format-SimulationNode {
         # Recurse through child nodes and build a new list without invalid nodes.
         $cleanChildren = [System.Collections.Generic.List[ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode]]::New()
         foreach ($child in $Node.ChildNodes) {
-            Write-TriggerTroubleshooterLog "Processing a child node."
+            Write-TTLog "Processing a child node."
             $processedChild = Format-SimulationNode -Node $child -Columns $Columns
             if ($processedChild) {
                 $cleanChildren.Add($processedChild)
@@ -49,11 +49,11 @@ function Format-SimulationNode {
         }
         $Node.ChildNodes = $cleanChildren
 
-        Write-TriggerTroubleshooterLog "Finished processing node."
+        Write-TTLog "Finished processing node."
         return , $Node
     }
     catch {
-        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
+        Write-TTLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Format-WindowsEventNode: $($_.Exception.Message)"
         throw
     }

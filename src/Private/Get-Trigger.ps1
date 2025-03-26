@@ -23,7 +23,7 @@ function Get-Trigger {
     )
 
     try {
-        Write-TriggerTroubleshooterLog "Querying triggers configuration for: $Name"
+        Write-TTLog "Querying triggers configuration for: $Name"
         $result = Invoke-CUQuery -Table TriggersConfiguration -Scheme Config -Fields $Fields -Where "Name='$Name'"
         if ($null -eq $result.Data) {
             Write-Warning "No data returned for trigger with name '$Name'."
@@ -35,11 +35,11 @@ function Get-Trigger {
             throw "Multiple triggers found: $($Trigger.TriggerID -join ",")"
         }
         
-        Write-TriggerTroubleshooterLog "Successfully retrieved trigger data."
+        Write-TTLog "Successfully retrieved trigger data."
         return $result.Data
     }
     catch {
-        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
+        Write-TTLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Get-Trigger: $($_.Exception.Message)"
         throw
     }

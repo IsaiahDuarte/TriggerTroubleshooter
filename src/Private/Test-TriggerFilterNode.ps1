@@ -35,7 +35,7 @@ function Test-TriggerFilterNode {
             $nullProps | ForEach-Object { Write-Warning "Null property: $($_.Name)" }
         }
 
-        Write-TriggerTroubleshooterLog "Evaluating node..."
+        Write-TTLog "Evaluating node..."
 
         # Initialize the result
         $result = [TriggerFilterResult]::New()
@@ -65,7 +65,7 @@ function Test-TriggerFilterNode {
 
 
 
-            Write-TriggerTroubleshooterLog "Evaluating ExpressionDescriptor: Column[$column], Value[$value], ComparisonOperator[$compOp], IsRegex[$isRegex]"
+            Write-TTLog "Evaluating ExpressionDescriptor: Column[$column], Value[$value], ComparisonOperator[$compOp], IsRegex[$isRegex]"
 
             if ($column -eq 'TimeWritten') {
                 $tcParams.IsDateTime = $true
@@ -87,7 +87,7 @@ function Test-TriggerFilterNode {
 
         # Process any child nodes
         if ($Node.ChildNodes -and $Node.ChildNodes.Count -gt 0) {
-            Write-TriggerTroubleshooterLog "Processing child nodes..."
+            Write-TTLog "Processing child nodes..."
             foreach ($child in $Node.ChildNodes) {
                 if (-not $child) { continue }
                 $childResult = Test-TriggerFilterNode -Node $child -Record $Record
@@ -123,11 +123,11 @@ function Test-TriggerFilterNode {
 
         # Finalize and return the result
         $result.EvaluationResult = $accumulatedResult
-        Write-TriggerTroubleshooterLog "Node evaluation result: $($result.EvaluationResult)"
+        Write-TTLog "Node evaluation result: $($result.EvaluationResult)"
         return $result
     }
     catch {
-        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
+        Write-TTLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Test-TriggerFilterNode: $($_.Exception.Message)"
     }
 }

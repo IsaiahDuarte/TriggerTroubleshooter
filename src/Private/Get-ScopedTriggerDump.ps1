@@ -65,11 +65,11 @@ function Get-ScopedTriggerDump {
     )
 
     try {
-        Write-TriggerTroubleshooterLog "Starting the Get-ScopedTriggerDump process for trigger: $Name"
+        Write-TTLog "Starting the Get-ScopedTriggerDump process for trigger: $Name"
 
         if(!$SkipTableValidation) {
             $tables = (Invoke-CUQuery -Scheme Information -Fields SchemaName, TableName -Table Tables -take 500).data.TableName | Sort-Object
-            Write-TriggerTroubleshooterLog "Retrieved table names: $tables"
+            Write-TTLog "Retrieved table names: $tables"
     
             if ([string]::IsNullOrEmpty($Table)) {
                 Write-Warning "Observable Details didn't return a table for $Name"
@@ -77,16 +77,16 @@ function Get-ScopedTriggerDump {
             }
     
             if ($Table -notin $tables) {
-                Write-TriggerTroubleshooterLog "$Table not found in the list of tables."
+                Write-TTLog "$Table not found in the list of tables."
                 throw "Table was not found: $Table. If it is a built-in trigger or old one, export it, rename it, and import it."
             }
         }
 
-        Write-TriggerTroubleshooterLog "$Table found. Proceeding to fetch data."
+        Write-TTLog "$Table found. Proceeding to fetch data."
 
         $dump = @{}
 
-        Write-TriggerTroubleshooterLog "Building Query"
+        Write-TTLog "Building Query"
         $where = ""
         foreach($folder in $TriggerObservableDetails.Folders) {
             # FolderPath is empty on Folder objects. Use Path.
@@ -99,7 +99,7 @@ function Get-ScopedTriggerDump {
 
         $where = $where.TrimEnd(" OR ")
 
-        Write-TriggerTroubleshooterLog "Query: $Where"
+        Write-TTLog "Query: $Where"
 
         $splat = @{
             Table  = $Table
@@ -108,29 +108,29 @@ function Get-ScopedTriggerDump {
         }
 
         if ($PSCmdlet.ParameterSetName -eq "TakeAll") {
-            Write-TriggerTroubleshooterLog "TakeAll Found"
+            Write-TTLog "TakeAll Found"
             $splat.TakeAll = $TakeAll
         }
         
         if ($PSCmdlet.ParameterSetName -eq "Take") {
-            Write-TriggerTroubleshooterLog "Take found"
+            Write-TTLog "Take found"
             $splat.Take = $Take
         }
 
         $NoTableTypes = @("UserLoggedOff", "UserLoggedOn", "WindowsEvent", "ProcessStarted", "ProcessEnded", "MachineDown", "SessionStateChanged")
         if ($TriggerType -in $NoTableTypes) {
-            Write-TriggerTroubleshooterLog "Trigger is one of the following that doesn't return data from TriggerObservableDetails: $NoTableTypes. overriding fields with: $Fields"
+            Write-TTLog "Trigger is one of the following that doesn't return data from TriggerObservableDetails: $NoTableTypes. overriding fields with: $Fields"
             $splat.Fields = $Fields
         }
 
         # Gives an identifier for a record like sName based on the table
         $identityField = Get-IdentityPropertyFromTable -Table $Table
         if(![string]::IsNullOrEmpty($identityField) -and $identityField -notin $splat.Fields) {
-            Write-TriggerTroubleshooterLog "Adding identity field: $identityField"
+            Write-TTLog "Adding identity field: $identityField"
             $splat.Fields += $identityField
         }
 
-        Write-TriggerTroubleshooterLog "SPLAT: $($Splat | ConvertTo-Json)"
+        Write-TTLog "SPLAT: $($Splat | ConvertTo-Json)"
 
         $results = Get-CUQueryData @splat
 
@@ -140,15 +140,15 @@ function Get-ScopedTriggerDump {
         }
 
         foreach ($item in $results) {
-            Write-TriggerTroubleshooterLog "Adding item with key: $($item.key) to the dump."
+            Write-TTLog "Adding item with key: $($item.key) to the dump."
             $dump[$item.key] = $item
         }
 
-        Write-TriggerTroubleshooterLog "Data collection complete. Returning dump."
+        Write-TTLog "Data collection complete. Returning dump."
         return $dump
     }
     catch {
-        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
+        Write-TTLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Get-ScopedTriggerDump: $($_.Exception.Message)"
         throw $_.Exception.Message
     }

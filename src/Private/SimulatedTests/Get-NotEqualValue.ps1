@@ -28,22 +28,22 @@ function Get-NotEqualValue {
     )
     
     try {
-        Write-TriggerTroubleshooterLog "Determining distinct value for compareValue: $compareValue"
+        Write-TTLog "Determining distinct value for compareValue: $compareValue"
     
         # Check if compareValue can be treated as a number
         if ($compareValue -as [double]) {
             $result = ([double]$compareValue + 1)
-            Write-TriggerTroubleshooterLog "Numeric value detected. Returning $compareValue + 1 = $result"
+            Write-TTLog "Numeric value detected. Returning $compareValue + 1 = $result"
             return $result
         }
     
         # Otherwise assume it's a string
         $result = "$compareValue" + "_NOT"
-        Write-TriggerTroubleshooterLog "Non-numeric value detected. Returning '$result'"
+        Write-TTLog "Non-numeric value detected. Returning '$result'"
         return $result
     }
     catch {
-        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
+        Write-TTLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Get-NotEqualValue: $($_.Exception.Message)"
         throw
     }

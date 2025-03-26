@@ -42,7 +42,7 @@ function Get-CUQueryData {
         [int] $Take = 100
     )
 
-    Write-TriggerTroubleshooterLog "Starting Get-CUQueryData function."
+    Write-TTLog "Starting Get-CUQueryData function."
     $splat = @{
         Table  = $Table
         Fields = $Fields
@@ -50,25 +50,25 @@ function Get-CUQueryData {
     }
     try {
         if ($TakeAll) {
-            Write-TriggerTroubleshooterLog "TakeAll passed, getting record count"
+            Write-TTLog "TakeAll passed, getting record count"
             $splat.Take = 1
             $count = (Invoke-CUQuery @splat).Total
 
-            Write-TriggerTroubleshooterLog "There are $count records"
+            Write-TTLog "There are $count records"
             $splat.Take = $count
         }
         else {
             $splat.Take = $Take
         }
 
-        Write-TriggerTroubleshooterLog "Executing Invoke-CUQuery with provided parameters."
+        Write-TTLog "Executing Invoke-CUQuery with provided parameters."
         $invokeResult = Invoke-CUQuery @splat
-        Write-TriggerTroubleshooterLog "Invoke-CUQuery executed successfully. Processing returned data."
-        Write-TriggerTroubleshooterLog "Returning the retrieved data."
+        Write-TTLog "Invoke-CUQuery executed successfully. Processing returned data."
+        Write-TTLog "Returning the retrieved data."
         return , $invokeResult.Data
     }
     catch {
-        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
+        Write-TTLog "ERROR: $($_.Exception.Message)"
         Write-Error "An error occurred in Get-CUQueryData: $($_.Exception.Message)"
         throw
     }

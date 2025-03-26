@@ -3,7 +3,7 @@ BeforeAll {
 
     function Invoke-CUQuery { }
 
-    function Write-TriggerTroubleshooterLog { }
+    function Write-TTLog { }
 }
     
 Describe "Test-ObserverdProperties" {

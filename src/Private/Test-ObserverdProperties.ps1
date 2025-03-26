@@ -28,7 +28,7 @@ function Test-ObserverdProperties {
         [string[]] $Properties
     )
 
-    Write-TriggerTroubleshooterLog "Starting Test-ObserverdProperties function."
+    Write-TTLog "Starting Test-ObserverdProperties function."
 
     $splat = @{
         Table  = 'Observables'
@@ -38,33 +38,33 @@ function Test-ObserverdProperties {
     }
 
     try {
-        Write-TriggerTroubleshooterLog "Executing Invoke-CUQuery -Table $($splat.Table) -Scheme $($splat.Runtime) -Fields $($splat.Fields) -Where $($splat.Where)"
+        Write-TTLog "Executing Invoke-CUQuery -Table $($splat.Table) -Scheme $($splat.Runtime) -Fields $($splat.Fields) -Where $($splat.Where)"
         $result = Invoke-CUQuery @splat
-        Write-TriggerTroubleshooterLog "Invoke-CUQuery executed successfully."
+        Write-TTLog "Invoke-CUQuery executed successfully."
 
         if ($result.Total -eq 0) {
-            Write-TriggerTroubleshooterLog "No data returned from query."
+            Write-TTLog "No data returned from query."
             Write-Warning "Properties are not being observed by monitor."
             return $false
         }
 
-        Write-TriggerTroubleshooterLog "Converting the 'ObserverdProps' JSON string to a PowerShell object."
-        Write-TriggerTroubleshooterLog "JSON: $($result.Data.ObserverdProps)"
+        Write-TTLog "Converting the 'ObserverdProps' JSON string to a PowerShell object."
+        Write-TTLog "JSON: $($result.Data.ObserverdProps)"
         $ObserverdProps = $result.Data.ObserverdProps | ConvertFrom-Json -ErrorAction Stop
 
         foreach ($property in $Properties) {
-            Write-TriggerTroubleshooterLog "Checking if property '$property' is present in ObserverdProps."
+            Write-TTLog "Checking if property '$property' is present in ObserverdProps."
             if ($property -notin $ObserverdProps) {
-                Write-TriggerTroubleshooterLog "Property '$property' is missing. Returning \$false."
+                Write-TTLog "Property '$property' is missing. Returning \$false."
                 return $false
             }
         }
 
-        Write-TriggerTroubleshooterLog "All specified properties were found. Returning \$true."
+        Write-TTLog "All specified properties were found. Returning \$true."
         return $true
     }
     catch {
-        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
+        Write-TTLog "ERROR: $($_.Exception.Message)"
         Write-Error "An error occurred in Test-ObserverdProperties: $($_.Exception.Message)"
         throw
     }

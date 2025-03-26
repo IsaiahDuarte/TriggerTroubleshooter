@@ -22,22 +22,22 @@ function Get-MatchingMemoryCondition {
     )
     
     try {
-        Write-TriggerTroubleshooterLog "Sanitizing trigger node..."
+        Write-TTLog "Sanitizing trigger node..."
         $sanitizedRoot = Format-SimulationNode -Node $RootNode -Columns @('MemoryInUse')
         if (-not $sanitizedRoot) {
             Write-Warning "No triggers remain after sanitization."
             return $null
         }
     
-        Write-TriggerTroubleshooterLog "Building constraints from sanitized node..."
+        Write-TTLog "Building constraints from sanitized node..."
         $constraints = Get-ConstraintsForNode -Node $sanitizedRoot
         
         # Create a result object with default MemoryInUse.
         $result = [PSCustomObject]@{ MemoryInUse = 0 }
     
-        Write-TriggerTroubleshooterLog "Applying constraints..."
+        Write-TTLog "Applying constraints..."
         foreach ($key in $constraints.Keys) {
-            Write-TriggerTroubleshooterLog "Adding constraint for '$key'"
+            Write-TTLog "Adding constraint for '$key'"
             $result | Add-Member -NotePropertyName $key -NotePropertyValue $constraints[$key] -Force
         }
     
@@ -47,24 +47,24 @@ function Get-MatchingMemoryCondition {
         
         # We cap to 90 in case TestLimit cant reach 90. Tested with 2GB VM
         if ($result.MemoryInUse -gt 90) {
-            Write-TriggerTroubleshooterLog "MemoryInUse value ($($result.MemoryInUse)) exceeds 90. Capping to 90."
+            Write-TTLog "MemoryInUse value ($($result.MemoryInUse)) exceeds 90. Capping to 90."
             $result.MemoryInUse = 90
             $sanitizedRoot.ChildNodes.ExpressionDescriptor |
                 Where-Object { $_.Column -eq 'MemoryInUse' } |
                 ForEach-Object { $_.Value = 90 }
         }
         
-        Write-TriggerTroubleshooterLog "Removing empty child nodes recursively..."
+        Write-TTLog "Removing empty child nodes recursively..."
         $sanitizedRoot = Remove-EmptyNodes -Node $sanitizedRoot
 
-        Write-TriggerTroubleshooterLog "Returning event object and sanitized node."
+        Write-TTLog "Returning event object and sanitized node."
         return [PSCustomObject]@{
             Data = $result
             Node = $sanitizedRoot
         }
     }
     catch {
-        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
+        Write-TTLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Get-MatchingMemoryCondition: $($_.Exception.Message)"
         throw
     }

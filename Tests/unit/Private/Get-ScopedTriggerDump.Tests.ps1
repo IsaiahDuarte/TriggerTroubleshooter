@@ -7,7 +7,7 @@ BeforeAll {
     function Get-CUQueryData { }
     function Set-WindowsEventData { }
 
-    function Write-TriggerTroubleshooterLog { }
+    function Write-TTLog { }
 
     function Get-IdentityPropertyFromTable { }
 

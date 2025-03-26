@@ -1,7 +1,7 @@
 BeforeAll {
     . $PSCommandPath.Replace('.Tests.ps1', '.ps1').Replace('tests', 'src').Replace('\unit', '')
 
-    function Write-TriggerTroubleshooterLog { }
+    function Write-TTLog { }
 }
     
 Describe "Get-IdentityPropertyFromTable" {

@@ -41,36 +41,36 @@ function Test-Trigger {
     )
 
     try {
-        Write-TriggerTroubleshooterLog "Starting Test-Trigger for trigger name: $Name"
+        Write-TTLog "Starting Test-Trigger for trigger name: $Name"
         $output = [System.Collections.Generic.List[TriggerFilterResult]]::New()
 
-        Write-TriggerTroubleshooterLog "Getting Trigger"
+        Write-TTLog "Getting Trigger"
         $trigger = Get-Trigger -Name $Name
         if (-not $trigger) {
             Write-Warning "Trigger with name '$Name' not found."
             return
         }
-        Write-TriggerTroubleshooterLog "Trigger found: $trigger"
+        Write-TTLog "Trigger found: $trigger"
 
-        Write-TriggerTroubleshooterLog "Getting trigger configuration"
+        Write-TTLog "Getting trigger configuration"
         $triggerDetails = Get-CUTriggerDetails -TriggerId $trigger.Id
 
-        Write-TriggerTroubleshooterLog "Testing the schedule"
+        Write-TTLog "Testing the schedule"
         $scheduleResult = Test-Schedule -ScheduleID $triggerDetails.IncidentScheduleId
 
-        Write-TriggerTroubleshooterLog "Getting Trigger Observable Details"
+        Write-TTLog "Getting Trigger Observable Details"
         $triggerObservableDetails = Get-CUObservableTriggerDetails -Trigger $Name
 
-        Write-TriggerTroubleshooterLog "Getting the Table"
+        Write-TTLog "Getting the Table"
         $table = Get-TableName -TableName $triggerObservableDetails.Table -TriggerType $triggerDetails.TriggerType
 
-        Write-TriggerTroubleshooterLog "Getting all columns"
+        Write-TTLog "Getting all columns"
         $columns = Get-TriggerColumns -FilterNodes $triggerDetails.FilterNodes
 
-        Write-TriggerTroubleshooterLog "Testing if properties are in the Observables runtime"
+        Write-TTLog "Testing if properties are in the Observables runtime"
         $arePropertiesObserved = Test-ObserverdProperties -ResourceName $table -Properties $columns
 
-        Write-TriggerTroubleshooterLog "Getting trigger dump"
+        Write-TTLog "Getting trigger dump"
         $dumpSplat = @{
             Name                     = $Name
             Fields                   = $columns
@@ -80,12 +80,12 @@ function Test-Trigger {
         }
 
         if ($PSCmdlet.ParameterSetName -eq "AllRecords") {
-            Write-TriggerTroubleshooterLog "AllRecords found"
+            Write-TTLog "AllRecords found"
             $dumpSplat.TakeAll = $AllRecords
         }
 
         if ($PSCmdlet.ParameterSetName -eq "Records") {
-            Write-TriggerTroubleshooterLog "Records found"
+            Write-TTLog "Records found"
             $dumpSplat.Take = $Records
         }
 
@@ -96,15 +96,15 @@ function Test-Trigger {
         }
 
         $identityField = Get-IdentityPropertyFromTable -Table $table
-        Write-TriggerTroubleshooterLog "Identity Field: $identityField"
+        Write-TTLog "Identity Field: $identityField"
 
         $lastInspectionTime = [datetime](Invoke-CUQuery -Scheme Runtime -Table TriggersRuntime -Fields LastInspection -Where "Id='$($trigger.ID)'").data.LastInspection
 
-        Write-TriggerTroubleshooterLog "Data retrieved from Get-ScopedTriggerDump: $($dump.Count) records found."
+        Write-TTLog "Data retrieved from Get-ScopedTriggerDump: $($dump.Count) records found."
 
-        Write-TriggerTroubleshooterLog "Testing each entry from dump"
+        Write-TTLog "Testing each entry from dump"
         foreach ($key in $dump.Keys) {
-            Write-TriggerTroubleshooterLog "Testing $key"
+            Write-TTLog "Testing $key"
             $record = $dump[$key]
             $rootNode = [ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode]::New()
             $rootNode.ChildNodes = $triggerDetails.FilterNodes
@@ -117,7 +117,7 @@ function Test-Trigger {
             [void] $output.Add($result)
         }
 
-        Write-TriggerTroubleshooterLog "Returning output with $($output.Count) records."
+        Write-TTLog "Returning output with $($output.Count) records."
 
         if ($Display) {
             $output.DisplayResult()
@@ -127,7 +127,7 @@ function Test-Trigger {
         , $output.ToArray()
     }
     catch {
-        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
+        Write-TTLog "ERROR: $($_.Exception.Message)"
         Write-Error -Message "Error in Test-Trigger: $($_.Exception.Message)" -ErrorAction Stop
     }
 } 

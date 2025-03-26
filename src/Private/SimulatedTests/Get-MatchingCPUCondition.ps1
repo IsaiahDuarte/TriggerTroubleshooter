@@ -17,22 +17,22 @@ function Get-MatchingCPUCondition {
     )
     
     try {
-        Write-TriggerTroubleshooterLog "Sanitizing trigger node..."
+        Write-TTLog "Sanitizing trigger node..."
         $sanitizedRoot = Format-SimulationNode -Node $RootNode -Columns @('CPU')
         if (-not $sanitizedRoot) {
             Write-Warning "No triggers remain after sanitization."
             return $null
         }
     
-        Write-TriggerTroubleshooterLog "Building constraints from sanitized node..."
+        Write-TTLog "Building constraints from sanitized node..."
         $constraints = Get-ConstraintsForNode -Node $sanitizedRoot
         
         # Create a result object with default CPU.
         $result = [PSCustomObject]@{ CPU = 0 }
     
-        Write-TriggerTroubleshooterLog "Applying constraints..."
+        Write-TTLog "Applying constraints..."
         foreach ($key in $constraints.Keys) {
-            Write-TriggerTroubleshooterLog "Adding constraint for '$key'"
+            Write-TTLog "Adding constraint for '$key'"
             $result | Add-Member -NotePropertyName $key -NotePropertyValue $constraints[$key] -Force
         }
         
@@ -42,24 +42,24 @@ function Get-MatchingCPUCondition {
 
         # We cap to 75 just in case
         if ($result.CPU -gt 75) {
-            Write-TriggerTroubleshooterLog "CPU value ($($result.CPU)) exceeds 75. Capping to 75."
+            Write-TTLog "CPU value ($($result.CPU)) exceeds 75. Capping to 75."
             $result.CPU = 75
             $sanitizedRoot.ChildNodes.ExpressionDescriptor |
                 Where-Object { $_.Column -eq 'CPU' } |
                 ForEach-Object { $_.Value = 75 }
         }
         
-        Write-TriggerTroubleshooterLog "Removing empty child nodes recursively..."
+        Write-TTLog "Removing empty child nodes recursively..."
         $sanitizedRoot = Remove-EmptyNodes -Node $sanitizedRoot
         
-        Write-TriggerTroubleshooterLog "Returning event object and sanitized node."
+        Write-TTLog "Returning event object and sanitized node."
         return [PSCustomObject]@{
             Data = $result
             Node = $sanitizedRoot
         }
     }
     catch {
-        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
+        Write-TTLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Get-MatchingMemoryCondition: $($_.Exception.Message)"
         throw
     }

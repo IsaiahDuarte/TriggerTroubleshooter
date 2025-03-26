@@ -19,7 +19,7 @@ function Get-ConstraintsForNode {
         [ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode] $Node
     )
     
-    Write-TriggerTroubleshooterLog "Processing node constraints."
+    Write-TTLog "Processing node constraints."
     
     if (-not $Node) { return @{} }
     
@@ -28,7 +28,7 @@ function Get-ConstraintsForNode {
     if ($Node.ExpressionDescriptor) {
         $col = $Node.ExpressionDescriptor.Column
         try {
-            Write-TriggerTroubleshooterLog "Evaluating expression for column '$col'."
+            Write-TTLog "Evaluating expression for column '$col'."
             $val = Get-ValueThatSatisfiesExpression -expr $Node.ExpressionDescriptor -isNegation $Node.IsNegation
             $baseConstraints[$col] = $val
         }
@@ -38,14 +38,14 @@ function Get-ConstraintsForNode {
     }
     
     if (-not $Node.ChildNodes -or $Node.ChildNodes.Count -eq 0) { 
-        Write-TriggerTroubleshooterLog "No child nodes found; returning base constraints."
+        Write-TTLog "No child nodes found; returning base constraints."
         return $baseConstraints 
     }
     
     foreach ($child in $Node.ChildNodes) {
         if (-not $child) { continue }
     
-        Write-TriggerTroubleshooterLog "Processing child node with LogicalOperator '$($child.LogicalOperator)'."
+        Write-TTLog "Processing child node with LogicalOperator '$($child.LogicalOperator)'."
         $childConstraints = Get-ConstraintsForNode -Node $child
     
         switch ($child.LogicalOperator) {
@@ -59,7 +59,7 @@ function Get-ConstraintsForNode {
                 foreach ($key in $childConstraints.Keys) {
                     $baseConstraints[$key] = $childConstraints[$key]
                 }
-                Write-TriggerTroubleshooterLog "Merged child constraints with 'And'."
+                Write-TTLog "Merged child constraints with 'And'."
             }
             'Or' {
                 $tempConstraints = $baseConstraints.Clone()
@@ -73,10 +73,10 @@ function Get-ConstraintsForNode {
                 }
                 if ($canUnify) {
                     $baseConstraints = $tempConstraints
-                    Write-TriggerTroubleshooterLog "Merged child constraints with 'Or'."
+                    Write-TTLog "Merged child constraints with 'Or'."
                 }
                 else {
-                    Write-TriggerTroubleshooterLog "Skipped merging conflicting 'Or' constraints; keeping base constraints."
+                    Write-TTLog "Skipped merging conflicting 'Or' constraints; keeping base constraints."
                 }
             }
             default {
@@ -84,6 +84,6 @@ function Get-ConstraintsForNode {
             }
         }
     }
-    Write-TriggerTroubleshooterLog "Returning merged constraints."
+    Write-TTLog "Returning merged constraints."
     return $baseConstraints
 }

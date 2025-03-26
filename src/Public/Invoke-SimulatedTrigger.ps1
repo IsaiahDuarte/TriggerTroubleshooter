@@ -1,14 +1,25 @@
 function Invoke-SimulatedTrigger {
     <#
     .SYNOPSIS
-        Invokes a simulated trigger of a given type (CPU, Memory, or Windows Event).
+        Invokes a simulated trigger of a given type (CPU, Memory, WindowsEvent, or DiskUsage).
+
     .DESCRIPTION
-        Creates a temporary trigger based on an existing reference, invokes a matching test action,
-        waits for the new trigger to fire, tests the trigger, and cleans up.
+        This function checks a computer's status, retrieves an existing reference trigger,
+        and uses the trigger definition to build a new "simulated" trigger for testing.
+        It then invokes a matching script action (Trigger Troubleshooter - Simulated Test)
+        to ensure the new trigger actually fires as expected. Finally, it cleans up
+        by removing the temporary test trigger.
+
     .PARAMETER ComputerName
+        The name of the target computer/server.
+
     .PARAMETER TriggerName
+        The name of the existing reference trigger to clone/modify.
+
     .PARAMETER ConditionType
+        One of CPU, Memory, WindowsEvent, or DiskUsage.
     #>
+
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -18,58 +29,176 @@ function Invoke-SimulatedTrigger {
         [string] $TriggerName,
 
         [Parameter(Mandatory = $true)]
-        [ValidateSet("CPU", "Memory", "WindowsEvent", "LogicalDisk")]
+        [ValidateSet("CPU", "Memory", "WindowsEvent", "DiskUsage")]
         [string] $ConditionType
     )
 
-    $newTriggerName = $null
-    try {
-        Write-TriggerTroubleshooterLog "Checking computer status."
-        $computer = Get-ComputerStatus -ComputerName $ComputerName
-        if ($computer.Status -ne "Ready") {
-            throw "Status is not 'Ready' for '$ComputerName'. Current: $($computer.Status)"
+    # ----------------------------------------------------------------------
+    # 1) Centralized Condition Config
+    # ----------------------------------------------------------------------
+    # This hashtable contains all per-condition logic in one place:
+    #  - The expected trigger type or table name for validation.
+    #  - The new trigger's name prefix.
+    #  - The final 'TriggerType' or 'AdvancedTriggerSettings' needed for Add-CUTrigger.
+    #  - A script block to build your -UserInput JSON for the script action.
+    #  - A default timeout for waiting on the new trigger to fire.
+    # ----------------------------------------------------------------------
+    $conditionConfigs = @{
+        CPU          = @{
+            Validate                = @{
+                TriggerTypeExpected = "Machine Stress"
+                TableNameExpected   = "Computers"
+                ErrorMessage        = "Trigger '$TriggerName' is not an Advanced Machine Trigger."
+            }
+            TriggerNamePrefix       = "TT-Simulated-CPUUsage"
+            TriggerType             = "Advanced"
+            AdvancedTriggerSettings = @{ TriggerStressRecordType = "Machine" }
+            Timeout                 = 1
+            BuildActionParams       = {
+                return (@{ arg_0 = "CPU"; arg_6 = 15 } | ConvertTo-Json)
+            }
         }
 
-        Write-TriggerTroubleshooterLog "Retrieving trigger '$TriggerName'."
+        Memory       = @{
+            Validate                = @{
+                TriggerTypeExpected = "Machine Stress"
+                TableNameExpected   = "Computers"
+                ErrorMessage        = "Trigger '$TriggerName' is not an Advanced Machine Trigger."
+            }
+            TriggerNamePrefix       = "TT-Simulated-MemoryUsage"
+            TriggerType             = "Advanced"
+            AdvancedTriggerSettings = @{ TriggerStressRecordType = "Machine" }
+            Timeout                 = 1
+            BuildActionParams       = {
+                return (@{ arg_0 = "Memory"; arg_6 = 6 } | ConvertTo-Json)
+            }
+        }
+
+        WindowsEvent = @{
+            Validate          = @{
+                TriggerTypeExpected = "Windows Event"
+                TableNameExpected   = $null
+                ErrorMessage        = "Trigger '$TriggerName' is not a Windows Event Trigger."
+            }
+            TriggerNamePrefix = "TT-Simulated-WindowsEvent"
+            TriggerType       = "WindowsEvent"
+            # No advanced settings needed
+            Timeout           = 30
+            BuildActionParams = {
+                # Windows Event might need detail from the matched node's Data
+                # We'll fill this in after we call the relevant "Get-MatchingWindowsEvent" function
+                param($NodeData)
+                $entryTypeMapping = @{ 1 = "Error"; 2 = "Information"; 3 = "Warning" }
+                return (@{
+                        arg_0 = "WindowsEvent"
+                        arg_1 = $NodeData.Log
+                        arg_2 = $NodeData.Source
+                        arg_3 = $NodeData.EventID
+                        arg_4 = $entryTypeMapping[$NodeData.EntryType]
+                        arg_5 = $NodeData.Message
+                        arg_6 = 30  # The time to keep the event around
+                    } | ConvertTo-Json)
+            }
+        }
+
+        DiskUsage    = @{
+            Validate                = @{
+                TriggerTypeExpected = "Logical Disk Stress"
+                TableNameExpected   = $null
+                ErrorMessage        = "Trigger '$TriggerName' is not a LogicalDisk Trigger."
+            }
+            TriggerNamePrefix       = "TT-Simulated-DiskUsage"
+            TriggerType             = "Advanced"
+            AdvancedTriggerSettings = @{ TriggerStressRecordType = "LogicalDisk" }
+            Timeout                 = 1
+            BuildActionParams       = {
+                param($NodeData)
+                return (@{
+                        arg_0 = "DiskUsage"
+                        arg_6 = 10      # seconds or threshold for activity
+                        arg_7 = $NodeData.FreeSpacePercentage
+                    } | ConvertTo-Json)
+            }
+        }
+    }
+
+    # Pull the relevant config block based on ConditionType
+    $config = $conditionConfigs[$ConditionType]
+    if (-not $config) {
+        throw "Unsupported ConditionType '$ConditionType'."
+    }
+
+    # Used to store the newly added trigger object (so we can remove it in finally{})
+    $newTrigger = $null
+    $newTriggerName = $null
+
+
+    try {
+        # ------------------------------------------------------------------
+        # CHECK COMPUTER STATUS
+        # ------------------------------------------------------------------
+        Write-TTLog "Checking computer status."
+        $computer = Get-ComputerStatus -ComputerName $ComputerName
+        if ($computer.Status -ne "Ready") {
+            throw "Status for '$ComputerName' is '$($computer.Status)' instead of 'Ready'."
+        }
+
+        # ------------------------------------------------------------------
+        # VALIDATE REFERENCE TRIGGER
+        # ------------------------------------------------------------------
+        Write-TTLog "Retrieving trigger '$TriggerName'."
         $trigger = Get-Trigger -Name $TriggerName -Fields @("Name", "Id", "TriggerType", "TableName")
         if (-not $trigger) {
             Write-Warning "Trigger '$TriggerName' not found."
             return
         }
 
-        switch ($ConditionType) {
-            { ("CPU", "Memory") -contains $_ } {
-                if ($trigger.TriggerType -ne "Machine Stress" -or $trigger.TableName -ne "Computers") {
-                    Write-Warning "Trigger '$TriggerName' is not an Advanced Machine Trigger."
-                    throw "Invalid Trigger Type"
-                }
-            }
-            "WindowsEvent" {
-                if ($trigger.TriggerType -ne "Windows Event") {
-                    Write-Warning "Trigger '$TriggerName' is not a Windows Event Trigger."
-                    throw "Invalid Trigger Type"
-                }
-            }
+        # Check the expected TriggerType / TableName from the config
+        $expectedType = $config.Validate.TriggerTypeExpected
+        $expectedTable = $config.Validate.TableNameExpected
+        if ($null -ne $expectedType -and $trigger.TriggerType -ne $expectedType) {
+            Write-Warning $config.Validate.ErrorMessage
+            throw "Invalid Trigger Type"
+        }
+        if ($null -ne $expectedTable -and $trigger.TableName -ne $expectedTable) {
+            Write-Warning $config.Validate.ErrorMessage
+            throw "Invalid Trigger Table"
         }
 
-        Write-TriggerTroubleshooterLog "Querying root folder details."
-        $rootFolder = (Invoke-CUQuery -Table Folders -Where "FolderType=4" -Fields Path).Data
-        if (-not $rootFolder) { throw "Unable to find Root Folder." }
-
-        Write-TriggerTroubleshooterLog "Retrieving trigger details."
+        # ------------------------------------------------------------------
+        # RETRIEVE TRIGGER DETAILS / MATCHING NODE
+        # ------------------------------------------------------------------
+        Write-TTLog "Retrieving trigger details."
         $details = Get-CUTriggerDetails -TriggerId $trigger.ID
+
+        # Rebuild the root node object from $details
         $rootNode = [ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode]::New()
         $rootNode.ChildNodes = $details.FilterNodes
 
-        Write-TriggerTroubleshooterLog "Finding matching condition."
+        # Based on ConditionType, call the relevant "Get-MatchingX" function
+        Write-TTLog "Finding matching condition for '$ConditionType'."
         switch ($ConditionType) {
-            "CPU" { $node = Get-MatchingCPUCondition -RootNode $rootNode; $newTriggerName = "TT-Simulated-CPUUsage-" + [guid]::NewGuid() }
-            "Memory" { $node = Get-MatchingMemoryCondition -RootNode $rootNode; $newTriggerName = "TT-Simulated-MemoryUsage-" + [guid]::NewGuid() }
-            "WindowsEvent" { $node = Get-MatchingWindowsEvent -RootNode $rootNode; $newTriggerName = "TT-Simulated-WindowsEvent-" + [guid]::NewGuid() }
-            "LogicalDisk" { $node = Get-MatchingLogicalDiskCondition -RootNode $rootNode; $newTriggerName = "TT-Simulated-LogicalDisk" + [guid]::NewGuid() }
+            "CPU" { $node = Get-MatchingCPUCondition -RootNode $rootNode }
+            "Memory" { $node = Get-MatchingMemoryCondition -RootNode $rootNode }
+            "WindowsEvent" { $node = Get-MatchingWindowsEvent -RootNode $rootNode }
+            "DiskUsage" { $node = Get-MatchingDiskUsageCondition -RootNode $rootNode }
         }
 
-        Write-TriggerTroubleshooterLog "Preparing new trigger info."
+        if (-not $node) {
+            Write-Warning "No node data was returned. Cannot proceed."
+            return
+        }
+
+        # ------------------------------------------------------------------
+        # BUILD NEW TRIGGER SPLAT
+        # ------------------------------------------------------------------
+        $newTriggerName = $config.TriggerNamePrefix + "-" + [guid]::NewGuid()
+        Write-TTLog "Preparing new trigger info for '$newTriggerName'."
+
+        # Root folder used for ExcludedFolders, etc.
+        $rootFolder = (Invoke-CUQuery -Table Folders -Where "FolderType=4" -Fields Path).Data
+        if (-not $rootFolder) { throw "Unable to find Root Folder." }
+
         $newTriggerSplat = @{
             TriggerName        = $newTriggerName
             Description        = "Generated by TriggerTroubleshooter"
@@ -79,95 +208,60 @@ function Invoke-SimulatedTrigger {
                 IncludedFolders = $computer.FolderPath
             }
             FilterNodes        = $node.Node.ChildNodes
+            TriggerType        = $config.TriggerType
         }
 
-        if ($ConditionType -in @("CPU", "Memory")) {
-            $newTriggerSplat.TriggerType = "Advanced"
-            $newTriggerSplat.AdvancedTriggerSettings = @{ TriggerStressRecordType = "Machine" }
+        # For advanced triggers, add advanced properties
+        if ($config.ContainsKey('AdvancedTriggerSettings')) {
+            $newTriggerSplat.AdvancedTriggerSettings = $config.AdvancedTriggerSettings
         }
-        elseif($ConditionType -eq "WindowsEvent") {
-            $newTriggerSplat.TriggerType = "WindowsEvent"
-            
-            # There is an issue with 9.0.5
-            if ((Get-Module -Name ControlUp.PowerShell.User).Version.Minor -eq 0) {
+
+        # Windows Event special case if running 9.0.5
+        if ($ConditionType -eq "WindowsEvent") {
+            $ModuleVersion = Get-Module -Name ControlUp.PowerShell.User
+            if ($ModuleVersion.Version.Minor -eq 0 -and $ModuleVersion.Version.Major -eq 9) {
                 $newTriggerSplat.ComputerDownProperties = @{}
             }
-        } elseif($ConditionType -eq "LogicalDisk") {
-            $newTriggerSplat.TriggerType = "Advanced"
-            $newTriggerSplat.AdvancedTriggerSettings = @{ TriggerStressRecordType = "LogicalDisk" }
         }
 
-        Write-TriggerTroubleshooterLog "Creating new trigger '$newTriggerName'."
-        Write-TriggerTroubleshooterLog "$($newTriggerSplat | ConvertTo-Json -Depth 20)"
-
-        $newTrigger = Add-CUTrigger @newTriggerSplat
-        Wait-ForTrigger -TriggerName $newTriggerName -ShouldExist | Out-Null
-
-        Write-TriggerTroubleshooterLog "Retrieving action for trigger troubleshooting."
-        $action = Get-CUAvailableActions -DisplayName "Trigger Troubleshooter - Simulated Test"
-        if (-not $action) {
-            Write-Warning "Unable to find Trigger Troubleshooter - Simulated Test script action."
-            throw "Missing Script Action"
+        # ------------------------------------------------------------------
+        # CREATE TRIGGER + INVOKE ACTION + WAIT FOR FIRING
+        # ------------------------------------------------------------------
+        # Build action params (some conditions just have a script block that returns JSON)
+        # For WindowsEvent or DiskUsage, we need to pass the node.Data to that script block.
+        $actionParams =
+        if ($config.BuildActionParams.Ast.ParamBlock.Parameters.Count -gt 0) {
+            # If the script block has a param($NodeData), pass $node.Data
+            $config.BuildActionParams.Invoke($node.Data)
+        }
+        else {
+            $config.BuildActionParams.Invoke()
         }
 
-        Write-TriggerTroubleshooterLog "Preparing action parameters."
+        $timeout = $config.Timeout
+        $createResult = New-SimulatedTrigger -NewTriggerProps $newTriggerSplat `
+            -Computer      $computer `
+            -TriggerName   $newTriggerName `
+            -ActionParams  $actionParams `
+            -Timeout       $timeout
+        $newTrigger = $createResult.TriggerObject
+        $didTriggerFire = $createResult.Fired
 
-        # Timeout waiting for trigger to fire
-        $timeout = 30
-        switch ($ConditionType) {
-            "CPU" {
-                $Params = @{ arg_0 = "CPU"; arg_6 = 15 } | ConvertTo-Json
-                $timeout = 1
-            }
-            "Memory" {
-                $Params = @{ arg_0 = "Memory"; arg_6 = 6 } | ConvertTo-Json
-                $timeout = 1
-            }
-            "WindowsEvent" {
-                $entryTypeMapping = @{ 1 = "Error"; 2 = "Information"; 3 = "Warning" }
-                $evData = $node.Data
-                $Params = @{
-                    arg_0 = "WindowsEvent"
-                    arg_1 = $evData.Log
-                    arg_2 = $evData.Source
-                    arg_3 = $evData.EventID
-                    arg_4 = $entryTypeMapping[$evData.EntryType]
-                    arg_5 = $evData.Message
-                    arg_6 = $timeout
-                } | ConvertTo-Json
-                $timeout = 30
-            }
-            "LogicalDisk" {
-                $Params = @{ arg_0 = "LogicalDisk"; arg_6 = 10; arg_7 = $node.Data.FreeSpacePercentage } | ConvertTo-Json
-                $timeout = 1
-            }
-        }
-
-        Write-TriggerTroubleshooterLog "Invoking action '$($action.Title)'."
-        Write-TriggerTroubleshooterLog "UserInput: $Params"
-        Write-TriggerTroubleshooterLog "Executing $($action.name) ($($action.id)) on $($computer.Name) ($($computer.Key))"
-        $actionResult = Invoke-CUAction -ActionId $action.ID -Table $action.Table -RecordsGuids $computer.Key -UserInput $Params
-        if ($actionResult.Result -eq 'Error') {
-            Write-Error $actionResult.ErrorMessage
-            throw "Action invocation failed."
-        }
-
-        Write-TriggerTroubleshooterLog "Waiting for the new trigger to fire."
-        $didTriggerFire = Wait-ForTriggerToFire -TriggerName $newTriggerName -Timeout $timeout
-
-        Write-TriggerTroubleshooterLog "Trigger Fired: $didTriggerFire"
         return [pscustomobject] @{
             TriggerFired = $didTriggerFire
         }
     }
     catch {
-        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
+        Write-TTLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Invoke-SimulatedTrigger: $($_.Exception.Message)"
         throw
     }
     finally {
+        # ------------------------------------------------------------------
+        # CLEAN UP THE NEWLY CREATED TRIGGER
+        # ------------------------------------------------------------------
         if ($newTrigger -and $newTrigger.TriggerId) {
-            Write-TriggerTroubleshooterLog "Removing trigger '$newTriggerName'."
+            Write-TTLog "Removing simulated trigger '$newTriggerName'."
             Remove-CUTrigger -TriggerId $newTrigger.TriggerId | Out-Null
             Wait-ForTrigger -TriggerName $newTriggerName | Out-Null
         }

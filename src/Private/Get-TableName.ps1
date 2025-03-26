@@ -26,32 +26,32 @@ function Get-TableName {
     )
 
     try {
-        Write-TriggerTroubleshooterLog "Getting table name for: $TableName with TriggerType: $TriggerType"
+        Write-TTLog "Getting table name for: $TableName with TriggerType: $TriggerType"
 
         # check for specific trigger type mappings
         switch ($TriggerType) {
             "UserLoggedOff" {
-                Write-TriggerTroubleshooterLog "UserLoggedOff detected. Returning SessionsView table."
+                Write-TTLog "UserLoggedOff detected. Returning SessionsView table."
                 return "SessionsView"
             }
 
             "UserLoggedOn" {
-                Write-TriggerTroubleshooterLog "UserLoggedOn detected. Returning SessionsView table."
+                Write-TTLog "UserLoggedOn detected. Returning SessionsView table."
                 return "SessionsView"
             }
 
             "WindowsEvent" {
-                Write-TriggerTroubleshooterLog "UserLoggedOn detected. Returning Events table."
+                Write-TTLog "UserLoggedOn detected. Returning Events table."
                 return "Events"
             }   
 
             "ProcessStarted" {
-                Write-TriggerTroubleshooterLog "UserLoggedOn detected. Returning Processes table."
+                Write-TTLog "UserLoggedOn detected. Returning Processes table."
                 return "Processes"
             }
 
             "ProcessEnded" {
-                Write-TriggerTroubleshooterLog "UserLoggedOn detected. Returning Processes table."
+                Write-TTLog "UserLoggedOn detected. Returning Processes table."
                 return "Processes"
             }
 
@@ -60,17 +60,17 @@ function Get-TableName {
             }
 
             "MachineDown" {
-                Write-TriggerTroubleshooterLog "MachineDown detected. Returning ComputerView table."
+                Write-TTLog "MachineDown detected. Returning ComputerView table."
                 return "ComputerView"
             }
 
             "SessionStateChanged" {
-                Write-TriggerTroubleshooterLog "SessionStateChanged detected. Returning SessionsView table."
+                Write-TTLog "SessionStateChanged detected. Returning SessionsView table."
                 return "SessionsView"
             }
 
             default {
-                Write-TriggerTroubleshooterLog "No trigger type mapping found for '$TriggerType'."
+                Write-TTLog "No trigger type mapping found for '$TriggerType'."
             }
         }
 
@@ -78,19 +78,19 @@ function Get-TableName {
         switch ($TableName) {
             "" {
                 $table = "Not returned by observable details"
-                Write-TriggerTroubleshooterLog "No name provided; defaulting table name to: $table"
+                Write-TTLog "No name provided; defaulting table name to: $table"
             }
             Default {
                 $table = $TableName
-                Write-TriggerTroubleshooterLog "No specific mapping for name; returning the original name: $table"
+                Write-TTLog "No specific mapping for name; returning the original name: $table"
             }
         }
 
-        Write-TriggerTroubleshooterLog "Returning table name: $table"
+        Write-TTLog "Returning table name: $table"
         return $table
     }
     catch {
-        Write-TriggerTroubleshooterLog "ERROR: $($_.Exception.Message)"
+        Write-TTLog "ERROR: $($_.Exception.Message)"
         Write-Error "Error in Get-TableName: $($_.Exception.Message)"
         throw
     }
