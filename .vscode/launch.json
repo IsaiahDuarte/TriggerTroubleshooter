@@ -8,7 +8,7 @@
             "script": "${workspaceFolder}\\Release\\ScriptAction.ps1",
             "cwd": "${workspaceFolder}",
             "args": [
-                "-TriggerName \"notepad\"",
+                "-TriggerName \"AZTags Regex\"",
                 "-Records \"1\"",
                 "-SimulateTriggerParameter \"True\"",
                 "-SimulateOnComputer \"oliver-rt\"",

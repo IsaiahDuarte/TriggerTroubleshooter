@@ -61,6 +61,15 @@ function Test-Trigger {
         Write-TTLog "Getting Trigger Observable Details"
         $triggerObservableDetails = Get-CUObservableTriggerDetails -Trigger $Name
 
+        # Sometimes when a trigger is disabled, then gets enabled, Get-CUObservableTriggerDetails returns empty filter/table
+        if($triggerObservableDetails.Filters.Count -eq 0) {
+            $triggerObservableDetails.Filters = Get-TriggerColumns -FilterNodes $triggerDetails.FilterNodes
+        }
+
+        if([string]::IsNullOrEmpty($triggerObservableDetails.Table)) {
+            $triggerObservableDetails.Table = $triggerDetails.TableName
+        }
+
         Write-TTLog "Getting the Table"
         $table = Get-TableName -TableName $triggerObservableDetails.Table -TriggerType $triggerDetails.TriggerType
 

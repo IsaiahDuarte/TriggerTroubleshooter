@@ -180,7 +180,8 @@ try {
                 } elseif ($columns -contains "MemoryInUse") {
                     $splat.ConditionType = "Memory"
                 } else {
-                    Write-Warning "Trigger Type $($trigger.TriggerType) cannot be simulated"
+                    Write-Warning "Trigger Type $($trigger.TriggerType) cannot be simulated. Doesn't contain CPU or MemoryInUse columns"
+                    return
                 }
             }
 
@@ -190,7 +191,8 @@ try {
                 } elseif ($columns -match "DiskKBps|DiskReadKBps|DiskWriteKBps") {
                     $splat.ConditionType = "DiskIO"
                 } else {
-                    Write-Warning "Trigger Type $($trigger.TriggerType) cannot be simulated"
+                    Write-Warning "Trigger Type $($trigger.TriggerType) cannot be simulated. Doesn't contain DiskUsage,DiskKBps,DiskReadKBps,DiskWriteKBps"
+                    return
                 }
             }
 
