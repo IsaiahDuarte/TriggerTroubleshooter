@@ -23,18 +23,17 @@ function New-NodeDataTemplate {
     
     $data = [PSCustomObject] $Defaults
 
-    # 4) Apply constraint values
     foreach ($key in $constraints.Keys) {
         $data | Add-Member -NotePropertyName $key -NotePropertyValue $constraints[$key] -Force
     }
 
     Write-TTLog "Performing BoundaryCheck on node"
-    $sanitizedRoot = $BoundaryCheck.Invoke($data,$sanitizedRoot)[1]
+    # Invoke returns a System.Collections.ObjectModel.Collection[psobject]
+    $sanitizedRoot = $BoundaryCheck.Invoke($data,$sanitizedRoot)[0]
 
     Write-TTLog "Removing empty nodes"
     $sanitizedRoot = Remove-EmptyNodes -Node $sanitizedRoot
 
-    # 7) Return
     return ,[PSCustomObject]@{
         Data = $data
         Node = $sanitizedRoot

@@ -1,7 +1,4 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
@@ -10,7 +7,13 @@
             "request": "launch",
             "script": "${workspaceFolder}\\Release\\ScriptAction.ps1",
             "cwd": "${workspaceFolder}",
-            "args": ["-TriggerName \"Logical Disk Advanced Trigger2\"", "-Records \"1\"", "-SimulateTriggerParameter \"True\"", "-SimulateOnComputer \"oliver-rt\"", "-DebugParameter \"True\""],
+            "args": [
+                "-TriggerName \"WEvent\"",
+                "-Records \"1\"",
+                "-SimulateTriggerParameter \"True\"",
+                "-SimulateOnComputer \"oliver-rt\"",
+                "-DebugParameter \"True\""
+            ],
             "createTemporaryIntegratedConsole": true
         },
         {
@@ -25,7 +28,7 @@
             "type": "PowerShell",
             "request": "launch",
             "script": "${workspaceFolder}/BuildTriggerTroubleshooterRelease.ps1",
-            "createTemporaryIntegratedConsole": true,
+            "createTemporaryIntegratedConsole": true
         },
         {
             "name": "Run Pester Unit tests",
@@ -33,14 +36,14 @@
             "request": "launch",
             "cwd": "${workspaceFolder}/tests/unit",
             "script": "Invoke-Pester",
-            "createTemporaryIntegratedConsole": true,
+            "createTemporaryIntegratedConsole": true
         },
         {
             "name": "Run Pester Integration tests",
             "type": "PowerShell",
             "request": "launch",
             "script": ". \"${workspaceFolder}/tests/integration/Test-Trigger.Generated.ps1\"",
-            "createTemporaryIntegratedConsole": true,
+            "createTemporaryIntegratedConsole": true
         }
     ]
 }

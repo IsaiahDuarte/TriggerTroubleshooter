@@ -23,7 +23,7 @@ Import-Module "$rootPath\src\TriggerTroubleshooter.psd1" -Force
 # $b = Invoke-SimulatedMemoryUsage -TriggerName "Memory" -ComputerName "OLIVER-RT" -Verbose
 #$c = Invoke-SimulatedTrigger -TriggerName "CPU" -ComputerName "oliver-rt" -ConditionType "CPU" -Verbose
 Get-CUTriggers -IsEnabled $true | Foreach-Object {
-    if ($_.TriggerName -like 'Logical Disk Advanced Trigger' ) { 
+    if ($_.TriggerName -like 'IO' ) { 
         Write-Output "`n`nProcessing Trigger $($_.TriggerName)"
         $result = Test-Trigger -Name $_.TriggerName -Verbose -AllRecords
         

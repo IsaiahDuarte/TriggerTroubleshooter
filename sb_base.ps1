@@ -167,6 +167,8 @@ try {
             ComputerName = $SimulateOnComputer
         }
 
+        $columns = Get-TriggerColumns -FilterNodes $triggerDetails.FilterNodes
+
         switch ($trigger.TriggerType) {
             "Windows Event" { 
                 $splat.ConditionType = "WindowsEvent"
@@ -174,20 +176,27 @@ try {
             }
 
             "Machine Stress" {
-                $columns = Get-TriggerColumns -FilterNodes $triggerDetails.FilterNodes
-                
                 if($columns -contains "CPU") {
                     $splat.ConditionType = "CPU"
                     $simulationResult = Invoke-SimulatedTrigger @splat
                 } elseif ($columns -contains "MemoryInUse") {
                     $splat.ConditionType = "Memory"
                     $simulationResult = Invoke-SimulatedTrigger @splat
+                } else {
+                    Write-Warning "Trigger Type $($trigger.TriggerType) cannot be simulated"
                 }
             }
 
             "Logical Disk Stress" {
-                $splat.ConditionType = "DiskUsage"
-                $simulationResult = Invoke-SimulatedTrigger @splat
+                if($columns -contains "FreeSpacePercentage") {
+                    $splat.ConditionType = "DiskUsage"
+                    $simulationResult = Invoke-SimulatedTrigger @splat
+                } elseif ($columns -match "DiskKBps|DiskReadKBps|DiskWriteKBps") {
+                    $splat.ConditionType = "DiskIO"
+                    $simulationResult = Invoke-SimulatedTrigger @splat
+                } else {
+                    Write-Warning "Trigger Type $($trigger.TriggerType) cannot be simulated"
+                }
             }
 
             default {

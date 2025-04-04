@@ -2,35 +2,23 @@ function Invoke-HighIO {
     <#
         .SYNOPSIS
             Simulate high disk I/O by continuously writing and reading files.
-
         .PARAMETER DurationSeconds
         .PARAMETER FileSizeMB
         .PARAMETER ThreadCount
         .PARAMETER TempPath
-
         .EXAMPLE
-            PS> Invoke-HighIO -DurationSeconds 60 -FileSizeMB 100 -ThreadCount 2 -TempPath "C:\Temp"
-            Runs a 60-second high I/O simulation with 2 worker threads, each creating/downloading a 100 MB file in C:\Temp.
-
+            PS> Invoke-HighIO -DurationSeconds 60 -FileSizeMB 100 -ThreadCount 4 -TempPath "C:\Temp"
     #>
-
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        [int]
-        $DurationSeconds,
-
-        [Parameter(Mandatory = $true)]
-        [int]
-        $FileSizeMB,
-
-        [Parameter(Mandatory = $true)]
-        [int]
-        $ThreadCount,
-
+        [int]$DurationSeconds,
         [Parameter(Mandatory = $false)]
-        [string]
-        $TempPath = "$env:SystemDrive\Temp"
+        [int]$FileSizeMB = 100,
+        [Parameter(Mandatory = $false)]
+        [int]$ThreadCount = ([Environment]::ProcessorCount * 2),
+        [Parameter(Mandatory = $false)]
+        [string]$TempPath = $ENV:TEMP
     )
 
     if (-not (Test-Path -Path $TempPath)) {
@@ -52,32 +40,53 @@ function Invoke-HighIO {
         )
 
         Write-Verbose "[$(Get-Date)] Creating random data file: $FilePath ($FileSizeMB MB)"
-        [byte[]] $fileBytes = New-Object byte[] ($FileSizeMB * 1MB)
-        (New-Object System.Random).NextBytes($fileBytes)
-        [System.IO.File]::WriteAllBytes($FilePath, $fileBytes)
+
+        # Create initial random file
+        $byteCount = $FileSizeMB * 1MB
+        $data = New-Object byte[] $byteCount
+        (New-Object System.Random).NextBytes($data)
+        [System.IO.File]::WriteAllBytes($FilePath, $data)
+
+        $fs = New-Object System.IO.FileStream(
+            $FilePath,
+            [System.IO.FileMode]::Open,
+            [System.IO.FileAccess]::ReadWrite,
+            [System.IO.FileShare]::None,
+            4096,
+            [System.IO.FileOptions]::WriteThrough
+        )
 
         $stopTime = (Get-Date).AddSeconds($DurationSeconds)
-        Write-Verbose "[$(Get-Date)] Starting read/write loop until $stopTime..."
+        Write-Verbose "[$(Get-Date)] Starting I/O loop until $stopTime..."
+
+        $bufferSize = 8192
+        $rand = New-Object System.Random
+        $readBuffer = New-Object byte[] $bufferSize
+        $writeBuffer = New-Object byte[] $bufferSize
 
         while ((Get-Date) -lt $stopTime) {
-            [void][System.IO.File]::ReadAllBytes($FilePath)
-
-            $fs = [System.IO.File]::Open($FilePath, [System.IO.FileMode]::Open, [System.IO.FileAccess]::ReadWrite)
-            try {
-                $randomOffset = (Get-Random -Minimum 0 -Maximum ($FileSizeMB * 1MB - 8192))
-                $fs.Seek($randomOffset, [System.IO.SeekOrigin]::Begin) | Out-Null
-
-                [byte[]] $overwriteData = New-Object byte[] 8192
-                (New-Object System.Random).NextBytes($overwriteData)
-                $fs.Write($overwriteData, 0, $overwriteData.Length)
+            # Read
+            $maxOffset = $fs.Length - $bufferSize
+            if ($maxOffset -gt 0) {
+                $readOffset = $rand.Next(0, [int]$maxOffset)
+                $fs.Seek($readOffset, [System.IO.SeekOrigin]::Begin) | Out-Null
+                $fs.Read($readBuffer, 0, $bufferSize) | Out-Null
             }
-            finally {
-                $fs.Close()
-                $fs.Dispose()
+
+            # Write
+            $rand.NextBytes($writeBuffer)
+            if ($maxOffset -gt 0) {
+                $writeOffset = $rand.Next(0, [int]$maxOffset)
+                $fs.Seek($writeOffset, [System.IO.SeekOrigin]::Begin) | Out-Null
+                $fs.Write($writeBuffer, 0, $bufferSize)
+                $fs.Flush()
             }
         }
 
-        Write-Verbose "[$(Get-Date)] Done. Removing file: $FilePath"
+        $fs.Close()
+        $fs.Dispose()
+
+        Write-Verbose "[$(Get-Date)] I/O loop complete. Removing file: $FilePath"
         Remove-Item -Path $FilePath -ErrorAction SilentlyContinue -Force
     }
 
@@ -87,7 +96,6 @@ function Invoke-HighIO {
     }
 
     Wait-Job -Job $jobs | Out-Null
-    Receive-Job -Job $jobs | Out-Null
     Remove-Job -Job $jobs -Force | Out-Null
 
     Write-Host "High I/O simulation complete. All temporary files have been removed."

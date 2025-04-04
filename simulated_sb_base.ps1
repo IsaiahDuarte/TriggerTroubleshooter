@@ -40,7 +40,13 @@ param (
     [Parameter(Mandatory = $false)]
     [string] $DiskSpacePercentage
 )
+
+foreach ($entry in $PSBoundParameters.GetEnumerator()) {
+    Write-Output "Name: $($entry.Key)  Value: $($entry.Value)"
+}
+
 ###ImportModule###
+
 Write-Output "$TestType"
 switch ($TestType) {
     "WindowsEvent" { 
@@ -55,7 +61,6 @@ switch ($TestType) {
             EntryType = $EntryType
             Message   = $Message
         }
-        Write-Output $params
         Write-EventLog @params
     }
 
@@ -64,15 +69,18 @@ switch ($TestType) {
     }
 
     "CPU" {
-        Invoke-CpuLoad -CPUUsage 90 -DurationInMilliseconds 1000
+        Write-Host $Duration
+        Invoke-CpuLoad -CPUUsage 90 -DurationMilliseconds (([int]$Duration)*1000)
     }
     
     "DiskUsage" {
-        Write-Host $DiskSpacePercentage
-        Write-Host $Duration
-        Write-Host $ENV:SystemDrive
         Invoke-DiskUsage -RemainingPercentage $DiskSpacePercentage -Duration $Duration -Drive $ENV:SystemDrive
     }
+
+    "DiskIO" {
+        Invoke-HighIO -Duration $Duration
+    }
+
     default {
         throw "Invalid TestType: $TestType"
     }

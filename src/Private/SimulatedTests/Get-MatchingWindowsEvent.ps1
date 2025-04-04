@@ -4,9 +4,8 @@ function Get-MatchingWindowsEvent {
         Constructs a Windows Event object from a trigger node.
     
     .DESCRIPTION
-        This function sanitizes a trigger node by removing regex-based subnodes,
-        builds constraints from the result, populates a Windows Event PSCustomObject,
-        applies default settings, and forces a Source value.
+        This function sanitizes a trigger node, applies default values to missing columns,
+        forces a specific Source value, and produces a sanitized node along with the event data.
     
     .PARAMETER RootNode
         A TriggerFilterNode object representing the initial trigger tree.
@@ -20,63 +19,44 @@ function Get-MatchingWindowsEvent {
         [ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode] $RootNode
     )
     
-    Write-TTLog "Sanitizing trigger node..."
-    $sanitizedRoot = Format-SimulationNode -Node $RootNode -Columns @('Category', 'EntryType', 'EventID', 'Log', 'Message', 'Source')
-    if (-not $sanitizedRoot) {
-        Write-Warning "After removing regex nodes, no triggers remain. Returning null."
-        return $null
-    }
-    
-    Write-TTLog "Building constraints from sanitized node..."
     try {
-        $constraints = Get-ConstraintsForNode -Node $sanitizedRoot
+        $boundaryCheck = {
+            param($Data, [ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode] $SanitizedRoot)
+            # Set defaults for missing properties
+            if (-not $Data.Category) { $Data.Category = 'None' }
+            if (-not $Data.EntryType) { $Data.EntryType = 'Information' }
+            if (-not $Data.Log) { $Data.Log = 'Application' }
+            if (-not $Data.Message) { $Data.Message = 'Auto-generated test event' }
+            # Ensure EventID is int
+            $Data.EventID = [int]$Data.EventID
+            # Force the Source value
+            $forcedSource = "TriggerTroubleshooter-" + $Data.Log
+            $Data.Source = $forcedSource
+            $SanitizedRoot.ChildNodes.ExpressionDescriptor |
+            Where-Object { $_.Column -eq 'Source' } |
+            ForEach-Object { $_.Value = $forcedSource }
+            # Force type with comma
+            return ,[ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode]$SanitizedRoot
+        }
+        
+        $defaults = @{
+            Category  = 'None'
+            EntryType = 'Information'
+            EventID   = 0
+            Log       = 'Application'
+            Message   = 'Auto-generated test event'
+            Source    = ''
+        }
+        
+        return , (New-NodeDataTemplate `
+                -RootNode $RootNode `
+                -ColumnsToKeep @('Category', 'EntryType', 'EventID', 'Log', 'Message', 'Source') `
+                -BoundaryCheck $boundaryCheck `
+                -Defaults $defaults)
     }
     catch {
-        Write-Warning "Could not build constraints: $($_.Exception.Message)"
-        return $null
-    }
-    
-    Write-TTLog "Creating basic Windows Event object..."
-    $result = [PSCustomObject]@{
-        Category  = ''
-        EntryType = ''
-        EventID   = 0
-        Log       = ''
-        Message   = ''
-        Source    = ''
-    }
-    
-    Write-TTLog "Applying constraints..."
-    foreach ($key in $constraints.Keys) {
-        if ($result.PSObject.Properties.Name -contains $key) {
-            # Use -Force to update an existing property if needed
-            $result | Add-Member -NotePropertyName $key -NotePropertyValue $constraints[$key] -Force
-        }
-        else {
-            $result | Add-Member -NotePropertyName $key -NotePropertyValue $constraints[$key]
-        }
-    }
-    
-    Write-TTLog "Setting default values for missing columns..."
-    if (-not $result.Log) { $result.Log = 'Application' }
-    if (-not $result.Message) { $result.Message = 'Auto-generated test event' }
-    if (-not $result.EntryType) { $result.EntryType = 'Information' }
-    if (-not $result.Category) { $result.Category = 'None' }
-    
-    $source = "TriggerTroubleshooter-" + $result.Log
-    Write-TTLog "Setting forced Source to '$source'..."
-
-    $sanitizedRoot.ChildNodes.ExpressionDescriptor |
-    Where-Object { $_.Column -eq 'Source' } |
-    ForEach-Object { $_.Value = $source }
-    $result.Source = $source
-            
-    Write-TTLog "Removing empty child nodes recursively..."
-    $sanitizedRoot = Remove-EmptyNodes -Node $sanitizedRoot
-    
-    Write-TTLog "Returning event object and sanitized node."
-    return [PSCustomObject]@{
-        Data = $result
-        Node  = $sanitizedRoot
+        Write-TTLog "ERROR: $($_.Exception.Message)"
+        Write-Error "Error in Get-MatchingWindowsEvent: $($_.Exception.Message)"
+        throw
     }
 }

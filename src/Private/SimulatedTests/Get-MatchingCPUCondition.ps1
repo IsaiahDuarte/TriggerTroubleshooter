@@ -4,10 +4,14 @@ function Get-MatchingCPUCondition {
         Applies CPU constraints to a trigger node.
         
     .DESCRIPTION
-
+        This function validates and sanitizes the CPU value in the trigger node.
+        It ensures that a CPU value is provided and caps the value at 75 if necessary.
+        
     .PARAMETER RootNode
-
+        The trigger filter node to apply CPU constraints to.
+        
     .EXAMPLE
+        Get-MatchingCPUCondition -RootNode $myTriggerNode
     #>
     
     [CmdletBinding()]
@@ -17,50 +21,32 @@ function Get-MatchingCPUCondition {
     )
     
     try {
-        Write-TTLog "Sanitizing trigger node..."
-        $sanitizedRoot = Format-SimulationNode -Node $RootNode -Columns @('CPU')
-        if (-not $sanitizedRoot) {
-            Write-Warning "No triggers remain after sanitization."
-            return $null
-        }
-    
-        Write-TTLog "Building constraints from sanitized node..."
-        $constraints = Get-ConstraintsForNode -Node $sanitizedRoot
-        
-        # Create a result object with default CPU.
-        $result = [PSCustomObject]@{ CPU = 0 }
-    
-        Write-TTLog "Applying constraints..."
-        foreach ($key in $constraints.Keys) {
-            Write-TTLog "Adding constraint for '$key'"
-            $result | Add-Member -NotePropertyName $key -NotePropertyValue $constraints[$key] -Force
-        }
-        
-        $isThere = $false
-        $isThere = [int]::TryParse($result.CPU, [ref] $isThere)
-        if (!$isThere) { throw "Trigger is missing CPU" }
-
-        # We cap to 75 just in case
-        if ($result.CPU -gt 75) {
-            Write-TTLog "CPU value ($($result.CPU)) exceeds 75. Capping to 75."
-            $result.CPU = 75
-            $sanitizedRoot.ChildNodes.ExpressionDescriptor |
+        # Check that ensures CPU is a valid integer and does not exceed 75.
+        $boundaryCheck = {
+            param($Data, [ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode] $SanitizedRoot)
+            $isValid = [int]::TryParse($Data.CPU, [ref] $null)
+            if (-not $isValid) { throw "Trigger missing CPU" }
+            if ($Data.CPU -gt 75) {
+                $Data.CPU = 75
+                $SanitizedRoot.ChildNodes.ExpressionDescriptor |
                 Where-Object { $_.Column -eq 'CPU' } |
                 ForEach-Object { $_.Value = 75 }
+            }
+            # Force type with comma
+            return ,[ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode]$SanitizedRoot
         }
         
-        Write-TTLog "Removing empty child nodes recursively..."
-        $sanitizedRoot = Remove-EmptyNodes -Node $sanitizedRoot
+        $defaults = @{ CPU = 0 }
         
-        Write-TTLog "Returning event object and sanitized node."
-        return [PSCustomObject]@{
-            Data = $result
-            Node = $sanitizedRoot
-        }
+        return , (New-NodeDataTemplate `
+                -RootNode $RootNode `
+                -ColumnsToKeep @('CPU') `
+                -BoundaryCheck $boundaryCheck `
+                -Defaults $defaults)
     }
     catch {
         Write-TTLog "ERROR: $($_.Exception.Message)"
-        Write-Error "Error in Get-MatchingMemoryCondition: $($_.Exception.Message)"
+        Write-Error "Error in Get-MatchingCPUCondition: $($_.Exception.Message)"
         throw
     }
 }
