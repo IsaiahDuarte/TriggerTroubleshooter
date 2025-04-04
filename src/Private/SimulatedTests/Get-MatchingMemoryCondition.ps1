@@ -32,7 +32,7 @@ function Get-MatchingMemoryCondition {
                 ForEach-Object { $_.Value = 90 }
             }
             # Force type with comma
-            return ,[ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode]$SanitizedRoot
+            return , [ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode]$SanitizedRoot
         }
         
         $defaults = @{ MemoryInUse = 0 }

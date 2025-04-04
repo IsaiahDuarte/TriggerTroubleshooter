@@ -6,7 +6,7 @@
         <RootSBAId>2d52a0be-3007-4555-ae68-9293fe4b4940</RootSBAId>
         <SQN>0</SQN>
         <Name>Trigger Troubleshooter - Simulated Test</Name>
-        <Description>Made for Trigger Troubleshooter</Description>
+        <Description>**DO NOT USE MANUALLY** Made for Trigger Troubleshooter.</Description>
         <Version></Version>
         <DateCreated>2025-02-23T07:47:41.9022279-05:00</DateCreated>
         <DateModified>2025-02-23T08:51:27.4704636-05:00</DateModified>
@@ -186,6 +186,26 @@
                                     <DefaultValue />
                                     <ArgumentNumber>7</ArgumentNumber>
                                     <ArgumentName>DiskSpacePercentage</ArgumentName>
+                                    <EmptyBehavior>0</EmptyBehavior>
+                                    <ValidationString />
+                                    <ValidationError />
+                                    <MaskTypedCharacters>false</MaskTypedCharacters>
+                                    <EntityType>0</EntityType>
+                                </SBAArgumentDescriptor>
+                            </value>
+                        </item>
+                        <item>
+                            <key>
+                                <string>c082ec29-7c19-43c1-b833-57881a0befef</string>
+                            </key>
+                            <value>
+                                <SBAArgumentDescriptor>
+                                    <ArgumentId>c082ec29-7c19-43c1-b833-57881a0befef</ArgumentId>
+                                    <ArgumentType>1</ArgumentType>
+                                    <Name>ProcessName</Name>
+                                    <DefaultValue />
+                                    <ArgumentNumber>8</ArgumentNumber>
+                                    <ArgumentName>ProcessName</ArgumentName>
                                     <EmptyBehavior>0</EmptyBehavior>
                                     <ValidationString />
                                     <ValidationError />

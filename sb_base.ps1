@@ -38,7 +38,7 @@
         Tests the trigger "MyTrigger" and gets the live data using export-cuquery
 
     .NOTES 
-        Version:           1.2.1
+        Version:           1.3.0
         Context:           Computer script running on one of the CU Monitors
         Author:            Isaiah Duarte ->  https://github.com/IsaiahDuarte/TriggerTroubleshooter  
         Requires:          The CU Monitor's ControlUp.PowerShell.User.dll & 9.0.5+
@@ -172,16 +172,13 @@ try {
         switch ($trigger.TriggerType) {
             "Windows Event" { 
                 $splat.ConditionType = "WindowsEvent"
-                $simulationResult = Invoke-SimulatedTrigger @splat
             }
 
             "Machine Stress" {
                 if($columns -contains "CPU") {
                     $splat.ConditionType = "CPU"
-                    $simulationResult = Invoke-SimulatedTrigger @splat
                 } elseif ($columns -contains "MemoryInUse") {
                     $splat.ConditionType = "Memory"
-                    $simulationResult = Invoke-SimulatedTrigger @splat
                 } else {
                     Write-Warning "Trigger Type $($trigger.TriggerType) cannot be simulated"
                 }
@@ -190,19 +187,27 @@ try {
             "Logical Disk Stress" {
                 if($columns -contains "FreeSpacePercentage") {
                     $splat.ConditionType = "DiskUsage"
-                    $simulationResult = Invoke-SimulatedTrigger @splat
                 } elseif ($columns -match "DiskKBps|DiskReadKBps|DiskWriteKBps") {
                     $splat.ConditionType = "DiskIO"
-                    $simulationResult = Invoke-SimulatedTrigger @splat
                 } else {
                     Write-Warning "Trigger Type $($trigger.TriggerType) cannot be simulated"
                 }
             }
 
+            "Process Ended" {
+                $splat.ConditionType = "Process"
+            }
+
+            "Process Started" {
+                $splat.ConditionType = "Process"
+            }
+
             default {
                 Write-Warning "Trigger Type $($trigger.TriggerType) cannot be simulated"
+                return
             }
         }
+        $simulationResult = Invoke-SimulatedTrigger @splat
 
         if($simulationResult) {
             $separator = '=' * 60

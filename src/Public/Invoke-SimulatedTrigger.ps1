@@ -16,7 +16,7 @@ function Invoke-SimulatedTrigger {
         The name of the existing reference trigger to clone/modify.
 
     .PARAMETER ConditionType
-        One of CPU, Memory, WindowsEvent, DiskIO, or DiskUsage.
+        One of CPU, Memory, WindowsEvent, DiskIO, Process, or DiskUsage.
     #>
 
     [CmdletBinding()]
@@ -28,7 +28,7 @@ function Invoke-SimulatedTrigger {
         [string] $TriggerName,
 
         [Parameter(Mandatory = $true)]
-        [ValidateSet("CPU", "Memory", "WindowsEvent", "DiskUsage", "DiskIO")]
+        [ValidateSet("CPU", "Memory", "WindowsEvent", "DiskUsage", "DiskIO", "Process")]
         [string] $ConditionType
     )
 
@@ -67,7 +67,7 @@ function Invoke-SimulatedTrigger {
         WindowsEvent = @{
             Validate          = @{
                 TriggerTypeExpected = "Windows Event"
-                TableNameExpected   = $null
+                TableNameExpected   = "Events"
                 ErrorMessage        = "Trigger '$TriggerName' is not a Windows Event Trigger."
             }
             TriggerNamePrefix = "TT-Simulated-WindowsEvent"
@@ -91,7 +91,7 @@ function Invoke-SimulatedTrigger {
         DiskUsage    = @{
             Validate                = @{
                 TriggerTypeExpected = "Logical Disk Stress"
-                TableNameExpected   = $null
+                TableNameExpected   = "LogicalDisks"
                 ErrorMessage        = "Trigger '$TriggerName' is not a LogicalDisk Trigger."
             }
             TriggerNamePrefix       = "TT-Simulated-DiskUsage"
@@ -111,7 +111,7 @@ function Invoke-SimulatedTrigger {
         DiskIO       = @{
             Validate                = @{
                 TriggerTypeExpected = "Logical Disk Stress"
-                TableNameExpected   = $null
+                TableNameExpected   = "LogicalDisks"
                 ErrorMessage        = "Trigger '$TriggerName' is not a LogicalDisk Trigger."
             }
             TriggerNamePrefix       = "TT-Simulated-DiskIO"
@@ -126,7 +126,26 @@ function Invoke-SimulatedTrigger {
                         arg_7 = $NodeData.FreeSpacePercentage
                     } | ConvertTo-Json)
             }
+        }
 
+        Process      = @{
+            Validate          = @{
+                TriggerTypeExpected = "Process*"
+                TableNameExpected   = "Processes"
+                ErrorMessage        = "Trigger '$TriggerName' is not a Process Start/Stop Trigger."
+            }
+            TriggerNamePrefix = "TT-Simulated-Process"
+            # Technically if we get a ProcessStarted, this will force the simulation to be ProcessEnded
+            # Had a hard time getting ProcessStarted working consistently.
+            TriggerType       = "ProcessEnded"
+            Timeout           = 15
+            BuildActionParams = {
+                param($NodeData)
+                return (@{
+                        arg_0 = "Process"
+                        arg_8 = $NodeData.sName
+                    } | ConvertTo-Json)
+            }
         }
     }
 
@@ -155,7 +174,9 @@ function Invoke-SimulatedTrigger {
         # Check the expected TriggerType / TableName from the config
         $expectedType = $config.Validate.TriggerTypeExpected
         $expectedTable = $config.Validate.TableNameExpected
-        if ($null -ne $expectedType -and $trigger.TriggerType -ne $expectedType) {
+
+        # We are using * in some of the validation. That is why we are using -like
+        if ($null -ne $expectedType -and $trigger.TriggerType -notlike $expectedType) {
             Write-Warning $config.Validate.ErrorMessage
             throw "Invalid Trigger Type"
         }
@@ -179,6 +200,7 @@ function Invoke-SimulatedTrigger {
             "WindowsEvent" { $node = Get-MatchingWindowsEvent -RootNode $rootNode }
             "DiskUsage" { $node = Get-MatchingDiskUsageCondition -RootNode $rootNode }
             "DiskIO" { $node = Get-MatchingDiskIOCondition -RootNode $rootNode }
+            "Process" { $node = Get-MatchingProcessCondition -RootNode $rootNode }
         }
 
         if (-not $node) {

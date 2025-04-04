@@ -6,7 +6,7 @@
         This script will simulate trigger conditions like creating a windows event.
 
     .NOTES 
-        Version:           1.2.1
+        Version:           1.3.0
         Context:           Made for Trigger Troubleshooter
         Author:            Isaiah Duarte ->  https://github.com/IsaiahDuarte/TriggerTroubleshooter  
         Requires:          The CU Monitor's ControlUp.PowerShell.User.dll & 9.0.5+
@@ -38,7 +38,10 @@ param (
     [string] $Duration,
 
     [Parameter(Mandatory = $false)]
-    [string] $DiskSpacePercentage
+    [string] $DiskSpacePercentage,
+
+    [Parameter(Mandatory = $false)]
+    [string] $ProcessName
 )
 
 foreach ($entry in $PSBoundParameters.GetEnumerator()) {
@@ -79,6 +82,10 @@ switch ($TestType) {
 
     "DiskIO" {
         Invoke-HighIO -Duration $Duration
+    }
+
+    "Process" {
+        Invoke-ExeSimulation -ExeName $ProcessName
     }
 
     default {

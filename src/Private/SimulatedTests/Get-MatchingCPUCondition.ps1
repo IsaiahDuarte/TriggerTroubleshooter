@@ -33,7 +33,7 @@ function Get-MatchingCPUCondition {
                 ForEach-Object { $_.Value = 75 }
             }
             # Force type with comma
-            return ,[ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode]$SanitizedRoot
+            return , [ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode]$SanitizedRoot
         }
         
         $defaults = @{ CPU = 0 }

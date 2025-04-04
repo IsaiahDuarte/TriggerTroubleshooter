@@ -36,7 +36,7 @@ function Get-MatchingDiskIOCondition {
                 }
             }
             # Force type with comma
-            return ,[ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode]$SanitizedRoot
+            return , [ControlUp.PowerShell.Common.Contract.Triggers.TriggerFilterNode]$SanitizedRoot
         }
         
         $defaults = @{ DiskKBps = 0; DiskReadKBps = 0; DiskWriteKBps = 0 }
@@ -48,7 +48,7 @@ function Get-MatchingDiskIOCondition {
     }
     catch {
         Write-TTLog "ERROR: $($_.Exception.Message)"
-        Write-Error "Error in Get-MatchingIOCondition: $($_.Exception.Message)"
+        Write-Error "Error in Get-MatchingDiskIOCondition: $($_.Exception.Message)"
         throw
     }
 }
