@@ -55,6 +55,10 @@ Trigger Troubleshooter also offers the ability to simulate a trigger based on th
   - DiskWriteKBps  
   - FreeSpacePercentage
 
+- **Process Start/Stop:**  
+  - Name  
+  *Note: This is using Get-Command and Registry App Paths to find an exe path*
+
 ### Expected Output for a Simulated Trigger
 
 For a successful simulation, the output will look similar to:
@@ -127,7 +131,7 @@ Below are examples of the trigger configuration, script action parameters, and s
      - Trigger Troubleshooter - Simulated Test.xml: Required for script actions when using Simulated Trigger functionality.
      - TriggerTroubleshooter.zip: A ZIP archive containing the TriggerTroubleshooter module.
 
-2. For use within ControlUp, you only need the two XML files (Trigger Troubleshooter.xml and Trigger Troubleshooter - Simulated Test.xml).
+2. For just using within the ControlUp Console, you only need the two XML files (Trigger Troubleshooter.xml and Trigger Troubleshooter - Simulated Test.xml).
 
 3. Import the XML files into ControlUp by following these instructions:  
    https://support.controlup.com/docs/script-based-actions-sba#import-an-sba
