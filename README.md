@@ -116,3 +116,30 @@ Below are examples of the trigger configuration, script action parameters, and s
   Indicates whether the trigger conditions are met. If all conditions are met, this will be True.
 
 ## Setup
+
+1. Download the latest release from the official repository:  
+   https://github.com/IsaiahDuarte/TriggerTroubleshooter/releases
+
+   - File Breakdown:
+     - ScriptAction.ps1: Contains the main Trigger Troubleshooter logic.
+     - ScriptAction-Simulated.ps1: A helper script used for simulating triggers.
+     - Trigger Troubleshooter.xml: The primary XML file to import as a script action.
+     - Trigger Troubleshooter - Simulated Test.xml: Required for script actions when using Simulated Trigger functionality.
+     - TriggerTroubleshooter.zip: A ZIP archive containing the TriggerTroubleshooter module.
+
+2. For use within ControlUp, you only need the two XML files (Trigger Troubleshooter.xml and Trigger Troubleshooter - Simulated Test.xml).
+
+3. Import the XML files into ControlUp by following these instructions:  
+   https://support.controlup.com/docs/script-based-actions-sba#import-an-sba
+
+4. After importing the script actions into your ControlUp environment, update the Trigger Troubleshooter settings so that the script is executed from a monitor server. See the settings screenshot for guidance:  
+   ![Settings Screenshot](photos/sbaSettings.png)
+
+   - If you plan to run simulated tests, ensure that you use a dedicated service account with permissions to manage triggers and execute the TriggerTroubleshooter - Simulated Test script action.
+
+5. Once configured, you can start the Trigger Troubleshooter action. Right-click on any computer (the script will always execute on a monitor server) and choose Trigger Troubleshooter.  
+   • Important: Do not run “Trigger Troubleshooter - Simulated Test” directly—this script is invoked automatically when simulating a trigger.
+
+*Note:*  
+For the "Simulate on Computer" parameter, input the sName value from the Computers table. You can retrieve this value by running:  
+(Get-CUComputers -Match "MyComputerName").Name
