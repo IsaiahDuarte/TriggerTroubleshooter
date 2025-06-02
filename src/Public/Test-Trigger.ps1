@@ -107,7 +107,11 @@ function Test-Trigger {
         $identityField = Get-IdentityPropertyFromTable -Table $table
         Write-TTLog "Identity Field: $identityField"
 
-        $lastInspectionTime = [datetime](Invoke-CUQuery -Scheme Runtime -Table TriggersRuntime -Fields LastInspection -Where "Id='$($trigger.ID)'").data.LastInspection
+        $inspectionData = (Invoke-CUQuery -Scheme Runtime -Table TriggersRuntime -Fields LastInspection -Where "Id='$($trigger.ID)'").data
+        Write-TTLog "Inspection Data: $($inspectionData | ConvertTo-Json -Compress)"
+        
+        [ref] $lastInspectionDate = [DateTime]::MinValue 
+        [void] [datetime]::TryParse($inspectionData.LastInspection, $lastInspectionDate)
 
         Write-TTLog "Data retrieved from Get-ScopedTriggerDump: $($dump.Count) records found."
 
@@ -122,7 +126,7 @@ function Test-Trigger {
             $result.ScheduleResult = $scheduleResult
             $result.IdentityField = $record."$identityField"
             $result.ArePropertiesObserved = $arePropertiesObserved
-            $result.LastInspectionTime = $lastInspectionTime
+            $result.LastInspectionTime = $lastInspectionDate.Value
             [void] $output.Add($result)
         }
 
@@ -133,7 +137,7 @@ function Test-Trigger {
         }
         
         # Force output to be TriggerFilterResult[]
-        , $output.ToArray()
+        return ([TriggerFilterResult[]] $output)
     }
     catch {
         Write-TTLog "ERROR: $($_.Exception.Message)"
