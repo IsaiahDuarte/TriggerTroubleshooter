@@ -33,10 +33,14 @@ class TriggerFilterResult {
         $this.ChildNodes = [System.Collections.Generic.List[TriggerFilterResult]]::new()
     }
 
-    [string] BuildResultString([int] $IndentLevel = 0, [string] $PrefixOperator = '') {
+    [string] BuildResultString([int] $IndentLevel = 0, [string] $PrefixOperator = '', [bool] $OnlyTrue = $false) {
         $sb = New-Object System.Text.StringBuilder
 
         try {
+            if ($OnlyTrue -and (-not $this.EvaluationResult)) {
+                return ""
+            }
+
             if ($IndentLevel -eq 0) {
                 $separator = '=' * 60
                 # Append the header lines.
@@ -80,7 +84,7 @@ class TriggerFilterResult {
                     $child = $this.ChildNodes[$i]
                     $childOperator = if ($i -gt 0) { $child.LogicalOperator } else { '' }
                     # Recursively build the child’s string output.
-                    $childSb = $child.BuildResultString($IndentLevel + 1, $childOperator)
+                    $childSb = $child.BuildResultString($IndentLevel + 1, $childOperator, $OnlyTrue)
                     $sb.Append($childSb.ToString()) | Out-Null
                 }
             }
@@ -93,6 +97,10 @@ class TriggerFilterResult {
     }
 
     [void] DisplayResult() {
-        Write-Host $this.BuildResultString(0, "")
+        Write-Host $this.BuildResultString(0, "", $false)
+    }
+
+    [void] DisplayResult([bool] $OnlyTrue) {
+        Write-Host $this.BuildResultString(0, "", $OnlyTrue)
     }
 } 

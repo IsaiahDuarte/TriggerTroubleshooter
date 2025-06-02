@@ -9,6 +9,9 @@
 
     .PARAMETER TriggerName
         Specifies the name of the trigger to test.
+    
+    .PARAMETER OnlyShowObjectsThatWillFireParameter
+        Specifies wheather it will show objects that will fire the trigger or not
 
     .PARAMETER AllRecordsParameter
         Specifies whether it will process all the available records.
@@ -26,7 +29,7 @@
         This parameter is only used if AllRecordsParameter is "False".
     
     .PARAMETER SaveResultsPath
-        If provided, it will output the test results to the specified path.
+        If provided, it will output the test results to the specified folder path.
     
     .PARAMETER CollectSupportZipParameter
         Indicates whether a Support Dump should be collected after trigger testing.
@@ -54,6 +57,10 @@
 param (
     [Parameter(Mandatory = $true)]
     [string] $TriggerName,
+
+    [Parameter(Mandatory = $true)]
+    [ValidateSet("False", "True")]
+    [string] $OnlyShowObjectsThatWillFireParameter = "False",
 
     [Parameter(Mandatory = $false)]
     [ValidateSet("False", "True")]
@@ -89,6 +96,7 @@ $AllRecords = [System.Convert]::ToBoolean($AllRecordsParameter)
 $CollectSupportZip = [System.Convert]::ToBoolean($CollectSupportZipParameter)
 $SimulateTrigger = [System.Convert]::ToBoolean($SimulateTriggerParameter)
 $Debug = [System.Convert]::ToBoolean($DebugParameter)
+$OnlyShowObjectsThatWillFire = [System.Convert]::ToBoolean($OnlyShowObjectsThatWillFireParameter)
 
 if($Debug) {
     $ENV:TRIGGER_TROUBLESHOOTER_LOG_TO_FILE = $true
@@ -102,6 +110,13 @@ switch ("N/A") {
 }
 
 try {   
+    # If we have a path provided and if the path isn't a container, error
+    if($null -ne $SaveResultsPath -and !(Test-Path -Path $SaveResultsPath -PathType Container)) {
+        throw "$SaveResultsPath is not a valid path"
+    } else {
+        $SaveResultFullPath = Join-Path -Path $SaveResultsPath -ChildPath "TriggerTroubleshooter-$([DateTime]::Now.ToString("yyyy-dd-M--HH-mm-ss")).txt"
+    }
+
     Write-Output "Importing latest module from monitor"
     
     # Get the latest version of the ControlUp.PowerShell.User.dll using LastWriteTime.
@@ -131,12 +146,13 @@ try {
     # If SaveResultsPath was passed, it will process differently.
     if ($null -ne $result -and !$SaveResultsPath) {
         Write-Output "`nTested $($result.count) records against trigger conditions"
-        $result.DisplayResult()
+        $result.DisplayResult($OnlyShowObjectsThatWillFire)
     }
-    elseif ($null -ne $result -and $SaveResultsPath) {
+    elseif ($null -ne $result -and $SaveResultFullPath) {
+
         Write-Output "`nTested $($result.count) records against trigger conditions"
-        Write-Output "Saving results to $SaveResultsPath"
-        $result.BuildResultString(0, "") | Out-File -FilePath $SaveResultsPath -Force -Append
+        Write-Output "Saving results to $SaveResultFullPath"
+        $result.BuildResultString(0, "", $OnlyShowObjectsThatWillFire) | Out-File -FilePath $SaveResultFullPath -Force
     }
 
     # Collecting support dump if specified
