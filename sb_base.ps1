@@ -58,7 +58,7 @@ param (
     [Parameter(Mandatory = $true)]
     [string] $TriggerName,
 
-    [Parameter(Mandatory = $true)]
+    [Parameter(Mandatory = $false)]
     [ValidateSet("False", "True")]
     [string] $OnlyShowObjectsThatWillFireParameter = "False",
 
@@ -111,10 +111,12 @@ switch ("N/A") {
 
 try {   
     # If we have a path provided and if the path isn't a container, error
-    if($null -ne $SaveResultsPath -and !(Test-Path -Path $SaveResultsPath -PathType Container)) {
-        throw "$SaveResultsPath is not a valid path"
-    } else {
-        $SaveResultFullPath = Join-Path -Path $SaveResultsPath -ChildPath "TriggerTroubleshooter-$([DateTime]::Now.ToString("yyyy-dd-M--HH-mm-ss")).txt"
+    if($SaveResultsPath) {
+        if(!(Test-Path -Path $SaveResultsPath -PathType Container -ErrorAction SilentlyContinue)) {
+            throw "$SaveResultsPath is not a valid folder path"
+        } elseif ($null -ne $SaveResultsPath) {
+            $SaveResultFullPath = Join-Path -Path $SaveResultsPath -ChildPath "TriggerTroubleshooter-$([DateTime]::Now.ToString("yyyy-dd-M--HH-mm-ss")).txt"
+        }
     }
 
     Write-Output "Importing latest module from monitor"

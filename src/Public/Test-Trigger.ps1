@@ -74,7 +74,7 @@ function Test-Trigger {
         $table = Get-TableName -TableName $triggerObservableDetails.Table -TriggerType $triggerDetails.TriggerType
 
         Write-TTLog "Getting all columns"
-        $columns = Get-TriggerColumns -FilterNodes $triggerDetails.FilterNodes
+        [array] $columns = Get-TriggerColumns -FilterNodes $triggerDetails.FilterNodes
 
         Write-TTLog "Testing if properties are in the Observables runtime"
         $arePropertiesObserved = Test-ObserverdProperties -ResourceName $table -Properties $columns
