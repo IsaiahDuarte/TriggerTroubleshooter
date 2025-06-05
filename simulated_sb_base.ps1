@@ -6,7 +6,7 @@
         This script will simulate trigger conditions like creating a windows event.
 
     .NOTES 
-        Version:           1.3.0
+        Version:           1.3.5
         Context:           Made for Trigger Troubleshooter
         Author:            Isaiah Duarte ->  https://github.com/IsaiahDuarte/TriggerTroubleshooter  
         Requires:          The CU Monitor's ControlUp.PowerShell.User.dll & 9.0.5+
@@ -73,7 +73,7 @@ switch ($TestType) {
 
     "CPU" {
         Write-Host $Duration
-        Invoke-CpuLoad -CPUUsage 90 -DurationMilliseconds (([int]$Duration)*1000)
+        Invoke-CpuLoad -CPUUsage 90 -DurationMilliseconds (([int]$Duration) * 1000)
     }
     
     "DiskUsage" {

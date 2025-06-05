@@ -38,22 +38,22 @@ class TriggerFilterResult {
 
         try {
             if ($OnlyTrue -and (-not $this.EvaluationResult)) {
-                return ""
+                return $null
             }
 
             if ($IndentLevel -eq 0) {
                 $separator = '=' * 60
                 # Append the header lines.
-                $sb.AppendLine("`n$separator") | Out-Null
+                [void] $sb.AppendLine("`n$separator")
                 if ($this.ChildNodes.Count -gt 0 -and $this.ChildNodes[0].Details) {
-                    $sb.AppendLine(("Key: {0}" -f $this.ChildNodes[0].Details.Key)) | Out-Null
+                    [void] $sb.AppendLine(("Key: {0}" -f $this.ChildNodes[0].Details.Key))
                 }
-                $sb.AppendLine(("Identity: {0}" -f $this.IdentityField)) | Out-Null
-                $sb.AppendLine(("In Schedule: {0}" -f $this.ScheduleResult)) | Out-Null
-                $sb.AppendLine(("Are Properties Observed: {0}" -f $this.ArePropertiesObserved)) | Out-Null
-                $sb.AppendLine(("Last Inspection Time: {0}" -f $this.LastInspectionTime))
-                $sb.AppendLine(("Will Fire: {0}" -f $this.EvaluationResult)) | Out-Null
-                $sb.AppendLine($separator) | Out-Null
+                [void] $sb.AppendLine(("Identity: {0}" -f $this.IdentityField))
+                [void] $sb.AppendLine(("In Schedule: {0}" -f $this.ScheduleResult))
+                [void] $sb.AppendLine(("Are Properties Observed: {0}" -f $this.ArePropertiesObserved))
+                [void] $sb.AppendLine(("Last Inspection Time: {0}" -f $this.LastInspectionTime))
+                [void] $sb.AppendLine(("Will Fire: {0}" -f $this.EvaluationResult))
+                [void] $sb.AppendLine($separator)
             }
 
             $indent = ('    ' * $IndentLevel)
@@ -71,26 +71,27 @@ class TriggerFilterResult {
                     $detailString = "(Value: $($this.Details.RecordValue), Operator: $($this.Details.ComparisonUsed))"
                 }
                 $line = "{0}{1}- Condition: IsRegex ({2}) {3} {4} {5}" -f $indent, $prefix, $expr.IsRegex, $conditionStr, $detailString, $resultSymbol
-                $sb.AppendLine($line) | Out-Null
+                [void] $sb.AppendLine($line)
             }
 
             if ($this.ChildNodes -and $this.ChildNodes.Count -gt 0) {
                 if (-not $this.ExpressionDescriptor) {
                     $line = "{0}{1}({2}) {3}" -f $indent, $prefix, $this.LogicalOperator, $resultSymbol
-                    $sb.AppendLine($line) | Out-Null
+                    [void] $sb.AppendLine($line)
                 }
 
                 for ($i = 0; $i -lt $this.ChildNodes.Count; $i++) {
                     $child = $this.ChildNodes[$i]
                     $childOperator = if ($i -gt 0) { $child.LogicalOperator } else { '' }
-                    # Recursively build the child’s string output.
-                    $childSb = $child.BuildResultString($IndentLevel + 1, $childOperator, $OnlyTrue)
-                    $sb.Append($childSb.ToString()) | Out-Null
+                    $childOutput = $child.BuildResultString($IndentLevel + 1, $childOperator, $OnlyTrue)
+                    if (-not [string]::IsNullOrWhiteSpace($childOutput)) {
+                        [void] $sb.Append($childOutput)
+                    }
                 }
             }
         }
         catch {
-            $sb.AppendLine("Error in BuildResultString: $($_.Exception.Message)") | Out-Null
+            [void] $sb.AppendLine("Error in BuildResultString: $($_.Exception.Message)")
         }
 
         return $sb.ToString()
@@ -101,6 +102,9 @@ class TriggerFilterResult {
     }
 
     [void] DisplayResult([bool] $OnlyTrue) {
-        Write-Host $this.BuildResultString(0, "", $OnlyTrue)
+        [string] $line = $this.BuildResultString(0, "", $OnlyTrue)
+        if (-not [string]::IsNullOrWhiteSpace($line)) {
+            Write-Host $line
+        }
     }
 } 

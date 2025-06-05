@@ -39,7 +39,7 @@ function Test-Schedule {
                 Write-TTLog "Retrieving schedule by name: $ScheduleName"
                 $schedules = Get-CUTriggerSchedules
 
-                if($null -eq $schedules) {
+                if ($null -eq $schedules) {
                     throw "Get-CUTriggerSchedules returned nothing"
                 }
 

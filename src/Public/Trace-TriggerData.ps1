@@ -7,10 +7,10 @@ function Trace-TriggerData {
         Dump data, rotate files by size, and optionally run as a background job
     
     .PARAMETER Name
-        Trigger name
+        Trigger name case sensitive
     
     .PARAMETER Records
-        Number of records
+        Number of records to be returned in the Invoke-CUQuery function
     
     .PARAMETER Duration
         How long to capture
@@ -34,9 +34,6 @@ function Trace-TriggerData {
     .PARAMETER TriggerDataRententionInMinutes
         The number in minutes where trigger data is stored in memory when
         OnTrigger is specified
-    
-    .PARAMETER AsJob
-        Run this capture as a background job
     
     .EXAMPLE
         Trace-TriggerData -Name "MyTrigger" -AsJob
@@ -75,24 +72,11 @@ function Trace-TriggerData {
         [int] $TriggerDataRententionInMinutes = 15,
 
         [Parameter(Mandatory = $false, ParameterSetName = 'DumpOnFire')]
-        [switch] $OnTrigger,
-
-        [Parameter(Mandatory = $false, ParameterSetName = 'Trace')]
-        [Parameter(Mandatory = $false, ParameterSetName = 'DumpOnFire')]
-        [switch] $AsJob
+        [switch] $OnTrigger
     )
 
     Write-Output "Saving results to: $CsvPath"
     Write-TTLog "Saving results to: $CsvPath"
-    if ($AsJob) {
-        $CUPath = (Get-Module -Name ControlUp.Powershell.User).Path
-        $ModulePath = (Get-Module -Name TriggerTroubleshooter).Path
-        $job = Start-Job -Name "TraceTriggerData-$Name" -ScriptBlock {
-            Import-Module $using:ModulePath, $using:CUPath
-            Trace-TriggerData -Name $using:Name -Records $using:Records -Duration $using:Duration -CollectionInterval $using:CollectionInterval -CsvPath $using:CsvPath -FileSizeThreshold $using:FileSizeThreshold -MaxFiles $using:MaxFiles
-        }
-        return $job
-    }
     
     try {
         Write-TTLog "Getting Trigger"
@@ -219,8 +203,8 @@ function Trace-TriggerData {
                 if ($OnTrigger) {
                     Write-TTLog "Rows in memory: $($csvData.Count)"
                     $csvData = $csvData.Where({
-                        $_.TimeWritten -ge ((Get-Date).AddMinutes(-1 * $TriggerDataRententionInMinutes))
-                    })
+                            $_.TimeWritten -ge ((Get-Date).AddMinutes(-1 * $TriggerDataRententionInMinutes))
+                        })
                     Write-TTLog "Rows in memory after retention cleaning: $($csvData.Count)"
                 }
 
@@ -233,8 +217,8 @@ function Trace-TriggerData {
                     if ([DateTime] $configuration.LastIncidentCreation -gt $lastTriggerFire) {
                         Write-TTLog "LastIncidentCreation is greater than $lastTriggerFire... writing data"
                         $csvData.foreach({
-                            $csvWriter.WriteLine($_.CSVLine)
-                        })
+                                $csvWriter.WriteLine($_.CSVLine)
+                            })
                         $lastTriggerFire = $configuration.LastIncidentCreation
                     }
                     else {

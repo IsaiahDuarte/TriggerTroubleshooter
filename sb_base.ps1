@@ -41,7 +41,7 @@
         Tests the trigger "MyTrigger" and gets the live data using export-cuquery
 
     .NOTES 
-        Version:           1.3.0
+        Version:           1.3.5
         Context:           Computer script running on one of the CU Monitors
         Author:            Isaiah Duarte ->  https://github.com/IsaiahDuarte/TriggerTroubleshooter  
         Requires:          The CU Monitor's ControlUp.PowerShell.User.dll & 9.0.5+
@@ -98,7 +98,7 @@ $SimulateTrigger = [System.Convert]::ToBoolean($SimulateTriggerParameter)
 $Debug = [System.Convert]::ToBoolean($DebugParameter)
 $OnlyShowObjectsThatWillFire = [System.Convert]::ToBoolean($OnlyShowObjectsThatWillFireParameter)
 
-if($Debug) {
+if ($Debug) {
     $ENV:TRIGGER_TROUBLESHOOTER_LOG_TO_FILE = $true
     $ENV:TRIGGER_TROUBLESHOOTER_LOG_TO_HOST = $true
 }
@@ -111,10 +111,11 @@ switch ("N/A") {
 
 try {   
     # If we have a path provided and if the path isn't a container, error
-    if($SaveResultsPath) {
-        if(!(Test-Path -Path $SaveResultsPath -PathType Container -ErrorAction SilentlyContinue)) {
+    if ($SaveResultsPath) {
+        if (!(Test-Path -Path $SaveResultsPath -PathType Container -ErrorAction SilentlyContinue)) {
             throw "$SaveResultsPath is not a valid folder path"
-        } elseif ($null -ne $SaveResultsPath) {
+        }
+        elseif ($null -ne $SaveResultsPath) {
             $SaveResultFullPath = Join-Path -Path $SaveResultsPath -ChildPath "TriggerTroubleshooter-$([DateTime]::Now.ToString("yyyy-dd-M--HH-mm-ss")).txt"
         }
     }
@@ -181,7 +182,7 @@ try {
         $triggerDetails = Get-CUTriggerDetails -TriggerId $trigger.Id
 
         $splat = @{
-            TriggerName = $TriggerName
+            TriggerName  = $TriggerName
             ComputerName = $SimulateOnComputer
         }
 
@@ -193,22 +194,26 @@ try {
             }
 
             "Machine Stress" {
-                if($columns -contains "CPU") {
+                if ($columns -contains "CPU") {
                     $splat.ConditionType = "CPU"
-                } elseif ($columns -contains "MemoryInUse") {
+                }
+                elseif ($columns -contains "MemoryInUse") {
                     $splat.ConditionType = "Memory"
-                } else {
+                }
+                else {
                     Write-Warning "Trigger Type $($trigger.TriggerType) cannot be simulated. Doesn't contain CPU or MemoryInUse columns"
                     return
                 }
             }
 
             "Logical Disk Stress" {
-                if($columns -contains "FreeSpacePercentage") {
+                if ($columns -contains "FreeSpacePercentage") {
                     $splat.ConditionType = "DiskUsage"
-                } elseif ($columns -match "DiskKBps|DiskReadKBps|DiskWriteKBps") {
+                }
+                elseif ($columns -match "DiskKBps|DiskReadKBps|DiskWriteKBps") {
                     $splat.ConditionType = "DiskIO"
-                } else {
+                }
+                else {
                     Write-Warning "Trigger Type $($trigger.TriggerType) cannot be simulated. Doesn't contain DiskUsage,DiskKBps,DiskReadKBps,DiskWriteKBps"
                     return
                 }
@@ -229,7 +234,7 @@ try {
         }
         $simulationResult = Invoke-SimulatedTrigger @splat
 
-        if($simulationResult) {
+        if ($simulationResult) {
             $separator = '=' * 60
             Write-Output $separator
             Write-Output "Simulation result: $($simulationResult.TriggerFired)"

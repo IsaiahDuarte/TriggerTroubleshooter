@@ -62,11 +62,11 @@ function Test-Trigger {
         $triggerObservableDetails = Get-CUObservableTriggerDetails -Trigger $Name
 
         # Sometimes when a trigger is disabled, then gets enabled, Get-CUObservableTriggerDetails returns empty filter/table
-        if($triggerObservableDetails.Filters.Count -eq 0) {
+        if ($triggerObservableDetails.Filters.Count -eq 0) {
             $triggerObservableDetails.Filters = Get-TriggerColumns -FilterNodes $triggerDetails.FilterNodes
         }
 
-        if([string]::IsNullOrEmpty($triggerObservableDetails.Table)) {
+        if ([string]::IsNullOrEmpty($triggerObservableDetails.Table)) {
             $triggerObservableDetails.Table = $triggerDetails.TableName
         }
 
@@ -78,7 +78,20 @@ function Test-Trigger {
 
         Write-TTLog "Testing if properties are in the Observables runtime"
         $arePropertiesObserved = Test-ObserverdProperties -ResourceName $table -Properties $columns
+        
+        Write-TTLog "Getting the Identity Property from $Table"
+        $identityField = Get-IdentityPropertyFromTable -Table $table
+        Write-TTLog "Identity Field: $identityField"
 
+        Write-TTLog "Getting LastInspection for trigger"
+        $inspectionData = (Invoke-CUQuery -Scheme Runtime -Table TriggersRuntime -Fields LastInspection -Where "Id='$($trigger.ID)'").data
+        Write-TTLog "Inspection Data: $($inspectionData | ConvertTo-Json -Compress)"
+        
+        [ref] $lastInspectionDate = [DateTime]::MinValue 
+        [void] [datetime]::TryParse($inspectionData.LastInspection, $lastInspectionDate)
+        
+        Write-TTLog "LastInspection: $($lastInspectionDate.Value)"
+        
         Write-TTLog "Getting trigger dump"
         $dumpSplat = @{
             Name                     = $Name
@@ -103,15 +116,6 @@ function Test-Trigger {
             Write-Warning "No data was returned by the query."
             return
         }
-
-        $identityField = Get-IdentityPropertyFromTable -Table $table
-        Write-TTLog "Identity Field: $identityField"
-
-        $inspectionData = (Invoke-CUQuery -Scheme Runtime -Table TriggersRuntime -Fields LastInspection -Where "Id='$($trigger.ID)'").data
-        Write-TTLog "Inspection Data: $($inspectionData | ConvertTo-Json -Compress)"
-        
-        [ref] $lastInspectionDate = [DateTime]::MinValue 
-        [void] [datetime]::TryParse($inspectionData.LastInspection, $lastInspectionDate)
 
         Write-TTLog "Data retrieved from Get-ScopedTriggerDump: $($dump.Count) records found."
 
