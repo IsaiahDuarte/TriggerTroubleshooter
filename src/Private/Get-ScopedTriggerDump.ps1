@@ -67,7 +67,7 @@ function Get-ScopedTriggerDump {
     try {
         Write-TTLog "Starting the Get-ScopedTriggerDump process for trigger: $Name"
 
-        if(!$SkipTableValidation) {
+        if (!$SkipTableValidation) {
             $tables = (Invoke-CUQuery -Scheme Information -Fields SchemaName, TableName -Table Tables -take 500).data.TableName | Sort-Object
             Write-TTLog "Retrieved table names: $tables"
     
@@ -88,11 +88,12 @@ function Get-ScopedTriggerDump {
 
         Write-TTLog "Building Query"
         $where = ""
-        foreach($folder in $TriggerObservableDetails.Folders) {
+        foreach ($folder in $TriggerObservableDetails.Folders) {
             # FolderPath is empty on Folder objects. Use Path.
-            if($TriggerObservableDetails.Table -eq "Folders") {
-                $where = "${where}Path='$folder' OR"
-            } else {
+            if ($TriggerObservableDetails.Table -eq "Folders") {
+                $where = "${where}Path='$folder' OR "
+            }
+            else {
                 $where = "${where}FolderPath='$folder' OR "
             }
         }
@@ -125,7 +126,7 @@ function Get-ScopedTriggerDump {
 
         # Gives an identifier for a record like sName based on the table
         $identityField = Get-IdentityPropertyFromTable -Table $Table
-        if(![string]::IsNullOrEmpty($identityField) -and $identityField -notin $splat.Fields) {
+        if (![string]::IsNullOrEmpty($identityField) -and $identityField -notin $splat.Fields) {
             Write-TTLog "Adding identity field: $identityField"
             $splat.Fields += $identityField
         }
@@ -135,7 +136,7 @@ function Get-ScopedTriggerDump {
         $results = Get-CUQueryData @splat
 
         # We need to adjust the data if its a WindowsEvent
-        if($TriggerType -eq "WindowsEvent" -and $null -ne $results) {
+        if ($TriggerType -eq "WindowsEvent" -and $null -ne $results) {
             $results = Set-WindowsEventData -Data $results
         }
 
